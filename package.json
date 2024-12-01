@@ -1,0 +1,89 @@
+{
+  "name": "@levicape/spork-typescript",
+  "author": "Pedro Cardona",
+  "license": "AGPL-3.0-only",
+  "main": "module/index.js",
+  "types": "module/index.d.ts",
+  "type": "module",
+  "version": "0.0.0-local.0",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/levicape/spork-typescript.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "bin": {
+    "spork": "module/cli/bin.js"
+  },
+  "files": [
+    "src",
+    "module"
+  ],
+  "scripts": {
+    "prelint": "npx @biomejs/biome format ./src ./canary",
+    "lint": "npx @biomejs/biome check ./src ./canary",
+    "lint:format": "npx @biomejs/biome format --write ./src ./canary",
+    "lint:write": "npx @biomejs/biome check --write ./src ./canary",
+    "lint:unsafe": "npx @biomejs/biome check --write --unsafe ./src ./canary",
+    "prebuild": "npm run clean",
+    "build": "npx tsc",
+    "pretest": "npm run build",
+    "start": "node module/cli/bin.js start --target \"module/app/router/hono/HonoHttpServer.js\"",
+    "test": "echo 'ok!!!'",
+    "test:unit": "node --test  \"module/**/*.test.js\"",
+    "test:canary": "node --experimental-strip-types canary/basic.ts",
+    "clean": "rm -rf ./module",
+    "clean:pack": "rm -rf ./spork-typescript.repopack",
+    "pack": "npx clean:pack && npx repopack --output ./spork-typescript.repopack"
+  },
+  "peerDependencies": {
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.687.0",
+    "@aws-sdk/client-secrets-manager": "^3.687.0",
+    "@aws-sdk/client-sqs": "^3.687.0",
+    "@aws-sdk/lib-dynamodb": "^3.687.0",
+    "@aws-sdk/util-dynamodb": "^3.699.0",
+    "@azure/storage-queue": "^12.24.0",
+    "@bogeychan/elysia-logger": "^0.1.4",
+    "@bufbuild/protobuf": "^2.2.2",
+    "@hono/node-server": "^1.13.7",
+    "@hono/zod-validator": "^0.4.1",
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@stricjs/cluster": "^2.0.0",
+    "@stricjs/utils": "^2.0.7",
+    "@stricli/core": "^1.1.0",
+    "@types/compressible": "^2.0.2",
+    "aws4fetch": "^1.0.20",
+    "compressible": "^2.0.18",
+    "consola": "^3.2.3",
+    "hono": "^4.6.12",
+    "hono-rate-limiter": "^0.4.0",
+    "hookable": "^5.5.3",
+    "http-status-codes": "^2.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "knex": "^3.1.0",
+    "ksuid": "^3.0.0",
+    "odata-filter-parser": "^0.5.5",
+    "pino-lambda": "^4.4.1",
+    "slonik": "^46.1.0",
+    "ulidx": "^2.4.1",
+    "uuid-base64-ts": "^1.0.2",
+    "zod": "^3.23.8"
+  },
+  "patchedDependencies": {
+    "odata-filter-parser@0.5.5": "patches/odata-filter-parser@0.5.5.patch"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.10.1",
+    "expect": "^29.7.0"
+  },
+  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
+}

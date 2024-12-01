@@ -1,0 +1,15 @@
+{
+    "files": {
+      "ignore": ["src/_protocols/**/*"]
+    },
+    "linter": {
+      "rules": {
+        "complexity": {
+          "noForEach": "off"
+        },
+        "style": {
+          "noUnusedTemplateLiteral": "off"
+        }
+      }
+    }
+}
