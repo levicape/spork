@@ -4,7 +4,12 @@
   "license": "AGPL-3.0-only",
   "main": "module/index.js",
   "types": "module/index.d.ts",
-  "module": "module/index.js",
+  "exports": {
+    ".": "./module/index.js",
+    "./lambda": "./module/lambda/index.js",
+    "./cli": "./module/cli/index.js",
+    "./ci": "./module/ci/index.js"
+  },
   "type": "module",
   "version": "0.0.0-local.0",
   "engines": {

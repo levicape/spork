@@ -1,5 +1,5 @@
 import { buildApplication, buildRouteMap } from "@stricli/core";
-import { CodeRoutemap } from "./commands/protocol/CodeRoutemap.js";
+import { CodeRoutemap } from "./commands/code/CodeRoutemap.js";
 import { ServerRoutemap } from "./commands/server/ServerRoutemap.js";
 
 export const SporkCliApp = async () => {
