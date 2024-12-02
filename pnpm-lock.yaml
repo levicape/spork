@@ -26,9 +26,6 @@ importers:
       '@azure/storage-queue':
         specifier: ^12.24.0
         version: 12.25.0
-      '@bogeychan/elysia-logger':
-        specifier: ^0.1.4
-        version: 0.1.4(elysia@1.1.25(@sinclair/typebox@0.34.9)(typescript@5.7.2))
       '@bufbuild/protobuf':
         specifier: ^2.2.2
         version: 2.2.2
@@ -50,9 +47,6 @@ importers:
       '@stricli/core':
         specifier: ^1.1.0
         version: 1.1.0
-      '@types/compressible':
-        specifier: ^2.0.2
-        version: 2.0.2
       aws4fetch:
         specifier: ^1.0.20
         version: 1.0.20
@@ -111,6 +105,9 @@ importers:
       '@bufbuild/buf':
         specifier: ^1.44.0
         version: 1.47.2
+      '@types/compressible':
+        specifier: ^2.0.2
+        version: 2.0.2
       '@types/jsonwebtoken':
         specifier: ^9.0.7
         version: 9.0.7
@@ -380,11 +377,6 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@bogeychan/elysia-logger@0.1.4':
-    resolution: {integrity: sha512-8UsoBaHoRfRGyEnKhR/BSURYwfmx1gQb1/r2WBPfS5ROJMg+Bhl94IuzFNQ/++mq5bT6zJrAMVyfGjyEqiiQmQ==}
-    peerDependencies:
-      elysia: '>= 1.1.0'
-
   '@bufbuild/buf-darwin-arm64@1.47.2':
     resolution: {integrity: sha512-74WerFn06y+azgVfsnzhfbI5wla/OLPDnIvaNJBWHaqya/3bfascJkDylW2GVNHmwG1K/cscpmcc/RJPaO7ntQ==}
     engines: {node: '>=12'}
@@ -468,9 +460,6 @@ packages:
 
   '@sinclair/typebox@0.27.8':
     resolution: {integrity: sha512-+Fj43pSMwJs4KRrH/938Uf+uAELIgVBmQzg/q1YG10djyfA3TnrU8N8XzqCh/okZdszqBQTZf96idMfE5lnwTA==}
-
-  '@sinclair/typebox@0.34.9':
-    resolution: {integrity: sha512-KTuEZ4UHIp8rNgbLrsQwmGo4cCVj/AHPG3DsI1VvfzudG8dzpZNCV4qm4NWfYY02ReB5INVyuq6xGrl3Ks8vAQ==}
 
   '@slonik/driver@46.2.0':
     resolution: {integrity: sha512-N0BPxFeMKWG7M8MwvOV/jqmzsVqVG7RbN3Fz/67f9UncmUj4N5fL6evI/YKaT9GS+gtrGzvI85o0w6v0FaWvHA==}
@@ -788,10 +777,6 @@ packages:
     resolution: {integrity: sha512-I5qxpzLv+sJhTVEoLYNcTW+bThDCPsit0vLNKShZx6rLtpilNpmmeTPaeqJb9ZE9dV3DGaeby6Vuhrw38WjeyQ==}
     engines: {node: ^14.18.0 || >=16.10.0}
 
-  cookie@1.0.2:
-    resolution: {integrity: sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==}
-    engines: {node: '>=18'}
-
   debug@4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
     engines: {node: '>=6.0'}
@@ -825,18 +810,6 @@ packages:
   ecdsa-sig-formatter@1.0.11:
     resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
 
-  elysia@1.1.25:
-    resolution: {integrity: sha512-lBLUnhfD86q/0a5sNzWTiNuPsrW7ykGz8HoebybVfK+P1hjVwzzPkM/NtNnwPx7wrpd+D7UP7EyqeFPD4CPaQA==}
-    peerDependencies:
-      '@sinclair/typebox': '>= 0.32.0'
-      openapi-types: '>= 12.0.0'
-      typescript: '>= 5.0.0'
-    peerDependenciesMeta:
-      openapi-types:
-        optional: true
-      typescript:
-        optional: true
-
   escalade@3.2.0:
     resolution: {integrity: sha512-WUj2qlxaQtO4g6Pq5c29GTcWGDyd8itL8zTlipgECz3JesAiiOKotd8JU6otB3PACgG6xkJUyVhboMS+bje/jA==}
     engines: {node: '>=6'}
@@ -852,9 +825,6 @@ packages:
   expect@29.7.0:
     resolution: {integrity: sha512-2Zks0hf1VLFYI1kbh0I5jP3KHHyCHpkfyHBzsSXRFgl/Bg9mWYfMW8oD+PdMPlEwy5HNsR9JutYy6pMeOh61nw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-
-  fast-decode-uri-component@1.0.1:
-    resolution: {integrity: sha512-WKgKWg5eUxvRZGwW8FvfbaH7AXSh2cL+3j5fMGzUMCxWBJ3dV3a7Wz8y2f/uQ0e3B6WmodD3oS54jTQ9HVTIIg==}
 
   fast-printf@1.6.9:
     resolution: {integrity: sha512-FChq8hbz65WMj4rstcQsFB0O7Cy++nmbNfLYnD9cYv2cRn8EG6k/MGn9kO/tjO66t09DLDugj3yL+V2o6Qftrg==}
@@ -1990,11 +1960,6 @@ snapshots:
   '@biomejs/cli-win32-x64@1.9.4':
     optional: true
 
-  '@bogeychan/elysia-logger@0.1.4(elysia@1.1.25(@sinclair/typebox@0.34.9)(typescript@5.7.2))':
-    dependencies:
-      elysia: 1.1.25(@sinclair/typebox@0.34.9)(typescript@5.7.2)
-      pino: 9.5.0
-
   '@bufbuild/buf-darwin-arm64@1.47.2':
     optional: true
 
@@ -2061,8 +2026,6 @@ snapshots:
       '@noble/hashes': 1.6.1
 
   '@sinclair/typebox@0.27.8': {}
-
-  '@sinclair/typebox@0.34.9': {}
 
   '@slonik/driver@46.2.0(zod@3.23.8)':
     dependencies:
@@ -2480,8 +2443,6 @@ snapshots:
 
   consola@3.2.3: {}
 
-  cookie@1.0.2: {}
-
   debug@4.3.4:
     dependencies:
       ms: 2.1.2
@@ -2502,14 +2463,6 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  elysia@1.1.25(@sinclair/typebox@0.34.9)(typescript@5.7.2):
-    dependencies:
-      '@sinclair/typebox': 0.34.9
-      cookie: 1.0.2
-      fast-decode-uri-component: 1.0.1
-    optionalDependencies:
-      typescript: 5.7.2
-
   escalade@3.2.0: {}
 
   escape-string-regexp@2.0.0: {}
@@ -2523,8 +2476,6 @@ snapshots:
       jest-matcher-utils: 29.7.0
       jest-message-util: 29.7.0
       jest-util: 29.7.0
-
-  fast-decode-uri-component@1.0.1: {}
 
   fast-printf@1.6.9:
     dependencies:

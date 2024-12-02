@@ -4,6 +4,7 @@
   "license": "AGPL-3.0-only",
   "main": "module/index.js",
   "types": "module/index.d.ts",
+  "module": "module/index.js",
   "type": "module",
   "version": "0.0.0-local.0",
   "engines": {
@@ -21,7 +22,11 @@
   },
   "files": [
     "src",
-    "module"
+    "canary",
+    "module",
+    "iac",
+    "protocols",
+    ".github"
   ],
   "scripts": {
     "prelint": "npx @biomejs/biome format ./src ./canary",
@@ -41,7 +46,12 @@
     "clean": "rm -rf ./module"
   },
   "peerDependencies": {
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "@hono/node-server": "^1.13.7",
+    "@bufbuild/protobuf": "^2.2.2",
+    "hono": "^4.6.12",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.687.0",
@@ -50,37 +60,28 @@
     "@aws-sdk/lib-dynamodb": "^3.687.0",
     "@aws-sdk/util-dynamodb": "^3.699.0",
     "@azure/storage-queue": "^12.24.0",
-    "@bogeychan/elysia-logger": "^0.1.4",
-    "@bufbuild/protobuf": "^2.2.2",
-    "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.1",
     "@paralleldrive/cuid2": "^2.2.2",
     "@stricjs/cluster": "^2.0.0",
     "@stricjs/utils": "^2.0.7",
     "@stricli/core": "^1.1.0",
-    "@types/compressible": "^2.0.2",
     "aws4fetch": "^1.0.20",
     "compressible": "^2.0.18",
     "consola": "^3.2.3",
-    "hono": "^4.6.12",
     "hono-rate-limiter": "^0.4.0",
     "hookable": "^5.5.3",
     "http-status-codes": "^2.3.0",
-    "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
     "ksuid": "^3.0.0",
     "odata-filter-parser": "^0.5.5",
     "pino-lambda": "^4.4.1",
     "slonik": "^46.1.0",
     "ulidx": "^2.4.1",
-    "uuid-base64-ts": "^1.0.2",
-    "zod": "^3.23.8"
-  },
-  "patchedDependencies": {
-    "odata-filter-parser@0.5.5": "patches/odata-filter-parser@0.5.5.patch"
+    "uuid-base64-ts": "^1.0.2"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "@types/compressible": "^2.0.2",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.1",
     "expect": "^29.7.0",

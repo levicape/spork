@@ -1,0 +1,16 @@
+batch:
+  build-matrix:
+    static:
+      ignore-failure: false
+    dynamic:
+      buildspec:
+        - ci/stacks/toolchain/linux/buildspec.yml
+      env:
+        variables:
+          BUILD_ARCH:
+            - x86_64
+            - arm64
+            - arm
+          MUSL:
+            - true
+            - false

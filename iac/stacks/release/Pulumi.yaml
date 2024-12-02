@@ -1,0 +1,6 @@
+name: toolchain
+description: Builds container images for compiling Bun
+runtime:
+  name: nodejs
+  options:
+    packagemanager: npm

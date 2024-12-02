@@ -1,0 +1,21 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - export TASK_ROOT=$(pwd)
+      - apk update && apk add bash && apk add curl
+      - apk add nodejs npm
+      - uname -ms
+      - cd bun/ci/stacks/toolchain
+      - npm install
+  pre_build:
+    commands:
+      - curl -fsSL https://get.pulumi.com | bash
+      - export PATH=$PATH:/root/.pulumi/bin
+      - pulumi version
+      - pulumi login --local
+  build:
+    commands:
+      - pulumi stack init ci-builder
+      - pulumi up --yes
