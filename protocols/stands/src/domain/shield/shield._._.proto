@@ -1,0 +1,15 @@
+syntax = "proto3";
+package _zz_shield;
+
+option go_package = "_/_zz__";
+
+enum StandsShieldHttpHeaderBasic {
+  STANDS_SHIELD_HTTP_HEADER_BASIC_UNKNOWN = 0;
+
+  X_Nonce = 1;
+  X__DASH__Nonce = 10;
+  X_Forwarded_For = 2;
+  X_Amzn_Request_ID = 3;
+  X_Real_Ip = 4;
+  CloudFront_Viewer_JA3_Fingerprint = 5;
+}

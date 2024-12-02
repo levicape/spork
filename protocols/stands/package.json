@@ -1,0 +1,12 @@
+{
+  "name": "@levicape/stands",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean:build": "rm -rf ./gen",
+    "clean:all": "rm -rf ./gen && rm -rf ./node_modules || true",
+    "lint": "npx buf lint",
+    "format": "npx buf format -w",
+    "build": "npx buf generate"
+  }
+}

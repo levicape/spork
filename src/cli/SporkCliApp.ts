@@ -1,23 +1,24 @@
 import { buildApplication, buildRouteMap } from "@stricli/core";
-import { HandlerRoutemap } from "./commands/handler/HandlerRoutemap.js";
+import { CodeRoutemap } from "./commands/protocol/CodeRoutemap.js";
 import { ServerRoutemap } from "./commands/server/ServerRoutemap.js";
 
 export const SporkCliApp = async () => {
-	const [prepareHandler, prepareServer] = await Promise.all([
-		HandlerRoutemap(),
-		ServerRoutemap(),
-	]);
-	const [handler, server] = await Promise.all([
-		prepareHandler(),
-		prepareServer(),
-	]);
+	const routemap = [
+		["server", await ServerRoutemap()],
+		["code", await CodeRoutemap()],
+	] as const;
+
+	const prepare = await Promise.all(
+		routemap.map(async ([name, promise]) => {
+			return [name, await promise()];
+		}),
+	);
+
+	const routes = Object.fromEntries(prepare);
 
 	return buildApplication(
 		buildRouteMap({
-			routes: {
-				handler,
-				server,
-			},
+			routes,
 			docs: {
 				brief: "All available commands",
 			},

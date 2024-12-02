@@ -1,0 +1,29 @@
+syntax = "proto3";
+package _zz_logging;
+
+option go_package = "_/_zz__";
+
+message LoggingQueueArtemisMessage {
+  string id = 1;
+  string messageID = 2;
+}
+
+message LoggingQueueSQSMessage {
+  string id = 1;
+  string receiptHandle = 2;
+}
+
+message LoggingQueueOnReceiveMessageLog {
+  oneof backend {
+    LoggingQueueArtemisMessage artemis = 3;
+    LoggingQueueSQSMessage sqs = 4;
+  }
+}
+
+message LoggingQueueOnCompletedMessageLog {
+  oneof backend {
+    LoggingQueueArtemisMessage artemis = 1;
+    LoggingQueueSQSMessage sqs = 2;
+  }
+  string status = 3;
+}

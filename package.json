@@ -29,16 +29,16 @@
     "lint:format": "npx @biomejs/biome format --write ./src ./canary",
     "lint:write": "npx @biomejs/biome check --write ./src ./canary",
     "lint:unsafe": "npx @biomejs/biome check --write --unsafe ./src ./canary",
+    "prepare": "npm run generate:protocols",
+    "generate:protocols": "npx tsx ./src/cli/bin.ts code gen --root \"./protocols\" --command \"$(which npm) run build\" --artifact gen --destination ./src/_protocols --clean",
     "prebuild": "npm run clean",
     "build": "npx tsc",
-    "pretest": "npm run build",
-    "start": "node module/cli/bin.js start --target \"module/app/router/hono/HonoHttpServer.js\"",
-    "test": "echo 'ok!!!'",
-    "test:unit": "node --test  \"module/**/*.test.js\"",
+    "build:ci": "npm run prepare && npm run build",
+    "start": "node module/cli/bin.js server start --target \"module/app/router/hono/HonoHttpServer.js\"",
+    "test": "npm run test:module && npm run test:canary",
+    "test:module": "node --test  \"module/**/*.test.js\"",
     "test:canary": "node --experimental-strip-types canary/basic.ts",
-    "clean": "rm -rf ./module",
-    "clean:pack": "rm -rf ./spork-typescript.repopack",
-    "pack": "npx clean:pack && npx repopack --output ./spork-typescript.repopack"
+    "clean": "rm -rf ./module"
   },
   "peerDependencies": {
     "typescript": "^5.7.2"
@@ -83,7 +83,9 @@
     "@biomejs/biome": "^1.9.4",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.1",
-    "expect": "^29.7.0"
+    "expect": "^29.7.0",
+    "@bufbuild/buf": "^1.44.0",
+    "ts-proto": "^2.2.2"
   },
   "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
 }

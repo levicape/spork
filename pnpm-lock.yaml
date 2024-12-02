@@ -108,6 +108,9 @@ importers:
       '@biomejs/biome':
         specifier: ^1.9.4
         version: 1.9.4
+      '@bufbuild/buf':
+        specifier: ^1.44.0
+        version: 1.47.2
       '@types/jsonwebtoken':
         specifier: ^9.0.7
         version: 9.0.7
@@ -117,6 +120,9 @@ importers:
       expect:
         specifier: ^29.7.0
         version: 29.7.0
+      ts-proto:
+        specifier: ^2.2.2
+        version: 2.4.2
 
 packages:
 
@@ -378,6 +384,53 @@ packages:
     resolution: {integrity: sha512-8UsoBaHoRfRGyEnKhR/BSURYwfmx1gQb1/r2WBPfS5ROJMg+Bhl94IuzFNQ/++mq5bT6zJrAMVyfGjyEqiiQmQ==}
     peerDependencies:
       elysia: '>= 1.1.0'
+
+  '@bufbuild/buf-darwin-arm64@1.47.2':
+    resolution: {integrity: sha512-74WerFn06y+azgVfsnzhfbI5wla/OLPDnIvaNJBWHaqya/3bfascJkDylW2GVNHmwG1K/cscpmcc/RJPaO7ntQ==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@bufbuild/buf-darwin-x64@1.47.2':
+    resolution: {integrity: sha512-adAiOacOQe8Ym/YXPCEiq9mrPeKRmDtF2TgqPWTcDy6mF7TqR7hMJINkEEuMd1EeACmXnzMOnXlm9ICtvdYgPg==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [darwin]
+
+  '@bufbuild/buf-linux-aarch64@1.47.2':
+    resolution: {integrity: sha512-52vY+Owffr5diw2PyfQJqH+Fld6zW6NhNZak4zojvc2MjZKubWM0TfNyM9jXz2YrwyB+cyxkabE60nBI80m37w==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [linux]
+
+  '@bufbuild/buf-linux-armv7@1.47.2':
+    resolution: {integrity: sha512-g9KtpObDeHZ/VG/0b5ZCieOao7L/WYZ0fPqFSs4N07D3APgEDhJG6vLyUcDgJMDgyLcgkNjNz0+XdYQb/tXyQw==}
+    engines: {node: '>=12'}
+    cpu: [arm]
+    os: [linux]
+
+  '@bufbuild/buf-linux-x64@1.47.2':
+    resolution: {integrity: sha512-MODCK2BzD1Mgoyr+5Sp8xA8qMNdytj8hYheyhA5NnCGTkQf8sfqAjpBSAAmKk6Zar8HOlVXML6tzE/ioDFFGwQ==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [linux]
+
+  '@bufbuild/buf-win32-arm64@1.47.2':
+    resolution: {integrity: sha512-563YKYWJl3LrCY3G3+zuhb8HwOs6DzWslwGPFkKV2hwHyWyvd1DR1JjiLvw9zX64IKNctQ0HempSqc3kcboaqQ==}
+    engines: {node: '>=12'}
+    cpu: [arm64]
+    os: [win32]
+
+  '@bufbuild/buf-win32-x64@1.47.2':
+    resolution: {integrity: sha512-Sqcdv7La2xBDh3bTdEYb2f4UTMMqCcYe/D0RELhvQ5wDn6I35V3/2YT1OF5fRuf0BZLCo0OdO37S9L47uHSz2g==}
+    engines: {node: '>=12'}
+    cpu: [x64]
+    os: [win32]
+
+  '@bufbuild/buf@1.47.2':
+    resolution: {integrity: sha512-glY5kCAoO4+a7HvDb+BLOdoHSdCk4mdXdkp53H8JFz7maOnkxCiHHXgRX+taFyEu25N8ybn7NjZFrZSdRwq2sA==}
+    engines: {node: '>=12'}
+    hasBin: true
 
   '@bufbuild/protobuf@2.2.2':
     resolution: {integrity: sha512-UNtPCbrwrenpmrXuRwn9jYpPoweNXj8X5sMvYgsqYyaH8jQ6LfUJSk3dJLnBK+6sfYPrF4iAIo5sd5HQ+tg75A==}
@@ -701,6 +754,10 @@ packages:
   buffer-equal-constant-time@1.0.1:
     resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
 
+  case-anything@2.1.13:
+    resolution: {integrity: sha512-zlOQ80VrQ2Ue+ymH5OuM/DlDq64mEm+B9UTdHULv5osUMD6HalNTblf2b1u/m6QecjsnOkBpqVZ+XPwIVsy7Ng==}
+    engines: {node: '>=12.13'}
+
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
@@ -753,9 +810,17 @@ packages:
       supports-color:
         optional: true
 
+  detect-libc@1.0.3:
+    resolution: {integrity: sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==}
+    engines: {node: '>=0.10'}
+    hasBin: true
+
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+
+  dprint-node@1.0.8:
+    resolution: {integrity: sha512-iVKnUtYfGrYcW1ZAlfR/F59cUVL8QIhWoBJoSjkkdua/dkWIgjZfiLMeTjiB06X0ZLkQ0M2C1VbUj/CxkIf1zg==}
 
   ecdsa-sig-formatter@1.0.11:
     resolution: {integrity: sha512-nagl3RYrbNv6kQkeJIpt6NJZy8twLB/2vtz6yN9Z4vRKHN4/QZJIEbqohALSgwKdnksuY3k5Addp5lg8sVoVcQ==}
@@ -1219,6 +1284,16 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
+
+  ts-poet@6.9.0:
+    resolution: {integrity: sha512-roe6W6MeZmCjRmppyfOURklO5tQFQ6Sg7swURKkwYJvV7dbGCrK28um5+51iW3twdPRKtwarqFAVMU6G1mvnuQ==}
+
+  ts-proto-descriptors@2.0.0:
+    resolution: {integrity: sha512-wHcTH3xIv11jxgkX5OyCSFfw27agpInAd6yh89hKG6zqIXnjW9SYqSER2CVQxdPj4czeOhGagNvZBEbJPy7qkw==}
+
+  ts-proto@2.4.2:
+    resolution: {integrity: sha512-fwZeyFRLcHSDpKnbSnrAeN67v3ujVt6+DVnu2UHBkJm/grvCI4QLMlO9TkoK3XXRlQqI6i17b0c4v9uDRzsWuQ==}
+    hasBin: true
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
@@ -1920,6 +1995,37 @@ snapshots:
       elysia: 1.1.25(@sinclair/typebox@0.34.9)(typescript@5.7.2)
       pino: 9.5.0
 
+  '@bufbuild/buf-darwin-arm64@1.47.2':
+    optional: true
+
+  '@bufbuild/buf-darwin-x64@1.47.2':
+    optional: true
+
+  '@bufbuild/buf-linux-aarch64@1.47.2':
+    optional: true
+
+  '@bufbuild/buf-linux-armv7@1.47.2':
+    optional: true
+
+  '@bufbuild/buf-linux-x64@1.47.2':
+    optional: true
+
+  '@bufbuild/buf-win32-arm64@1.47.2':
+    optional: true
+
+  '@bufbuild/buf-win32-x64@1.47.2':
+    optional: true
+
+  '@bufbuild/buf@1.47.2':
+    optionalDependencies:
+      '@bufbuild/buf-darwin-arm64': 1.47.2
+      '@bufbuild/buf-darwin-x64': 1.47.2
+      '@bufbuild/buf-linux-aarch64': 1.47.2
+      '@bufbuild/buf-linux-armv7': 1.47.2
+      '@bufbuild/buf-linux-x64': 1.47.2
+      '@bufbuild/buf-win32-arm64': 1.47.2
+      '@bufbuild/buf-win32-x64': 1.47.2
+
   '@bufbuild/protobuf@2.2.2': {}
 
   '@hono/node-server@1.13.7(hono@4.6.12)':
@@ -2349,6 +2455,8 @@ snapshots:
 
   buffer-equal-constant-time@1.0.1: {}
 
+  case-anything@2.1.13: {}
+
   chalk@4.1.2:
     dependencies:
       ansi-styles: 4.3.0
@@ -2382,7 +2490,13 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
+  detect-libc@1.0.3: {}
+
   diff-sequences@29.6.3: {}
+
+  dprint-node@1.0.8:
+    dependencies:
+      detect-libc: 1.0.3
 
   ecdsa-sig-formatter@1.0.11:
     dependencies:
@@ -2821,6 +2935,21 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
+
+  ts-poet@6.9.0:
+    dependencies:
+      dprint-node: 1.0.8
+
+  ts-proto-descriptors@2.0.0:
+    dependencies:
+      '@bufbuild/protobuf': 2.2.2
+
+  ts-proto@2.4.2:
+    dependencies:
+      '@bufbuild/protobuf': 2.2.2
+      case-anything: 2.1.13
+      ts-poet: 6.9.0
+      ts-proto-descriptors: 2.0.0
 
   tslib@2.8.1: {}
 

@@ -1,0 +1,262 @@
+syntax = "proto3";
+package zz_server_table;
+
+import "google/protobuf/any.proto";
+
+option go_package = "_/_zz__";
+
+service ServerTableClient {
+  rpc GetById(ServerTableGetByIdCommand) returns (ServerTableGetByIdResponse) {}
+  rpc GetByMultiplePartitionIds(ServerTableGetByMultiplePartitionIdsCommand) returns (ServerTableGetByMultiplePartitionIdsResponse) {}
+  rpc ReadPartition(ServerTableReadPartitionCommand) returns (ServerTableReadPartitionResponse) {}
+  rpc Post(ServerTablePostCommand) returns (ServerTablePostResponse) {}
+  rpc Put(ServerTablePutCommand) returns (ServerTablePutResponse) {}
+  rpc Insert(ServerTableInsertCommand) returns (ServerTableInsertResponse) {}
+}
+
+message ServerTableGetByIdRequest {
+  reserved 1;
+  string partitionKey = 2;
+  string rowKey = 3;
+}
+
+message ServerTableGetByIdCommand {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 2;
+  ServerTableGetByIdRequest getById = 3;
+}
+
+message ServerTableGetByIdResponse {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  message Item {
+    reserved 1;
+    string partitionKey = 2;
+    string rowKey = 3;
+    google.protobuf.Any item = 4;
+  }
+  message ById {
+    reserved 1;
+    repeated Item items = 2;
+  }
+
+  Context context = 5;
+  oneof response {
+    ById getById = 3;
+    google.protobuf.Any error = 4;
+  }
+}
+
+message ServerTableGetByMultiplePartitionIdsRequest {
+  reserved 1;
+  repeated string partitionKey = 2;
+  string rowKey = 3;
+}
+
+message ServerTableGetByMultiplePartitionIdsCommand {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 2;
+  ServerTableGetByMultiplePartitionIdsRequest getByMultiplePartitionIds = 3;
+}
+
+message ServerTableGetByMultiplePartitionIdsResponse {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  message Item {
+    reserved 1;
+    string partitionKey = 2;
+    string rowKey = 3;
+    google.protobuf.Any item = 4;
+  }
+  message ByMultiplePartitionIds {
+    reserved 1;
+    repeated Item items = 2;
+  }
+  Context context = 5;
+  oneof response {
+    ByMultiplePartitionIds getByMultiplePartitionIds = 3;
+    google.protobuf.Any error = 4;
+  }
+}
+
+message ServerTableReadPartitionRequest {
+  reserved 1;
+  string partitionKey = 2;
+  string partitionKeyColumn = 3;
+  int32 limit = 4;
+  string exclusiveStartKey = 5;
+}
+
+message ServerTableReadPartitionCommand {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 2;
+  ServerTableReadPartitionRequest readPartition = 3;
+}
+
+message ServerTableReadPartitionResponse {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 5;
+  message Item {
+    reserved 1;
+    string partitionKey = 2;
+    string rowKey = 3;
+    google.protobuf.Any item = 4;
+  }
+  message ReadPartition {
+    reserved 1;
+    repeated Item items = 2;
+    string lastEvaluatedKey = 3;
+  }
+
+  oneof response {
+    ReadPartition readPartition = 3;
+    google.protobuf.Any error = 4;
+  }
+}
+
+message ServerTablePostRequest {
+  reserved 1;
+  google.protobuf.Any body = 2;
+}
+
+message ServerTablePostCommand {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 2;
+  ServerTablePostRequest post = 3;
+}
+
+message ServerTablePostResponse {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 5;
+
+  oneof response {
+    google.protobuf.Any post = 3;
+    google.protobuf.Any error = 4;
+  }
+}
+
+message ServerTablePutRequest {
+  reserved 1;
+  string partitionKey = 2;
+  string rowKey = 3;
+  google.protobuf.Any item = 4;
+}
+
+message ServerTablePutCommand {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 2;
+  ServerTablePutRequest put = 3;
+}
+
+message ServerTablePutResponse {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 5;
+  oneof response {
+    google.protobuf.Any put = 3;
+    google.protobuf.Any error = 4;
+  }
+}
+
+message ServerTableInsertRequest {
+  reserved 1;
+  string partitionKey = 2;
+  repeated google.protobuf.Any items = 3;
+}
+
+message ServerTableInsertCommand {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 2;
+  ServerTableInsertRequest insert = 3;
+}
+
+message ServerTableInsertResponse {
+  reserved 1;
+  message Context {
+    reserved 1;
+    string partitionKeyColumn = 2;
+    string rowKeyColumn = 3;
+    string table = 4;
+    string gsi = 5;
+  }
+  Context context = 5;
+
+  oneof response {
+    google.protobuf.Any insert = 3;
+    google.protobuf.Any error = 4;
+  }
+}

@@ -1,0 +1,10 @@
+syntax = "proto3";
+package _zz_telemetry;
+
+option go_package = "_/_zz__";
+
+enum StandsTelemetryHttpResponseHeaderAmazon {
+  STANDS_TELEMETRY_HTTP_RESPONSE_HEADERS_AMAZON_UNKNOWN = 0;
+  X_Amzn_Request_ID = 1;
+  X_Amzn_Cf_Id = 2;
+}

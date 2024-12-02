@@ -1,0 +1,23 @@
+syntax = "proto3";
+package zz_server;
+
+option go_package = "_/_zz__";
+
+enum StandsServerVersionEnum {
+  option allow_alias = true;
+  reserved 1 to 28785780;
+  __STANDS_PROTOCOL__VERSION__UNSPECIFIED = 0;
+  STANDS_P_V0 = 28785781;
+  STANDS_P_VBUF = 28785783;
+  STANDS_P_VELYSIA = 28785784;
+  STANDS_P_VSHIELD = 28785786;
+  reserved 28798957 to 43862669;
+  STANDS_P_Y2K38 = 43862670;
+  reserved 43862671 to 99999998;
+  STANDS_P_VEVER = 99999999;
+  reserved 100000000 to 999999998;
+  STANDS_P_STABLE = 28785781;
+  STANDS_P_STAGING = 28785781;
+  STANDS_P_LATEST = 28785782;
+  STANDS_P_RESERVED_MAX = 999999999;
+}

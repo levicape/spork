@@ -1,0 +1,21 @@
+syntax = "proto3";
+package _zz_;
+
+option go_package = "_/_zz__";
+
+enum STANDS_ENUM_DO_NOT_USE__ {
+  __STANDS_ENUM_ZERO_DO_NOT_USE__ = 0;
+  __STANDS_ENUM_DEFAULT_DO_NOT_USE__ = 1;
+  __STANDS_ENUM_MININT_LIMIT_DO_NOT_USE__ = -2147483647;
+  __STANDS_ENUM_MAXINT_LIMIT_DO_NOT_USE__ = 2147483646;
+  __STANDS_ENUM_MININT_DO_NOT_USE__ = -2147483648;
+  __STANDS_ENUM_MAXINT_DO_NOT_USE__ = 2147483647;
+}
+message __STANDS_MESSAGE_DO_NOT_USE__ {
+  reserved 1 to 18999;
+  reserved 20000 to 536869999;
+  reserved "__STANDS__ANCHOR__", "__STANDS__ANCHOR";
+  STANDS_ENUM_DO_NOT_USE__ __STANDS_FIELD_DO_NOT_USE__ = 536870000;
+}
+
+message ___StandsNoise {}

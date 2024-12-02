@@ -1,0 +1,64 @@
+version: v2
+plugins:
+  - local: ./node_modules/ts-proto/protoc-gen-ts_proto
+    out: gen/ts
+    opt:
+      - esModuleInterop=true
+      - forceLong=number
+      - oneof=unions-value
+      - snakeToCamel=false
+      - noDefaultsForOptionals=true
+      - importSuffix=.js
+    strategy: all
+  - local: ./node_modules/ts-proto/protoc-gen-ts_proto
+    out: gen/tsnode
+    opt: 
+      - esModuleInterop=true
+      - forceLong=number
+      - oneof=unions-value
+      - snakeToCamel=false
+      - noDefaultsForOptionals=true
+      - importSuffix=.js
+      - env=node
+    strategy: all    
+  - local: ./node_modules/ts-proto/protoc-gen-ts_proto
+    out: gen/tsjson
+    opt: 
+      - esModuleInterop=true
+      - forceLong=number
+      - oneof=unions-value
+      - snakeToCamel=false
+      - noDefaultsForOptionals=true
+      - importSuffix=.js
+      - env=node
+      - useDate=string
+      - onlyTypes=true
+      - useOptionals=all
+      - useJsonWireFormat=true
+    strategy: all    
+  - remote: buf.build/community/planetscale-vtprotobuf:v0.6.0
+    out: gen/go
+    opt: &goplanetscale_opt
+      - paths=source_relative
+      - features=marshal+unmarshal+size
+      # - go-vtproto_opt=pool=vitess.io/vitess/go/vt/proto/query.Row 
+  - remote: buf.build/bufbuild/validate-go:v1.1.0
+    out: gen/go
+    opt: &go_opt
+      - paths=source_relative
+      # - module=github.com/atoko/compute/protocol/protobuf/qureau
+      # - import_path=github.com/atoko/compute/protocol/protobuf/qureau
+  - remote: buf.build/community/mfridman-go-json:v1.4.0
+    out: gen/go
+    opt: *go_opt
+  - remote: buf.build/protocolbuffers/go:v1.34.2
+    out: gen/go
+    opt: *go_opt
+  - remote: buf.build/bufbuild/validate-java:v1.1.0
+    out: gen/java
+  - remote: buf.build/protocolbuffers/java:v25.3
+    out: gen/java
+  - remote: buf.build/bufbuild/protoschema-jsonschema:v0.1.5
+    out: gen/jsonschema
+  - remote: buf.build/community/pseudomuto-doc:v1.5.1
+    out: gen/docs    

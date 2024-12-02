@@ -62,6 +62,7 @@ jobs:
       - name: Install and test
         run: |
           pnpm install;
+          pnpm build:ci;
           pnpm run test;
       - name: Increment version
         run: | 

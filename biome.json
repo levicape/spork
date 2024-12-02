@@ -5,10 +5,17 @@
     "linter": {
       "rules": {
         "complexity": {
-          "noForEach": "off"
+          "noForEach": "off",
+          "noStaticOnlyClass": "off"
         },
         "style": {
-          "noUnusedTemplateLiteral": "off"
+          "noUnusedTemplateLiteral": "off",
+          "noParameterAssign": "off"
+        },
+        "suspicious": {
+          "noUnsafeDeclarationMerging": "off",
+          "noControlCharactersInRegex": "off",
+          "noAssignInExpressions": "off"
         }
       }
     }

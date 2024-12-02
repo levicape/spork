@@ -1,0 +1,8 @@
+syntax = "proto3";
+package _zz_version;
+
+option go_package = "_/_zz__";
+
+// Request
+// Z_Protocol_Version = 6;
+// Z_Response_Version = 6;
