@@ -1,5 +1,5 @@
 {
-  "name": "@levicape/spork-typescript",
+  "name": "@levicape/spork",
   "author": "Pedro Cardona",
   "license": "AGPL-3.0-only",
   "main": "module/index.js",
@@ -11,13 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/levicape/spork-typescript.git"
+    "url": "https://github.com/levicape/spork.git"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
   "bin": {
-    "spork": "module/cli/bin.js"
+    "@levicape/spork": "module/cli/bin.js"
   },
   "files": [
     "src",
@@ -29,11 +29,11 @@
     "lint:format": "npx @biomejs/biome format --write ./src ./canary",
     "lint:write": "npx @biomejs/biome check --write ./src ./canary",
     "lint:unsafe": "npx @biomejs/biome check --write --unsafe ./src ./canary",
-    "prepare": "npm run generate:protocols",
+    "generate": "npm run generate:protocols",
     "generate:protocols": "npx tsx ./src/cli/bin.ts code gen --root \"./protocols\" --command \"$(which npm) run build\" --artifact gen --destination ./src/_protocols --clean",
     "prebuild": "npm run clean",
     "build": "npx tsc",
-    "build:ci": "npm run prepare && npm run build",
+    "build:ci": "npm run generate && npm run build",
     "start": "node module/cli/bin.js server start --target \"module/app/router/hono/HonoHttpServer.js\"",
     "test": "npm run test:module && npm run test:canary",
     "test:module": "node --test  \"module/**/*.test.js\"",

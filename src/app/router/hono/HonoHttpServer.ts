@@ -104,7 +104,7 @@ const serverContext = async <App extends Hono>(app: App): Promise<App> => {
 // This can be created using the HonoHttpServerBuilder function, which takes a Hono app and returns a function that can be called to create a server.
 // Example usage:
 // ```typescript
-// import { HonoHttpServerBuilder, HonoHttpServerApp } from "@levicape/spork-typescript";
+// import { HonoHttpServerBuilder, HonoHttpServerApp } from "@levicape/spork";
 
 // export const HonoHttpServer = HonoHttpServerBuilder(
 //     HonoHttpServerApp..get("/hello", (c) => { ... });

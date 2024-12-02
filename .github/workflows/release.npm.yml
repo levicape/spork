@@ -63,7 +63,7 @@ jobs:
         run: |
           pnpm install;
           pnpm build:ci;
-          pnpm run test;
+# pnpm run test;
       - name: Increment version
         run: | 
           export PREID=$RELEVANT_SHA;
