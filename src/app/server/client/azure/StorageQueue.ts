@@ -9,5 +9,3 @@ export class StorageQueue {
 		this.client = QueueServiceClient.fromConnectionString(STORAGE_CONNECTION);
 	}
 }
-
-export default new StorageQueue();
