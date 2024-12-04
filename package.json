@@ -13,7 +13,7 @@
   "type": "module",
   "version": "0.0.0-local.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=22.0.0"
   },
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
     "lint:write": "npx @biomejs/biome check --write ./src ./canary",
     "lint:unsafe": "npx @biomejs/biome check --write --unsafe ./src ./canary",
     "generate": "npm run generate:protocols",
-    "generate:protocols": "npx tsx ./src/cli/bin.ts code gen --root \"./protocols\" --command \"$(which npm) run build\" --artifact gen --destination ./src/_protocols --clean",
+    "generate:protocols": "npx tsx ./src/cli/bin.ts code gen --root \"./protocols\" --command \"$(which npm) run build:ci\" --artifact gen --destination ./src/_protocols --clean",
     "prebuild": "npm run clean",
     "build": "npx tsc",
     "build:ci": "npm run generate && npm run build",

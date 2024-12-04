@@ -1,8 +1,8 @@
 import { Logger } from "../logging/Logger.js";
-// import { taskForMessageType } from "$server/tasks/Registry";
+// import { taskForMessageType } from "./Registry";
 import type { IQueue, IQueueMessage } from "./IQueue.js";
 
-export class MockQueue<T extends IQueueMessage> implements IQueue<T> {
+export class MemoryQueue<T extends IQueueMessage> implements IQueue<T> {
 	readonly queue: AsyncGenerator;
 
 	constructor() {

@@ -5,8 +5,16 @@
   "scripts": {
     "clean:build": "rm -rf ./gen",
     "clean:all": "rm -rf ./gen && rm -rf ./node_modules || true",
-    "lint": "npx buf lint",
-    "format": "npx buf format -w",
-    "build": "npx buf generate"
-  }
+    "lint": "npx @bufbuild/buf lint",
+    "format": "npx @bufbuild/buf format -w",
+    "build:ci": "npm run clean:all && npx --yes ci && npx --yes @bufbuild/buf generate",
+    "build": "npx --yes @bufbuild/buf generate"
+  },
+  "dependencies": {
+    "typescript": "^5.7.2",
+    "@bufbuild/buf": "^1.44.0",
+    "ts-proto": "^2.2.2",
+    "@bufbuild/protobuf": "^2.2.2"
+  },
+  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
 }

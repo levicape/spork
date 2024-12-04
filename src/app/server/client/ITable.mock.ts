@@ -4,7 +4,7 @@ const flattenKey = <T>(key: { [k in keyof T]: string | undefined }): string => {
 	return Object.values(key).join("_");
 };
 
-export class MockTable<T, K> implements ITable<T, K> {
+export class MemoryTable<T, K> implements ITable<T, K> {
 	stream?: ITableStreamProcessor<T>;
 	map: Record<string, K> = {};
 
