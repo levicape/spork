@@ -1,0 +1,4 @@
+packages:
+  - '.'
+catalog:
+  "@levicape/paloma": "0.0.0"

@@ -1,5 +1,6 @@
 {
 	"private": true,
+	"description": "Canaries for @levicape/spork",
 	"dependencies": {
 		"@levicape/musical-carnival": "^0.0.0-local.0"
 	}
