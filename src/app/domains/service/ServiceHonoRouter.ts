@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { serviceValidationZodRoute } from "./open/ServiceValidationZodRoute.js";
+import { serviceValidationZodRoute } from "./controller/open/ServiceValidationZodRoute.js";
 
 const ServiceHonoRouter = () => {
 	const app = new Hono();

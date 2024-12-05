@@ -1,9 +1,9 @@
 import * as jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
-import type { IKeyValueStore } from "../client/IKeyValueStore.js";
-import { MemoryKV } from "../client/IKeyValueStore.mock.js";
-import { SecretsManager } from "../client/aws/SecretsManager.js";
-import { ServerContext } from "../context.js";
+import type { IKeyValueStore } from "../client/kv/IKeyValueStore.js";
+import { MemoryKV } from "../client/kv/IKeyValueStore.mock.js";
+import { SecretsManager } from "../client/kv/aws/SecretsManager.js";
+import { ServerContext } from "../context/ServerContext.js";
 import { Logger } from "../logging/Logger.js";
 import { LoginToken } from "./model/LoginToken.js";
 import type { SecurityAudience } from "./model/Security.js";

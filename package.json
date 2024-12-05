@@ -2,13 +2,28 @@
   "name": "@levicape/spork",
   "author": "Pedro Cardona",
   "license": "AGPL-3.0-only",
-  "main": "module/index.js",
+  "main": "module/index.mjs",
   "types": "module/index.d.ts",
   "exports": {
-    ".": "./module/index.js",
-    "./lambda": "./module/lambda/index.js",
-    "./cli": "./module/cli/index.js",
-    "./ci": "./module/ci/index.js"
+    "./domains/service": "./module/app/domains/service/index.js",
+    "./domains/wellknown": "./module/app/domains/wellknown/index.js",
+    "./router/hono": "./module/app/router/hono/index.js",
+    "./server/context": "./module/app/server/context/index.js",
+    "./server/client": "./module/app/server/client/index.js",
+    "./server/client/kv": "./module/app/server/client/kv/index.js",
+    "./server/client/kv/aws": "./module/app/server/client/kv/aws/index.js",
+    "./server/client/table": "./module/app/server/client/table/index.js",
+    "./server/client/table/aws": "./module/app/server/client/table/aws/index.js",
+    "./server/client/table/postgres": "./module/app/server/client/table/postgres/index.js",
+    "./server/client/queue": "./module/app/server/client/queue/index.js",
+    "./server/client/queue/aws": "./module/app/server/client/queue/aws/index.js",
+    "./server/client/queue/artemis": "./module/app/server/client/queue/artemis/index.js",
+    "./server/exceptions": "./module/app/server/exceptions/index.js",
+    "./server/logging": "./module/app/server/logging/index.js",
+    "./server/security": "./module/app/server/security/index.js",
+    "./lambda": "./module/lambda/index.mjs",
+    "./cli": "./module/cli/index.mjs",
+    "./ci": "./module/ci/index.mjs"
   },
   "type": "module",
   "version": "0.0.0-local.0",
@@ -23,7 +38,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "bin": {
-    "@levicape/spork": "module/cli/bin.js"
+    "@levicape/spork": "module/cli/bin.mjs"
   },
   "files": [
     "src",
@@ -40,11 +55,11 @@
     "lint:write": "npx @biomejs/biome check --write ./src ./canary",
     "lint:unsafe": "npx @biomejs/biome check --write --unsafe ./src ./canary",
     "generate": "npm run generate:protocols",
-    "generate:protocols": "npx tsx ./src/cli/bin.ts code gen --root \"./protocols\" --command \"$(which npm) run build:ci\" --artifact gen --destination ./src/_protocols --clean",
+    "generate:protocols": "npx tsx ./src/cli/bin.mts code gen --root \"./protocols\" --command \"$(which npm) run build:ci\" --artifact gen --destination ./src/_protocols --clean",
     "prebuild": "npm run clean",
     "build": "npx tsc",
     "build:ci": "npm run generate && npm run build",
-    "start": "node module/cli/bin.js server start --target \"module/app/router/hono/HonoHttpServer.js\"",
+    "start": "node module/cli/bin.mjs server start --target \"module/app/router/hono/HonoHttpServerBuilder.js\"",
     "test": "npm run test:module && npm run test:canary",
     "test:module": "node --test  \"module/**/*.test.js\"",
     "test:canary": "node --experimental-strip-types canary/basic.ts",
