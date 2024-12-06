@@ -58,9 +58,12 @@
     "node": ">=22.0.0"
   },
   "exports": {
+    "./domains": "./module/app/domains/index.js",
     "./domains/service": "./module/app/domains/service/index.js",
     "./domains/wellknown": "./module/app/domains/wellknown/index.js",
+    "./router": "./module/app/router/index.js",
     "./router/hono": "./module/app/router/hono/index.js",
+    "./server": "./module/app/server/index.js",
     "./server/context": "./module/app/server/context/index.js",
     "./server/client": "./module/app/server/client/index.js",
     "./server/client/kv": "./module/app/server/client/kv/index.js",

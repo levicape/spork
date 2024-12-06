@@ -42,7 +42,7 @@ export const StartCommand = async () => {
 						brief: "File to serve",
 						kind: "parsed",
 						parse: (input: string) => {
-							let allowed = ["js", "mjs", "cjs"];
+							const allowed = ["js", "mjs", "cjs"];
 							if (!allowed.some((ext) => input.endsWith(ext))) {
 								throw new Error("File must be a js file (mjs, cjs)");
 							}
