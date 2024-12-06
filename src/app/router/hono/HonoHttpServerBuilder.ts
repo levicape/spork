@@ -1,8 +1,7 @@
 import { serve } from "@hono/node-server";
 import type { Hono } from "hono";
 import { Logger } from "../../server/logging/Logger.js";
-import { HonoHttpApp, HonoSporkContext } from "./HonoHttpApp.js";
-import { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.js";
+import { HonoSporkContext } from "./HonoHttpApp.js";
 
 // The "spork server start" command expects a HonoHttpServer to be exported from the target file.
 // This can be created using the HonoHttpServerBuilder function, which takes a Hono app and returns a function that can be called to create a server.
@@ -23,9 +22,10 @@ export type HonoHttpServerExports<App extends Hono> = {
 export type HonoHttpServerProps = {
 	catchExceptions?: boolean;
 };
-const defaultProps: HonoHttpServerProps = {
+
+export const HonoHttpServerDefaultProps: () => HonoHttpServerProps = () => ({
 	catchExceptions: true,
-};
+});
 
 export type HonoHttpServerBuilderProps<App extends Hono> = {
 	app: App;
@@ -47,7 +47,7 @@ export const HonoHttpServerBuilder =
 		const then = Date.now();
 
 		const { catchExceptions } = {
-			...defaultProps,
+			...HonoHttpServerDefaultProps(),
 			...(props ?? {}),
 		};
 		let instance = app;
@@ -130,11 +130,3 @@ export const HonoHttpServerBuilder =
 			},
 		};
 	};
-
-export const HonoHttpServer: HonoHttpServerExports<
-	ReturnType<typeof HonoHttpApp>
->["HonoHttpServer"] = HonoHttpServerBuilder({
-	app: HonoHttpApp({
-		middleware: HonoHttpMiddlewareStandard(),
-	}),
-});

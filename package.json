@@ -10,10 +10,10 @@
     "packagemanager": "pnpm",
     "packageexecutor": "pnpm",
     "binpath": "./src/cli/bin.mts",
+    "clipath": "./module/cli/bin.mjs",
     "lintpaths": "./src ./canary",
     "protocols": "./src/_protocols",
-    "nodepath": "./module/cli/bin.mjs",
-    "server": "module/app/router/hono/HonoHttpServerBuilder.js"
+    "server": "module/app/router/hono/HonoHttpSpork.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.705.0",
@@ -115,7 +115,7 @@
     "prebuild": "$npm_package_config_packagemanager run clean",
     "prelint": "npx @biomejs/biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor -y publint --strict",
-    "start": "node $npm_package_config_nodepath server start --target $npm_package_config_server",
+    "start": "node $npm_package_config_clipath server start --target $npm_package_config_server",
     "test": "$npm_package_config_packagemanager run test:module && $npm_package_config_packagemanager run test:canary",
     "test:canary": "node --experimental-strip-types canary/basic.ts",
     "test:module": "node --test  \"module/**/*.test.js\""
