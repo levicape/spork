@@ -1,84 +1,19 @@
 {
   "name": "@levicape/spork",
-  "author": "Pedro Cardona",
   "description": "A serverless framework for Node.js",
-  "license": "AGPL-3.0-only",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/levicape/spork.git"
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
   "version": "0.0.0-local.0",
-  "engines": {
-    "node": ">=22.0.0"
-  },
-  "type": "module",
+  "author": "Pedro Cardona",
   "bin": {
     "@levicape/spork": "module/cli/bin.mjs"
   },
-  "types": "module/index.d.mts",
-  "exports": {
-    "./domains/service": "./module/app/domains/service/index.js",
-    "./domains/wellknown": "./module/app/domains/wellknown/index.js",
-    "./router/hono": "./module/app/router/hono/index.js",
-    "./server/context": "./module/app/server/context/index.js",
-    "./server/client": "./module/app/server/client/index.js",
-    "./server/client/kv": "./module/app/server/client/kv/index.js",
-    "./server/client/kv/aws": "./module/app/server/client/kv/aws/index.js",
-    "./server/client/table": "./module/app/server/client/table/index.js",
-    "./server/client/table/aws": "./module/app/server/client/table/aws/index.js",
-    "./server/client/table/postgres": "./module/app/server/client/table/postgres/index.js",
-    "./server/client/queue": "./module/app/server/client/queue/index.js",
-    "./server/client/queue/aws": "./module/app/server/client/queue/aws/index.js",
-    "./server/client/queue/artemis": "./module/app/server/client/queue/artemis/index.js",
-    "./server/exceptions": "./module/app/server/exceptions/index.js",
-    "./server/logging": "./module/app/server/logging/index.js",
-    "./server/security": "./module/app/server/security/index.js",
-    "./lambda": "./module/lambda/index.mjs",
-    "./cli": "./module/cli/index.mjs",
-    "./ci": "./module/ci/index.mjs"
-  },
-  "files": [
-    "module",
-    "iac",
-    "protocols",
-    ".github"
-  ],
   "config": {
     "packagemanager": "pnpm",
+    "packageexecutor": "pnpm",
     "binpath": "./src/cli/bin.mts",
     "lintpaths": "./src ./canary",
     "protocols": "./src/_protocols",
     "nodepath": "./module/cli/bin.mjs",
     "server": "module/app/router/hono/HonoHttpServerBuilder.js"
-  },
-  "scripts": {
-    "prelint": "npx @biomejs/biome format $npm_package_config_lintpaths",
-    "lint": "npx @biomejs/biome check $npm_package_config_lintpaths",
-    "lint:format": "npx @biomejs/biome format --write $npm_package_config_lintpaths",
-    "lint:write": "npx @biomejs/biome check --write $npm_package_config_lintpaths",
-    "lint:unsafe": "npx @biomejs/biome check --write --unsafe $npm_package_config_lintpaths",
-    "generate": "$npm_package_config_packagemanager run generate:protocols",
-    "generate:protocols": "npx tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build:ci\" --artifact gen --destination $npm_package_config_protocols --clean",
-    "prebuild": "$npm_package_config_packagemanager run clean",
-    "build": "npx tsc",
-    "build:ci": "$npm_package_config_packagemanager run generate && $npm_package_config_packagemanager run build",
-    "start": "node $npm_package_config_nodepath server start --target $npm_package_config_server",
-    "test": "$npm_package_config_packagemanager run test:module && $npm_package_config_packagemanager run test:canary",
-    "test:module": "node --test  \"module/**/*.test.js\"",
-    "test:canary": "node --experimental-strip-types canary/basic.ts",
-    "prepublish": "npx -y publint --strict",
-    "clean": "rm -rf ./module",
-    "clean:install": "rm -rf ./node_modules"
-  },
-  "peerDependencies": {
-    "@bufbuild/protobuf": "^2.2.2",
-    "@hono/node-server": "^1.13.7",
-    "hono": "^4.6.12",
-    "jsonwebtoken": "^9.0.2",
-    "zod": "^3.23.8"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.705.0",
@@ -111,10 +46,79 @@
     "@types/compressible": "^2.0.2",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.1",
+    "depcheck": "^1.4.7",
     "expect": "^29.7.0",
     "publint": "^0.2.12",
+    "syncpack": "^13.0.0",
     "ts-proto": "^2.5.0",
     "typescript": "^5.7.2"
   },
-  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "exports": {
+    "./domains/service": "./module/app/domains/service/index.js",
+    "./domains/wellknown": "./module/app/domains/wellknown/index.js",
+    "./router/hono": "./module/app/router/hono/index.js",
+    "./server/context": "./module/app/server/context/index.js",
+    "./server/client": "./module/app/server/client/index.js",
+    "./server/client/kv": "./module/app/server/client/kv/index.js",
+    "./server/client/kv/aws": "./module/app/server/client/kv/aws/index.js",
+    "./server/client/table": "./module/app/server/client/table/index.js",
+    "./server/client/table/aws": "./module/app/server/client/table/aws/index.js",
+    "./server/client/table/postgres": "./module/app/server/client/table/postgres/index.js",
+    "./server/client/queue": "./module/app/server/client/queue/index.js",
+    "./server/client/queue/aws": "./module/app/server/client/queue/aws/index.js",
+    "./server/client/queue/artemis": "./module/app/server/client/queue/artemis/index.js",
+    "./server/exceptions": "./module/app/server/exceptions/index.js",
+    "./server/logging": "./module/app/server/logging/index.js",
+    "./server/security": "./module/app/server/security/index.js",
+    "./lambda": "./module/lambda/index.mjs",
+    "./cli": "./module/cli/index.mjs",
+    "./ci": "./module/ci/index.mjs"
+  },
+  "files": [
+    "module",
+    "iac",
+    "protocols",
+    ".github"
+  ],
+  "license": "AGPL-3.0-only",
+  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf",
+  "peerDependencies": {
+    "@bufbuild/protobuf": "^2.2.2",
+    "@hono/node-server": "^1.13.7",
+    "hono": "^4.6.12",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^3.23.8"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": "github:levicape/spork",
+  "scripts": {
+    "build": "$npm_package_config_packageexecutor tsc",
+    "build:ci": "$npm_package_config_packagemanager run generate && $npm_package_config_packagemanager run build",
+    "clean": "rm -rf ./module",
+    "clean:install": "rm -rf ./node_modules",
+    "generate": "$npm_package_config_packagemanager run generate:protocols",
+    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build:ci\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_lintpaths",
+    "lint:format": "$npm_package_config_packageexecutor biome format --write $npm_package_config_lintpaths",
+    "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_lintpaths",
+    "lint:write": "$npm_package_config_packageexecutor biome check --write $npm_package_config_lintpaths",
+    "package:deps": "$npm_package_config_packageexecutor depcheck",
+    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor syncpack format",
+    "package:update": "$npm_package_config_packageexecutor syncpack update",
+    "prebuild": "$npm_package_config_packagemanager run clean",
+    "prelint": "npx @biomejs/biome format $npm_package_config_lintpaths",
+    "prepublish": "$npm_package_config_packageexecutor -y publint --strict",
+    "start": "node $npm_package_config_nodepath server start --target $npm_package_config_server",
+    "test": "$npm_package_config_packagemanager run test:module && $npm_package_config_packagemanager run test:canary",
+    "test:canary": "node --experimental-strip-types canary/basic.ts",
+    "test:module": "node --test  \"module/**/*.test.js\""
+  },
+  "type": "module",
+  "types": "module/index.d.mts"
 }
