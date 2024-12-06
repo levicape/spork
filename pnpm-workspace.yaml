@@ -1,4 +1,4 @@
 packages:
   - '.'
 catalog:
-  "@levicape/paloma": "0.0.0"
+  "@levicape/paloma": "0.0.3-main.3"

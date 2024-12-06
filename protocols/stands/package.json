@@ -2,12 +2,16 @@
   "name": "@levicape/stands",
   "private": true,
   "type": "module",
+  "config": {
+    "packagemanager": "pnpm"
+  },
   "scripts": {
-    "clean:build": "rm -rf ./gen",
     "clean:all": "rm -rf ./gen && rm -rf ./node_modules || true",
+    "clean:build": "rm -rf ./gen",
+    "clean:install": "rm -rf ./node_modules",
     "lint": "npx @bufbuild/buf lint",
     "format": "npx @bufbuild/buf format -w",
-    "build:ci": "npm run clean:all && npx --yes ci && npx --yes @bufbuild/buf generate",
+    "build:ci": "$npm_package_config_packagemanager run clean:all && npx --yes ci && $npm_package_config_packagemanager run build && $npm_package_config_packagemanager run clean:install",
     "build": "npx --yes @bufbuild/buf generate"
   },
   "dependencies": {
