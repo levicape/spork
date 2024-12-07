@@ -122,6 +122,28 @@ export async function generate(
 	});
 	printDuration(`compile ${name}`, Date.now() - startTime);
 
+	(stdout ?? "").split("\n").forEach((line) => {
+		const all = ["Command failed"];
+		const fail = new RegExp(all.join("|"), "i");
+		const error = fail.test(line.trim());
+		if (error) {
+			console.warn(
+				{
+					CompileModule: {
+						generate: {
+							message: "Error in stdout",
+							name,
+							path,
+							stdout: line,
+						},
+					},
+				},
+				{ depth: null },
+			);
+			exitCode = 1;
+		}
+	});
+
 	stderr = (stderr ?? "")
 		.split("\n")
 		.filter((line) => {
@@ -138,6 +160,7 @@ export async function generate(
 					{
 						CompileModule: {
 							generate: {
+								message: "Ignoring error",
 								name,
 								path,
 								stderr: line,
@@ -152,13 +175,16 @@ export async function generate(
 		.map((line) => line.trim())
 		.join("\n");
 
+	exitCode = exitCode ?? 0;
+	exitCode = stderr.length > 0 ? 1 : exitCode;
+
 	return {
 		name,
 		path,
 		result: {
 			stdout,
 			stderr: stderr ?? "",
-			exitCode: (exitCode ?? (stderr?.length ?? 0) > 0) ? 1 : 0,
+			exitCode,
 		},
 	};
 }

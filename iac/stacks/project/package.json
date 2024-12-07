@@ -1,14 +1,35 @@
 {
-  "name": "builder",
+  "config": {
+    "packagemanager": "pnpm",
+    "packageexecutor": "pnpm exec"
+  },
   "dependencies": {
-    "@pulumi/aws": "^6.0.0",
-    "@pulumi/awsx": "^2.0.2",
-    "@pulumi/pulumi": "^3.113.0",
-    "@pulumi/synced-folder": "^0.11.1"
+    "@pulumi/aws": "catalog:pulumi",
+    "@pulumi/awsx": "catalog:pulumi",
+    "@pulumi/docker-build": "catalog:pulumi",
+    "@pulumi/pulumi": "catalog:pulumi",
+    "@pulumi/synced-folder": "catalog:pulumi"
   },
   "devDependencies": {
-    "@types/node": "^18",
-    "typescript": "^5.0.0"
+    "@types/node": "catalog:types",
+    "ci": "catalog:package",
+    "publint": "catalog:package",
+    "syncpack": "catalog:package",
+    "typescript": "catalog:dev"
   },
-  "main": "index.ts"
+  "private": true,
+  "scripts": {
+    "build:ci": "$npm_package_config_packagemanager run clean:install && $npm_package_config_packageexecutor ci && $npm_package_config_packagemanager run generate:ci",
+    "clean": "rm -rf $npm_package_config_outpaths || true",
+    "clean:install": "echo \"Clean node_modules if npm\"",
+    "dx:prepublish": "$npm_package_config_packagemanager build:ci && $npm_package_config_packagemanager run package:format",
+    "generate:ci": "echo \"Codegen []\"",
+    "package:deps": "$npm_package_config_packageexecutor depcheck",
+    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor syncpack format",
+    "package:lockfile": "$npm_package_config_packagemanager install --lockfile-only --lockfile-dir .",
+    "package:update": "$npm_package_config_packageexecutor syncpack update",
+    "postinstall": "$npm_package_config_packagemanager run package:lockfile"
+  },
+  "type": "module"
 }

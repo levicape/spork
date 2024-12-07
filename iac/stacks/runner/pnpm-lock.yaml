@@ -136,6 +136,9 @@ catalogs:
     '@pulumi/pulumi':
       specifier: ^3.113.0
       version: 3.142.0
+    '@pulumi/synced-folder':
+      specifier: ^0.11.1
+      version: 0.11.1
   server:
     '@stricjs/cluster':
       specifier: ^2.0.0
@@ -184,6 +187,15 @@ importers:
       '@types/node':
         specifier: catalog:types
         version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
       typescript:
         specifier: catalog:dev
         version: 5.7.2
@@ -290,6 +302,9 @@ importers:
       '@types/node':
         specifier: catalog:types
         version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
       depcheck:
         specifier: catalog:package
         version: 1.4.7
@@ -407,6 +422,15 @@ importers:
       '@types/node':
         specifier: catalog:types
         version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
       typescript:
         specifier: catalog:dev
         version: 5.7.2
@@ -414,45 +438,66 @@ importers:
   ../project:
     dependencies:
       '@pulumi/aws':
-        specifier: ^6.0.0
+        specifier: catalog:pulumi
         version: 6.64.0(typescript@5.7.2)
       '@pulumi/awsx':
-        specifier: ^2.0.2
+        specifier: catalog:pulumi
         version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
       '@pulumi/pulumi':
-        specifier: ^3.113.0
+        specifier: catalog:pulumi
         version: 3.142.0(typescript@5.7.2)
       '@pulumi/synced-folder':
-        specifier: ^0.11.1
+        specifier: catalog:pulumi
         version: 0.11.1(typescript@5.7.2)
     devDependencies:
       '@types/node':
-        specifier: ^18
-        version: 18.19.67
+        specifier: catalog:types
+        version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
       typescript:
-        specifier: ^5.0.0
+        specifier: catalog:dev
         version: 5.7.2
 
   ../release:
     dependencies:
       '@pulumi/aws':
-        specifier: ^6.0.0
+        specifier: catalog:pulumi
         version: 6.64.0(typescript@5.7.2)
       '@pulumi/awsx':
-        specifier: ^2.0.2
+        specifier: catalog:pulumi
         version: 2.19.0(typescript@5.7.2)
       '@pulumi/docker-build':
-        specifier: ^0.0.7
+        specifier: catalog:pulumi
         version: 0.0.7(typescript@5.7.2)
       '@pulumi/pulumi':
-        specifier: ^3.113.0
+        specifier: catalog:pulumi
         version: 3.142.0(typescript@5.7.2)
     devDependencies:
       '@types/node':
-        specifier: ^18
-        version: 18.19.67
+        specifier: catalog:types
+        version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
       typescript:
-        specifier: ^5.0.0
+        specifier: catalog:dev
         version: 5.7.2
 
 packages:
@@ -1482,9 +1527,6 @@ packages:
 
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
-
-  '@types/node@18.19.67':
-    resolution: {integrity: sha512-wI8uHusga+0ZugNp0Ol/3BqQfEcCCNfojtO6Oou9iVNGPTL6QNSdnUdqq85fRgIorLhLMuPIKpsN98QE9Nh+KQ==}
 
   '@types/node@22.10.1':
     resolution: {integrity: sha512-qKgsUwfHZV2WCWLAnVP1JqnpE6Im6h3Y0+fYgMTasNQ7V++CBX5OT1as0g0f+OyubbFqhf6XVNIsmN4IIhEgGQ==}
@@ -3285,9 +3327,6 @@ packages:
     resolution: {integrity: sha512-xY7c8LPyzvhvew0Fn+Ek3wBC9STZAuDI/Y5andCKi9AX6/jvfaX45PhsDX8oxgPL0YFp0Jhr8qWMbS/p9375Xg==}
     engines: {node: '>=16'}
 
-  undici-types@5.26.5:
-    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
-
   undici-types@6.20.0:
     resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
 
@@ -4212,7 +4251,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
@@ -5003,7 +5042,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       '@types/responselike': 1.0.3
 
   '@types/compressible@2.0.2': {}
@@ -5024,17 +5063,13 @@ snapshots:
 
   '@types/jsonwebtoken@9.0.7':
     dependencies:
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
 
   '@types/minimatch@3.0.5': {}
-
-  '@types/node@18.19.67':
-    dependencies:
-      undici-types: 5.26.5
 
   '@types/node@22.10.1':
     dependencies:
@@ -5044,7 +5079,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
 
   '@types/semver@7.5.8': {}
 
@@ -5818,7 +5853,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -6453,7 +6488,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       long: 5.2.3
 
   publint@0.2.12:
@@ -6867,8 +6902,6 @@ snapshots:
   ulidx@2.4.1:
     dependencies:
       layerr: 3.0.0
-
-  undici-types@5.26.5: {}
 
   undici-types@6.20.0: {}
 

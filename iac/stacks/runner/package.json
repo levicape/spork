@@ -11,11 +11,18 @@
   },
   "devDependencies": {
     "@types/node": "catalog:types",
+    "ci": "catalog:package",
+    "publint": "catalog:package",
+    "syncpack": "catalog:package",
     "typescript": "catalog:dev"
   },
   "private": true,
   "scripts": {
-    "dx:prepublish": "pnpm run package:format",
+    "build:ci": "$npm_package_config_packagemanager run clean:install && $npm_package_config_packageexecutor ci && $npm_package_config_packagemanager run generate:ci",
+    "clean": "rm -rf $npm_package_config_outpaths || true",
+    "clean:install": "echo \"Clean node_modules if npm\"",
+    "dx:prepublish": "$npm_package_config_packagemanager build:ci && $npm_package_config_packagemanager run package:format",
+    "generate:ci": "echo \"Codegen []\"",
     "package:deps": "$npm_package_config_packageexecutor depcheck",
     "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor syncpack format",

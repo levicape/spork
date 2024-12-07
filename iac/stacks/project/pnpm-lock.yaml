@@ -72,7 +72,7 @@ catalogs:
       version: 2.0.18
     hono:
       specifier: ^4.6.12
-      version: 4.6.12
+      version: 4.6.13
     hono-rate-limiter:
       specifier: ^0.4.2
       version: 0.4.2
@@ -171,6 +171,40 @@ importers:
 
   .:
     dependencies:
+      '@pulumi/aws':
+        specifier: catalog:pulumi
+        version: 6.64.0(typescript@5.7.2)
+      '@pulumi/awsx':
+        specifier: catalog:pulumi
+        version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
+      '@pulumi/pulumi':
+        specifier: catalog:pulumi
+        version: 3.142.0(typescript@5.7.2)
+      '@pulumi/synced-folder':
+        specifier: catalog:pulumi
+        version: 0.11.1(typescript@5.7.2)
+    devDependencies:
+      '@types/node':
+        specifier: catalog:types
+        version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
+      typescript:
+        specifier: catalog:dev
+        version: 5.7.2
+
+  ../../..:
+    dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: catalog:aws
         version: 3.705.0
@@ -191,10 +225,10 @@ importers:
         version: 2.2.2
       '@hono/node-server':
         specifier: catalog:hono
-        version: 1.13.7(hono@4.6.12)
+        version: 1.13.7(hono@4.6.13)
       '@hono/zod-validator':
         specifier: catalog:hono
-        version: 0.4.1(hono@4.6.12)(zod@3.23.8)
+        version: 0.4.1(hono@4.6.13)(zod@3.23.8)
       '@paralleldrive/cuid2':
         specifier: catalog:id
         version: 2.2.2
@@ -218,10 +252,10 @@ importers:
         version: 3.2.3
       hono:
         specifier: catalog:hono
-        version: 4.6.12
+        version: 4.6.13
       hono-rate-limiter:
         specifier: catalog:hono
-        version: 0.4.2(hono@4.6.12)
+        version: 0.4.2(hono@4.6.13)
       hookable:
         specifier: catalog:server
         version: 5.5.3
@@ -296,7 +330,7 @@ importers:
         specifier: catalog:dev
         version: 5.7.2
 
-  canary:
+  ../../../canary:
     dependencies:
       '@bufbuild/protobuf':
         specifier: catalog:protobuf
@@ -345,134 +379,7 @@ importers:
         specifier: catalog:dev
         version: 5.7.2
 
-  iac/stacks/pipeline:
-    dependencies:
-      '@pulumi/aws':
-        specifier: catalog:pulumi
-        version: 6.64.0(typescript@5.7.2)
-      '@pulumi/awsx':
-        specifier: catalog:pulumi
-        version: 2.19.0(typescript@5.7.2)
-      '@pulumi/docker-build':
-        specifier: catalog:pulumi
-        version: 0.0.7(typescript@5.7.2)
-      '@pulumi/pulumi':
-        specifier: catalog:pulumi
-        version: 3.142.0(typescript@5.7.2)
-    devDependencies:
-      '@types/node':
-        specifier: catalog:types
-        version: 22.10.1
-      ci:
-        specifier: catalog:package
-        version: 2.3.0
-      publint:
-        specifier: catalog:package
-        version: 0.2.12
-      syncpack:
-        specifier: catalog:package
-        version: 13.0.0(typescript@5.7.2)
-      typescript:
-        specifier: catalog:dev
-        version: 5.7.2
-
-  iac/stacks/project:
-    dependencies:
-      '@pulumi/aws':
-        specifier: catalog:pulumi
-        version: 6.64.0(typescript@5.7.2)
-      '@pulumi/awsx':
-        specifier: catalog:pulumi
-        version: 2.19.0(typescript@5.7.2)
-      '@pulumi/docker-build':
-        specifier: catalog:pulumi
-        version: 0.0.7(typescript@5.7.2)
-      '@pulumi/pulumi':
-        specifier: catalog:pulumi
-        version: 3.142.0(typescript@5.7.2)
-      '@pulumi/synced-folder':
-        specifier: catalog:pulumi
-        version: 0.11.1(typescript@5.7.2)
-    devDependencies:
-      '@types/node':
-        specifier: catalog:types
-        version: 18.19.67
-      ci:
-        specifier: catalog:package
-        version: 2.3.0
-      publint:
-        specifier: catalog:package
-        version: 0.2.12
-      syncpack:
-        specifier: catalog:package
-        version: 13.0.0(typescript@5.7.2)
-      typescript:
-        specifier: catalog:dev
-        version: 5.7.2
-
-  iac/stacks/release:
-    dependencies:
-      '@pulumi/aws':
-        specifier: catalog:pulumi
-        version: 6.64.0(typescript@5.7.2)
-      '@pulumi/awsx':
-        specifier: catalog:pulumi
-        version: 2.19.0(typescript@5.7.2)
-      '@pulumi/docker-build':
-        specifier: catalog:pulumi
-        version: 0.0.7(typescript@5.7.2)
-      '@pulumi/pulumi':
-        specifier: catalog:pulumi
-        version: 3.142.0(typescript@5.7.2)
-    devDependencies:
-      '@types/node':
-        specifier: catalog:types
-        version: 18.19.67
-      ci:
-        specifier: catalog:package
-        version: 2.3.0
-      publint:
-        specifier: catalog:package
-        version: 0.2.12
-      syncpack:
-        specifier: catalog:package
-        version: 13.0.0(typescript@5.7.2)
-      typescript:
-        specifier: catalog:dev
-        version: 5.7.2
-
-  iac/stacks/runner:
-    dependencies:
-      '@pulumi/aws':
-        specifier: catalog:pulumi
-        version: 6.64.0(typescript@5.7.2)
-      '@pulumi/awsx':
-        specifier: catalog:pulumi
-        version: 2.19.0(typescript@5.7.2)
-      '@pulumi/docker-build':
-        specifier: catalog:pulumi
-        version: 0.0.7(typescript@5.7.2)
-      '@pulumi/pulumi':
-        specifier: catalog:pulumi
-        version: 3.142.0(typescript@5.7.2)
-    devDependencies:
-      '@types/node':
-        specifier: catalog:types
-        version: 22.10.1
-      ci:
-        specifier: catalog:package
-        version: 2.3.0
-      publint:
-        specifier: catalog:package
-        version: 0.2.12
-      syncpack:
-        specifier: catalog:package
-        version: 13.0.0(typescript@5.7.2)
-      typescript:
-        specifier: catalog:dev
-        version: 5.7.2
-
-  protocols/stands:
+  ../../../protocols/stands:
     dependencies:
       '@bufbuild/buf':
         specifier: catalog:protobuf
@@ -499,6 +406,99 @@ importers:
       syncpack:
         specifier: catalog:package
         version: 13.0.0(typescript@5.7.2)
+
+  ../pipeline:
+    dependencies:
+      '@pulumi/aws':
+        specifier: catalog:pulumi
+        version: 6.64.0(typescript@5.7.2)
+      '@pulumi/awsx':
+        specifier: catalog:pulumi
+        version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
+      '@pulumi/pulumi':
+        specifier: catalog:pulumi
+        version: 3.142.0(typescript@5.7.2)
+    devDependencies:
+      '@types/node':
+        specifier: catalog:types
+        version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
+      typescript:
+        specifier: catalog:dev
+        version: 5.7.2
+
+  ../release:
+    dependencies:
+      '@pulumi/aws':
+        specifier: catalog:pulumi
+        version: 6.64.0(typescript@5.7.2)
+      '@pulumi/awsx':
+        specifier: catalog:pulumi
+        version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
+      '@pulumi/pulumi':
+        specifier: catalog:pulumi
+        version: 3.142.0(typescript@5.7.2)
+    devDependencies:
+      '@types/node':
+        specifier: catalog:types
+        version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
+      typescript:
+        specifier: catalog:dev
+        version: 5.7.2
+
+  ../runner:
+    dependencies:
+      '@pulumi/aws':
+        specifier: catalog:pulumi
+        version: 6.64.0(typescript@5.7.2)
+      '@pulumi/awsx':
+        specifier: catalog:pulumi
+        version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
+      '@pulumi/pulumi':
+        specifier: catalog:pulumi
+        version: 3.142.0(typescript@5.7.2)
+    devDependencies:
+      '@types/node':
+        specifier: catalog:types
+        version: 22.10.1
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
+      typescript:
+        specifier: catalog:dev
+        version: 5.7.2
 
 packages:
 
@@ -1528,9 +1528,6 @@ packages:
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
 
-  '@types/node@18.19.67':
-    resolution: {integrity: sha512-wI8uHusga+0ZugNp0Ol/3BqQfEcCCNfojtO6Oou9iVNGPTL6QNSdnUdqq85fRgIorLhLMuPIKpsN98QE9Nh+KQ==}
-
   '@types/node@22.10.1':
     resolution: {integrity: sha512-qKgsUwfHZV2WCWLAnVP1JqnpE6Im6h3Y0+fYgMTasNQ7V++CBX5OT1as0g0f+OyubbFqhf6XVNIsmN4IIhEgGQ==}
 
@@ -2141,8 +2138,8 @@ packages:
     peerDependencies:
       hono: ^4.1.1
 
-  hono@4.6.12:
-    resolution: {integrity: sha512-eHtf4kSDNw6VVrdbd5IQi16r22m3s7mWPLd7xOMhg1a/Yyb1A0qpUFq8xYMX4FMuDe1nTKeMX5rTx7Nmw+a+Ag==}
+  hono@4.6.13:
+    resolution: {integrity: sha512-haV0gaMdSjy9URCRN9hxBPlqHa7fMm/T72kAImIxvw4eQLbNz1rgjN4hHElLJSieDiNuiIAXC//cC6YGz2KCbg==}
     engines: {node: '>=16.9.0'}
 
   hookable@5.5.3:
@@ -3330,9 +3327,6 @@ packages:
     resolution: {integrity: sha512-xY7c8LPyzvhvew0Fn+Ek3wBC9STZAuDI/Y5andCKi9AX6/jvfaX45PhsDX8oxgPL0YFp0Jhr8qWMbS/p9375Xg==}
     engines: {node: '>=16'}
 
-  undici-types@5.26.5:
-    resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
-
   undici-types@6.20.0:
     resolution: {integrity: sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==}
 
@@ -4057,7 +4051,7 @@ snapshots:
       '@babel/parser': 7.26.3
       '@babel/template': 7.25.9
       '@babel/types': 7.26.3
-      debug: 4.3.4
+      debug: 4.4.0
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -4224,13 +4218,13 @@ snapshots:
       protobufjs: 7.4.0
       yargs: 17.7.2
 
-  '@hono/node-server@1.13.7(hono@4.6.12)':
+  '@hono/node-server@1.13.7(hono@4.6.13)':
     dependencies:
-      hono: 4.6.12
+      hono: 4.6.13
 
-  '@hono/zod-validator@0.4.1(hono@4.6.12)(zod@3.23.8)':
+  '@hono/zod-validator@0.4.1(hono@4.6.13)(zod@3.23.8)':
     dependencies:
-      hono: 4.6.12
+      hono: 4.6.13
       zod: 3.23.8
 
   '@isaacs/cliui@8.0.2':
@@ -4257,7 +4251,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
@@ -5048,7 +5042,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       '@types/responselike': 1.0.3
 
   '@types/compressible@2.0.2': {}
@@ -5069,17 +5063,13 @@ snapshots:
 
   '@types/jsonwebtoken@9.0.7':
     dependencies:
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
 
   '@types/minimatch@3.0.5': {}
-
-  '@types/node@18.19.67':
-    dependencies:
-      undici-types: 5.26.5
 
   '@types/node@22.10.1':
     dependencies:
@@ -5089,7 +5079,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
 
   '@types/semver@7.5.8': {}
 
@@ -5149,7 +5139,7 @@ snapshots:
 
   agent-base@7.1.2:
     dependencies:
-      debug: 4.3.4
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -5397,7 +5387,7 @@ snapshots:
       callsite: 1.0.0
       camelcase: 6.3.0
       cosmiconfig: 7.1.0
-      debug: 4.3.4
+      debug: 4.4.0
       deps-regex: 0.2.0
       findup-sync: 5.0.0
       ignore: 5.3.2
@@ -5702,11 +5692,11 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
-  hono-rate-limiter@0.4.2(hono@4.6.12):
+  hono-rate-limiter@0.4.2(hono@4.6.13):
     dependencies:
-      hono: 4.6.12
+      hono: 4.6.13
 
-  hono@4.6.12: {}
+  hono@4.6.13: {}
 
   hookable@5.5.3: {}
 
@@ -5719,7 +5709,7 @@ snapshots:
   http-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.2
-      debug: 4.3.4
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -5733,7 +5723,7 @@ snapshots:
   https-proxy-agent@7.0.6:
     dependencies:
       agent-base: 7.1.2
-      debug: 4.3.4
+      debug: 4.4.0
     transitivePeerDependencies:
       - supports-color
 
@@ -5863,7 +5853,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -6498,7 +6488,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 18.19.67
+      '@types/node': 22.10.1
       long: 5.2.3
 
   publint@0.2.12:
@@ -6697,7 +6687,7 @@ snapshots:
   socks-proxy-agent@8.0.5:
     dependencies:
       agent-base: 7.1.2
-      debug: 4.3.4
+      debug: 4.4.0
       socks: 2.8.3
     transitivePeerDependencies:
       - supports-color
@@ -6894,7 +6884,7 @@ snapshots:
   tuf-js@2.2.1:
     dependencies:
       '@tufjs/models': 2.0.1
-      debug: 4.3.4
+      debug: 4.4.0
       make-fetch-happen: 13.0.1
     transitivePeerDependencies:
       - supports-color
@@ -6912,8 +6902,6 @@ snapshots:
   ulidx@2.4.1:
     dependencies:
       layerr: 3.0.0
-
-  undici-types@5.26.5: {}
 
   undici-types@6.20.0: {}
 
