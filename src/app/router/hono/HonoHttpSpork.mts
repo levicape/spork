@@ -1,3 +1,4 @@
+import { AuthenticatedRouter } from "../../domains/authenticated/AuthenticatedRouter.js";
 import { HonoHttpApp } from "./HonoHttpApp.js";
 import {
 	HonoHttpServerBuilder,
@@ -9,7 +10,7 @@ import { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.js";
 export default HonoHttpServerBuilder({
 	app: HonoHttpApp({
 		middleware: HonoHttpMiddlewareStandard(),
-	}),
+	}).route("/!/v1/Authenticated", AuthenticatedRouter()),
 }) satisfies HonoHttpServerExports<
 	ReturnType<typeof HonoHttpApp>
 >["HonoHttpServer"];

@@ -168,33 +168,27 @@ importers:
 
   .:
     dependencies:
-      '@bufbuild/buf':
-        specifier: catalog:protobuf
-        version: 1.47.2
-      '@bufbuild/protobuf':
-        specifier: catalog:protobuf
-        version: 2.2.2
-      ts-proto:
-        specifier: catalog:protobuf
-        version: 2.5.0
+      '@pulumi/aws':
+        specifier: catalog:pulumi
+        version: 6.64.0(typescript@5.7.2)
+      '@pulumi/awsx':
+        specifier: catalog:pulumi
+        version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
+      '@pulumi/pulumi':
+        specifier: catalog:pulumi
+        version: 3.142.0(typescript@5.7.2)
+    devDependencies:
+      '@types/node':
+        specifier: catalog:types
+        version: 22.10.1
       typescript:
         specifier: catalog:dev
         version: 5.7.2
-    devDependencies:
-      '@biomejs/biome':
-        specifier: catalog:lint
-        version: 1.9.4
-      ci:
-        specifier: catalog:package
-        version: 2.3.0
-      publint:
-        specifier: catalog:package
-        version: 0.2.12
-      syncpack:
-        specifier: catalog:package
-        version: 13.0.0(typescript@5.7.2)
 
-  ../..:
+  ../../..:
     dependencies:
       '@aws-sdk/client-dynamodb':
         specifier: catalog:aws
@@ -318,7 +312,7 @@ importers:
         specifier: catalog:dev
         version: 5.7.2
 
-  ../../canary:
+  ../../../canary:
     dependencies:
       '@bufbuild/protobuf':
         specifier: catalog:protobuf
@@ -367,29 +361,35 @@ importers:
         specifier: catalog:dev
         version: 5.7.2
 
-  ../../iac/stacks/pipeline:
+  ../../../protocols/stands:
     dependencies:
-      '@pulumi/aws':
-        specifier: catalog:pulumi
-        version: 6.64.0(typescript@5.7.2)
-      '@pulumi/awsx':
-        specifier: catalog:pulumi
-        version: 2.19.0(typescript@5.7.2)
-      '@pulumi/docker-build':
-        specifier: catalog:pulumi
-        version: 0.0.7(typescript@5.7.2)
-      '@pulumi/pulumi':
-        specifier: catalog:pulumi
-        version: 3.142.0(typescript@5.7.2)
-    devDependencies:
-      '@types/node':
-        specifier: catalog:types
-        version: 22.10.1
+      '@bufbuild/buf':
+        specifier: catalog:protobuf
+        version: 1.47.2
+      '@bufbuild/protobuf':
+        specifier: catalog:protobuf
+        version: 2.2.2
+      ts-proto:
+        specifier: catalog:protobuf
+        version: 2.5.0
       typescript:
         specifier: catalog:dev
         version: 5.7.2
+    devDependencies:
+      '@biomejs/biome':
+        specifier: catalog:lint
+        version: 1.9.4
+      ci:
+        specifier: catalog:package
+        version: 2.3.0
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
 
-  ../../iac/stacks/project:
+  ../project:
     dependencies:
       '@pulumi/aws':
         specifier: ^6.0.0
@@ -411,7 +411,7 @@ importers:
         specifier: ^5.0.0
         version: 5.7.2
 
-  ../../iac/stacks/release:
+  ../release:
     dependencies:
       '@pulumi/aws':
         specifier: ^6.0.0
@@ -433,7 +433,7 @@ importers:
         specifier: ^5.0.0
         version: 5.7.2
 
-  ../../iac/stacks/runner:
+  ../runner:
     dependencies:
       '@pulumi/aws':
         specifier: catalog:pulumi

@@ -114,13 +114,43 @@ export async function generate(
 	debugLog(`Compiling ${name}...`);
 	const executable = command.split(" ")[0];
 	const args = command.split(" ").slice(1);
-	const { exitCode, stdout, stderr } = await Spawn.spawnSafe({
+	let { exitCode, stdout, stderr } = await Spawn.spawnSafe({
 		command: executable,
 		args,
 		cwd: `${resolve(root)}/${name}`,
 		env: process.env,
 	});
 	printDuration(`compile ${name}`, Date.now() - startTime);
+
+	stderr = (stderr ?? "")
+		.split("\n")
+		.filter((line) => {
+			const all = [
+				`\\(node`,
+				`Support for loading ES Module`,
+				`\\(Use `,
+				`npm warn`,
+			];
+			const ignored = new RegExp(all.join("|"), "i");
+			const noderr = ignored.test(line.trim());
+			if (noderr) {
+				console.warn(
+					{
+						CompileModule: {
+							generate: {
+								name,
+								path,
+								stderr: line,
+							},
+						},
+					},
+					{ depth: null },
+				);
+			}
+			return line.length > 0 && !noderr;
+		})
+		.map((line) => line.trim())
+		.join("\n");
 
 	return {
 		name,

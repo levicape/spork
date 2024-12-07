@@ -13,8 +13,8 @@ import {
 	HonoResponseTimeHeader,
 	HonoResponseTimeHeaderStandard,
 } from "./response/HonoResponseTimeHeader.js";
-import { HonoHttpAuthentication } from "./security/HonoAuthenticationBearer.js";
-import { HonoServiceAuthentication } from "./security/HonoAuthenticationKeypair.js";
+import { HonoHttpAuthenticationBearer } from "./security/HonoAuthenticationBearer.js";
+import { HonoAuthenticationKeypair } from "./security/HonoAuthenticationKeypair.js";
 
 const noop = async (_: Context, next: Next) => {
 	await next();
@@ -68,7 +68,7 @@ export const HonoHttpResponse = ({
 	] as const;
 
 export const HonoHttpSecurity = () =>
-	[HonoServiceAuthentication(), HonoHttpAuthentication()] as const;
+	[HonoAuthenticationKeypair(), HonoHttpAuthenticationBearer()] as const;
 
 export const HonoHttpMiddlewareStandard = () =>
 	[

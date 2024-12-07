@@ -138,6 +138,11 @@ obj
 appsettings.json
 local.settings.json
 
+gen
+**/gen
 build
 module
-*/_protocols
+**/_protocols
+_protocols
+**/_models
+_models

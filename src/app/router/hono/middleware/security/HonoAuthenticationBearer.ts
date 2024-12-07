@@ -1,64 +1,63 @@
+import type { Context, MiddlewareHandler } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
+import type { JwtPayload } from "jsonwebtoken";
+import { jwtTools } from "../../../../server/security/JwtTools.js";
+import { LoginToken } from "../../../../server/security/model/LoginToken.js";
+import { SecurityRoles } from "../../../../server/security/model/Security.js";
 
-export const HonoHttpAuthentication = () => {
+export const HonoHttpAuthenticationBearerPrincipal =
+	"HonoHttpAuthenticationBearerPrincipal" as const;
+export type HonoHttpAuthenticationBearerContext = {
+	principal:
+		| {
+				$case: "anonymous";
+				value: undefined;
+		  }
+		| {
+				$case: "user";
+				value: LoginToken;
+		  }
+		| {
+				$case: "admin";
+				value: LoginToken;
+		  };
+};
+
+export const HonoHttpAuthenticationBearer = () => {
 	return bearerAuth({
 		verifyToken: async (token, c) => {
-			return true;
+			return await HonoHttpAuthenticationDerive(token, c);
 		},
 	});
 };
 
-// Load Signing Key from JWTTools
-// Extract JWT from Bearer
-// Add prinicpal to context
-/*
-		.derive(
-			{ as: "global" },
-			async function principalFromBearerToken({ jwt, bearer, headers }) {
-				const validation = await jwt.verify(bearer);
-				if (validation === false) {
-					if (headers.leaftoken === thetoken) {
-						return {
-							principal: {
-								$case: "admin",
-								value: new LoginToken(
-									"admin",
-									[SecurityRoles.LOGIN, SecurityRoles.REGISTERED],
-									Date.now().toString(),
-									"localhost",
-								),
-							},
-						};
-					}
+export const HonoHttpAuthenticationDerive = async (
+	token: string,
+	context: Context,
+): Promise<boolean> => {
+	let jwt: JwtPayload | undefined;
+	let unparseable = false;
+	if (token) {
+		try {
+			jwt = await jwtTools.verify(token, "ACCESS");
 
-					return {
-						principal: {
-							$case: "anonymous",
-							value: undefined,
-						},
-					};
-				}
-
-				if (validation.aud === "admin") {
-					// TODO: RBAC
-					return {
-						principal: {
-							$case: "admin",
-							value: new LoginToken(
-								validation.sub ?? "",
-								[SecurityRoles.LOGIN, SecurityRoles.REGISTERED],
-								Date.now().toString(),
-								"localhost",
-							),
-						},
-					};
-				}
-
-				return {
-					principal: {
+			switch (jwt.aud) {
+				case "admin":
+					context.set(HonoHttpAuthenticationBearerPrincipal, {
+						$case: "admin",
+						value: new LoginToken(
+							"admin",
+							[SecurityRoles.LOGIN, SecurityRoles.REGISTERED],
+							Date.now().toString(),
+							"localhost",
+						),
+					});
+					break;
+				default:
+					context.set(HonoHttpAuthenticationBearerPrincipal, {
 						$case: "user",
 						value: new LoginToken(
-							validation.sub ?? "",
+							jwt.sub ?? "",
 							[
 								// TODO:
 								SecurityRoles.LOGIN,
@@ -66,9 +65,20 @@ export const HonoHttpAuthentication = () => {
 							Date.now().toString(),
 							"localhost",
 						),
-					},
-				};
-			},
-		);
+					});
+					break;
+			}
+		} catch (e) {
+			unparseable = true;
+		}
+	}
 
-*/
+	if (!jwt) {
+		context.set(HonoHttpAuthenticationBearerPrincipal, {
+			$case: "anonymous",
+			value: undefined,
+		});
+	}
+
+	return !unparseable;
+};

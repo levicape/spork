@@ -1,13 +1,27 @@
 {
-	"name": "images",
-	"devDependencies": {
-		"@types/node": "^18",
-		"typescript": "^5.0.0"
-	},
-	"dependencies": {
-		"@pulumi/aws": "^6.0.0",
-		"@pulumi/awsx": "^2.0.2",
-		"@pulumi/docker-build": "^0.0.7",
-		"@pulumi/pulumi": "^3.113.0"
-	}
+  "config": {
+    "packagemanager": "pnpm",
+    "packageexecutor": "pnpm exec"
+  },
+  "dependencies": {
+    "@pulumi/aws": "catalog:pulumi",
+    "@pulumi/awsx": "catalog:pulumi",
+    "@pulumi/docker-build": "catalog:pulumi",
+    "@pulumi/pulumi": "catalog:pulumi"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:types",
+    "typescript": "catalog:dev"
+  },
+  "private": true,
+  "scripts": {
+    "dx:prepublish": "pnpm run package:format",
+    "package:deps": "$npm_package_config_packageexecutor depcheck",
+    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor syncpack format",
+    "package:lockfile": "$npm_package_config_packagemanager install --lockfile-only --lockfile-dir .",
+    "package:update": "$npm_package_config_packageexecutor syncpack update",
+    "postinstall": "$npm_package_config_packagemanager run package:lockfile"
+  },
+  "type": "module"
 }

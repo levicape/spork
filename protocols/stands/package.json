@@ -1,24 +1,40 @@
 {
-  "name": "@levicape/stands",
-  "private": true,
-  "type": "module",
+  "name": "@levicape/spork-stands-protocol",
   "config": {
-    "packagemanager": "pnpm"
-  },
-  "scripts": {
-    "clean:all": "rm -rf ./gen && rm -rf ./node_modules || true",
-    "clean:build": "rm -rf ./gen",
-    "clean:install": "rm -rf ./node_modules",
-    "lint": "npx @bufbuild/buf lint",
-    "format": "npx @bufbuild/buf format -w",
-    "build:ci": "$npm_package_config_packagemanager run clean:all && npx --yes ci && $npm_package_config_packagemanager run build && $npm_package_config_packagemanager run clean:install",
-    "build": "npx --yes @bufbuild/buf generate"
+    "packagemanager": "pnpm",
+    "packageexecutor": "pnpm exec",
+    "outpaths": "./gen"
   },
   "dependencies": {
-    "typescript": "^5.7.2",
-    "@bufbuild/buf": "^1.44.0",
-    "ts-proto": "^2.2.2",
-    "@bufbuild/protobuf": "^2.2.2"
+    "@bufbuild/buf": "catalog:protobuf",
+    "@bufbuild/protobuf": "catalog:protobuf",
+    "ts-proto": "catalog:protobuf",
+    "typescript": "catalog:dev"
   },
-  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf"
+  "devDependencies": {
+    "@biomejs/biome": "catalog:lint",
+    "ci": "catalog:package",
+    "publint": "catalog:package",
+    "syncpack": "catalog:package"
+  },
+  "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf",
+  "private": true,
+  "scripts": {
+    "build": "$npm_package_config_packageexecutor buf generate",
+    "build:ci": "$npm_package_config_packagemanager run clean:install && $npm_package_config_packageexecutor ci && $npm_package_config_packagemanager run build",
+    "clean": "rm -rf $npm_package_config_outpaths || true",
+    "clean:install": "echo \"Clean node_modules if npm\"",
+    "dx:prepublish": "$npm_package_config_packagemanager run build:ci && $npm_package_config_packagemanager run package:format && $npm_package_config_packagemanager run prepublish",
+    "package:deps": "$npm_package_config_packageexecutor depcheck",
+    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor syncpack format",
+    "package:lockfile": "$npm_package_config_packagemanager install --lockfile-only --lockfile-dir .",
+    "package:update": "$npm_package_config_packageexecutor syncpack update",
+    "postinstall": "$npm_package_config_packagemanager run package:lockfile",
+    "prebuild": "$npm_package_config_packagemanager run clean",
+    "prepublish": "$npm_package_config_packageexecutor publint --strict",
+    "protobuf:format": "$npm_package_config_packageexecutor buf format -w",
+    "protobuf:lint": "$npm_package_config_packageexecutor buf lint"
+  },
+  "type": "module"
 }

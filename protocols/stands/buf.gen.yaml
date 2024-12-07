@@ -36,7 +36,7 @@ plugins:
       - useOptionals=all
       - useJsonWireFormat=true
     strategy: all    
-  - remote: buf.build/bufbuild/protoschema-jsonschema:v0.1.5
-    out: gen/jsonschema
-  - remote: buf.build/community/pseudomuto-doc:v1.5.1
-    out: gen/docs    
+  # - remote: buf.build/bufbuild/protoschema-jsonschema:v0.1.5
+  #   out: gen/jsonschema
+  # - remote: buf.build/community/pseudomuto-doc:v1.5.1
+  #   out: gen/docs    

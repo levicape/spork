@@ -1,16 +1,27 @@
-import { bearerAuth } from "hono/bearer-auth";
-export const HonoServiceAuthentication = () => {
+import type { MiddlewareHandler } from "hono";
+export const HonoAuthenticationKeypair = (): MiddlewareHandler => {
 	const thetoken = encodeURIComponent(
 		"porfavorabracadabraAAAa012392ssSWWWSSwwFFHHTYCEEFGWFBEFBWFBCDewd",
 	);
 
-	return bearerAuth({
-		verifyToken: async (token, c) => {
-			return true;
-		},
-	});
+	return async (_, next) => {
+		await next();
+	};
 };
 
-// Load Signing Key from JWTTools
-// Extract JWT from Bearer
-// Add prinicpal to context
+// async function principalFromBearerToken({ jwt, bearer, headers }) {
+// 	const validation = await jwt.verify(bearer);
+// 	if (validation === false) {
+// 		if (headers.leaftoken === thetoken) {
+// 			return {
+// 				principal: {
+// 					$case: "admin",
+// 					value: new LoginToken(
+// 						"admin",
+// 						[SecurityRoles.LOGIN, SecurityRoles.REGISTERED],
+// 						Date.now().toString(),
+// 						"localhost",
+// 					),
+// 				},
+// 			};
+// 		}
