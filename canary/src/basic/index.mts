@@ -1,1 +1,1 @@
-export * from "./basic.canary.mjs";
+export * from "./server.canary.mjs";

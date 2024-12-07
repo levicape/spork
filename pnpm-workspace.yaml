@@ -5,7 +5,7 @@ packages:
   - 'iac/stacks/*'
 
 catalog:
-  "@levicape/paloma": "0.0.5-main.5"
+  "@levicape/paloma": "0.0.6-main.6"
 
 catalogs:
   core:
