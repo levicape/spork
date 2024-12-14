@@ -2,16 +2,15 @@ import { buildCommand } from "@stricli/core";
 import { Logger } from "../../../app/server/logging/Logger.js";
 
 type Flags = {
-	readonly target: string;
 	readonly port: number;
-	readonly module: string;
+	readonly import: string;
 };
 
 export const StartCommand = async () => {
 	return async () =>
 		buildCommand({
 			loader: async () => {
-				return async ({ target, port, module }: Flags) => {
+				return async ({ port, import: import_ }: Flags, target: string) => {
 					const path = `${process.cwd()}/${target}`;
 					Logger.debug({
 						StartCommand: {
@@ -19,7 +18,7 @@ export const StartCommand = async () => {
 							path,
 						},
 					});
-					const HonoHttpServer = (await import(path))[module];
+					const HonoHttpServer = (await import(path))[import_];
 					const server = await HonoHttpServer();
 					Logger.log({
 						StartCommand: {
@@ -37,19 +36,22 @@ export const StartCommand = async () => {
 				};
 			},
 			parameters: {
-				flags: {
-					target: {
-						brief: "File to serve",
-						kind: "parsed",
-						parse: (input: string) => {
-							const allowed = ["js", "mjs", "cjs"];
-							if (!allowed.some((ext) => input.endsWith(ext))) {
-								throw new Error("File must be a js file (mjs, cjs)");
-							}
-							return input;
+				positional: {
+					kind: "tuple",
+					parameters: [
+						{
+							brief: "File to serve",
+							parse: (input: string) => {
+								const allowed = ["js", "mjs", "cjs"];
+								if (!allowed.some((ext) => input.endsWith(ext))) {
+									throw new Error("File must be a js file (mjs, cjs)");
+								}
+								return input;
+							},
 						},
-						optional: false,
-					},
+					],
+				},
+				flags: {
 					port: {
 						brief: "Port to listen on",
 						kind: "parsed",
@@ -57,9 +59,9 @@ export const StartCommand = async () => {
 						parse: Number,
 						optional: false,
 					},
-					module: {
+					import: {
 						brief:
-							"Export to use from target file. (Defaults to `export default ...`)",
+							'Export to use from target file. (Defaults to --import "default")',
 						kind: "parsed",
 						default: "default",
 						parse: String,

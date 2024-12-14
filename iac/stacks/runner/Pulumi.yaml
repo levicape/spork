@@ -1,6 +1,0 @@
-name: alpine
-description: Compile and test Bun in an Alpine Linux environment
-runtime:
-  name: nodejs
-  options:
-    packagemanager: npm

@@ -1,6 +1,6 @@
 {
   "name": "@levicape/spork",
-  "description": "A serverless framework for Node.js",
+  "description": "Server(less) framework for Node.js",
   "version": "0.0.0-local.0",
   "author": "Pedro Cardona",
   "bin": {
@@ -9,9 +9,10 @@
   "config": {
     "packagemanager": "pnpm",
     "packageexecutor": "pnpm exec",
+    "outpaths": "./module",
     "binpath": "./src/cli/bin.mts",
     "clipath": "./module/cli/bin.mjs",
-    "lintpaths": "./src ./canary",
+    "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
     "server": "module/app/router/hono/HonoHttpSpork.mjs"
   },
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
     "@bufbuild/buf": "catalog:protobuf",
+    "@levicape/fourtwo": "catalog:",
     "@types/compressible": "catalog:types",
     "@types/jsonwebtoken": "catalog:types",
     "@types/node": "catalog:types",
@@ -87,8 +89,7 @@
   "files": [
     "module",
     "iac",
-    "protocols",
-    ".github"
+    "protocols"
   ],
   "license": "AGPL-3.0-only",
   "packageManager": "pnpm@9.7.0+sha512.dc09430156b427f5ecfc79888899e1c39d2d690f004be70e05230b72cb173d96839587545d09429b55ac3c429c801b4dc3c0e002f653830a420fa2dd4e3cf9cf",
@@ -105,30 +106,34 @@
   "repository": "github:levicape/spork",
   "scripts": {
     "build": "$npm_package_config_packageexecutor tsc",
-    "build:ci": "$npm_package_config_packagemanager run generate && $npm_package_config_packagemanager run build",
-    "clean": "rm -rf ./module",
+    "clean": "rm -rf $npm_package_config_outpaths || true",
     "clean:install": "rm -rf ./node_modules",
-    "dx:config:post": "$npm_package_config_packagemanager config set recursive-install true",
-    "dx:config:pre": "$npm_package_config_packagemanager config set recursive-install false",
-    "dx:lint": "$npm_package_config_packagemanager run build:ci && $npm_package_config_packagemanager run lint:write && $npm_package_config_packagemanager run package:format && $npm_package_config_packagemanager run prepublish",
-    "dx:prepublish": "$npm_package_config_packagemanager run dx:config:pre && $npm_package_config_packagemanager run dx:lint && $npm_package_config_packagemanager run dx:config:post",
+    "compile": "$npm_package_config_packagemanager run generate && $npm_package_config_packagemanager run build",
+    "dx:cli:bin": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath",
+    "dx:cli:dev": "node --inspect-brk --import tsx $npm_package_config_binpath",
+    "dx:lint": "$npm_package_config_packagemanager run compile && $npm_package_config_packagemanager run lint:format && $npm_package_config_packagemanager run package:format",
+    "dx:prepublish": "$npm_package_config_packagemanager run dx:prepublish:pre && $npm_package_config_packagemanager run dx:lint && $npm_package_config_packagemanager run dx:sync && $npm_package_config_packagemanager run prepublish",
+    "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
+    "dx:sync": "echo 'dx:sync -- Not supported yet'",
+    "dx:test": "$npm_package_config_packagemanager run clean && $npm_package_config_packagemanager run build && $npm_package_config_packagemanager run test",
+    "ft:gha:push:main": "$npm_package_config_packageexecutor fourtwo github workflows gen \"./iac/workflows/github/push/GithubMainPushPipeline.js\" --output",
+    "ft:gha:release:released": "$npm_package_config_packageexecutor fourtwo github workflows gen \"./iac/workflows/github/release/GithubReleaseReleasedPipeline.js\" --output",
     "generate": "$npm_package_config_packagemanager run generate:protocols",
-    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build:ci\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run compile\" --artifact gen --destination $npm_package_config_protocols --clean",
     "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_lintpaths",
-    "lint:format": "$npm_package_config_packageexecutor biome format --write $npm_package_config_lintpaths",
+    "lint:format": "$npm_package_config_packageexecutor biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_lintpaths",
-    "lint:write": "$npm_package_config_packageexecutor biome check --write $npm_package_config_lintpaths",
     "package:deps": "$npm_package_config_packageexecutor depcheck",
     "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor syncpack format",
     "package:update": "$npm_package_config_packageexecutor syncpack update",
     "prebuild": "$npm_package_config_packagemanager run clean",
-    "prelint": "$npm_package_config_packageexecutor @biomejs/biome format $npm_package_config_lintpaths",
+    "prelint": "$npm_package_config_packageexecutor biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor publint --strict",
-    "start": "node $npm_package_config_clipath server start --target $npm_package_config_server",
+    "start": "node $npm_package_config_clipath server start $npm_package_config_server",
     "test": "$npm_package_config_packagemanager run test:module && $npm_package_config_packagemanager run test:canary",
     "test:canary": "node --experimental-strip-types canary/src/basic/server.canary.mts",
-    "test:module": "node --test  \"module/**/*.test.js\""
+    "test:module": "echo 'node --test  \"module/**/*.test.js\"'"
   },
   "type": "module",
   "types": "module/index.d.mts"

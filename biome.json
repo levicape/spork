@@ -1,22 +1,28 @@
 {
-    "files": {
-      "ignore": ["src/_protocols/**/*"]
-    },
-    "linter": {
-      "rules": {
-        "complexity": {
-          "noForEach": "off",
-          "noStaticOnlyClass": "off"
-        },
-        "style": {
-          "noUnusedTemplateLiteral": "off",
-          "noParameterAssign": "off"
-        },
-        "suspicious": {
-          "noUnsafeDeclarationMerging": "off",
-          "noControlCharactersInRegex": "off",
-          "noAssignInExpressions": "off"
-        }
+  "files": {
+    "ignore": [
+      "package.json",
+      "package-lock.json",
+      "**/package.json",
+      "**/package-lock.json",
+      "src/_protocols/**/*"
+    ]
+  },  
+  "linter": {
+    "rules": {
+      "suspicious": {
+        "noUnsafeDeclarationMerging": "off",
+        "noControlCharactersInRegex": "off",
+        "noAssignInExpressions": "off"
+      },
+      "style": {
+        "noUnusedTemplateLiteral": "off",
+        "noParameterAssign": "off"
+      },
+      "complexity": {
+        "noForEach": "off",
+        "noStaticOnlyClass": "off"
       }
     }
+  }
 }
