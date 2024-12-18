@@ -146,3 +146,7 @@ module
 _protocols
 **/_models
 _models
+
+
+.nx/cache
+.nx/workspace-data
