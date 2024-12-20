@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@levicape/fourtwo": "catalog:"
+  },
+  "private": "true",
+  "type": "module"
+}

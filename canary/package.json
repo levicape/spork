@@ -10,17 +10,11 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "workspace:",
-    "expect": "catalog:test",
-    "knex": "catalog:database",
-    "ksuid": "catalog:id",
-    "pg": "catalog:database",
-    "ts-proto": "catalog:protobuf",
-    "zod": "catalog:core"
+    "ts-proto": "catalog:protobuf"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
     "@types/node": "catalog:types",
-    "ci": "catalog:package",
     "publint": "catalog:package",
     "syncpack": "catalog:package",
     "typescript": "catalog:dev"
@@ -30,12 +24,17 @@
   },
   "nx": {
     "targets": {
-      "dx:precommit": {
+      "nx:test": {
         "dependsOn": [
-          "dx:prepublish",
-          "^dx:precommit"
+          "test:basic"
         ]
       }
+    },
+    "dx:precommit": {
+      "dependsOn": [
+        "dx:prepublish",
+        "nx:test"
+      ]
     }
   },
   "private": true,
@@ -49,8 +48,8 @@
     "clean:install": "echo \"Clean node_modules if npm\"",
     "compile": "$npm_package_config_packagemanager run generate && $npm_package_config_packagemanager run build",
     "dx:lint": "$npm_package_config_packagemanager run compile && $npm_package_config_packagemanager run lint:format && $npm_package_config_packagemanager run package:format",
-    "dx:precommit": "$npm_package_config_packagemanager run dx:precommit:pre && $npm_package_config_packagemanager run dx:sync && $npm_package_config_packagemanager run package:deps",
-    "dx:precommit:pre": "echo \"Starting precommit dx. This will recompile iac files and check package.json dependencies.\"",
+    "dx:precommit": "$npm_package_config_packagemanager run dx:precommit:pre && $npm_package_config_packagemanager run package:deps",
+    "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
     "dx:prepublish": "$npm_package_config_packagemanager run dx:prepublish:pre && $npm_package_config_packagemanager run dx:lint && $npm_package_config_packagemanager run prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_lintpaths",

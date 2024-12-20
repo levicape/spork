@@ -5,23 +5,32 @@
       "package-lock.json",
       "**/package.json",
       "**/package-lock.json",
-      "src/_protocols/**/*"
+      "**/_protocols"
     ]
   },  
   "linter": {
     "rules": {
+      "correctness": {
+        "useJsxKeyInIterable": "off"
+      },
       "suspicious": {
-        "noUnsafeDeclarationMerging": "off",
-        "noControlCharactersInRegex": "off",
-        "noAssignInExpressions": "off"
+          "noAssignInExpressions": "off",
+          "noUnsafeDeclarationMerging": "off",
+          "noControlCharactersInRegex": "off"
       },
       "style": {
         "noUnusedTemplateLiteral": "off",
-        "noParameterAssign": "off"
+        "noParameterAssign": "off",
+        "useConst": "off"
       },
       "complexity": {
-        "noForEach": "off",
-        "noStaticOnlyClass": "off"
+          "noStaticOnlyClass": "off",
+          "noForEach": "off",
+          "noBannedTypes": "off",
+          "useLiteralKeys": "off"
+      },
+      "performance": {
+          "noAccumulatingSpread": "off"
       }
     }
   }

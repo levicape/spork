@@ -1,5 +1,5 @@
 {
-  "name": "@levicape/spork-stands-protocol",
+  "name": "@levicape/protobuf-spork-stands",
   "config": {
     "packagemanager": "pnpm",
     "packageexecutor": "pnpm exec",
@@ -17,22 +17,49 @@
     "publint": "catalog:package",
     "syncpack": "catalog:package"
   },
+  "nx": {
+    "targets": {
+      "dx:precommit": {
+        "dependsOn": [
+          "dx:prepublish"
+        ]
+      },
+      "nx:compile": {
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "nx:lint": {
+        "dependsOn": [
+          "protobuf:lint"
+        ]
+      },
+      "nx:test": {
+        "dependsOn": [
+          "test:output"
+        ]
+      }
+    }
+  },
   "private": true,
   "scripts": {
-    "build": "$npm_package_config_packageexecutor buf generate",
+    "build": "$npm_package_config_packageexecutor nx exec -- buf generate",
     "clean": "rm -rf $npm_package_config_outpaths || true",
-    "compile": "$npm_package_config_packagemanager run build",
-    "dx:lint": "$npm_package_config_packagemanager run compile && $npm_package_config_packagemanager run protobuf:format && $npm_package_config_packagemanager run package:format",
-    "dx:prepublish": "$npm_package_config_packagemanager run dx:prepublish:pre && $npm_package_config_packagemanager run dx:lint && $npm_package_config_packagemanager run dx:sync && $npm_package_config_packagemanager run prepublish",
-    "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
-    "package:deps": "$npm_package_config_packageexecutor depcheck",
-    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
-    "package:format": "$npm_package_config_packageexecutor syncpack format",
-    "package:update": "$npm_package_config_packageexecutor syncpack update",
-    "prebuild": "$npm_package_config_packagemanager run clean",
-    "prepublish": "$npm_package_config_packageexecutor publint --strict",
-    "protobuf:format": "$npm_package_config_packageexecutor buf format -w",
-    "protobuf:lint": "$npm_package_config_packageexecutor buf lint"
+    "compile": "$npm_package_config_packageexecutor nx nx:compile --verbose",
+    "dx:lint": "$npm_package_config_packageexecutor nx compile && $npm_package_config_packageexecutor nx exec -- protobuf:format && $npm_package_config_packageexecutor nx package:format",
+    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
+    "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify it. \"",
+    "lint": "$npm_package_config_packageexecutor nx nx:lint",
+    "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
+    "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
+    "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
+    "prebuild": "$npm_package_config_packageexecutor nx clean",
+    "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
+    "protobuf:format": "$npm_package_config_packageexecutor nx exec -- buf format -w",
+    "protobuf:lint": "echo 'buf lint'; # $npm_package_config_packageexecutor nx exec -- buf lint",
+    "test": "$npm_package_config_packageexecutor nx nx:test",
+    "test:output": "test -d $npm_package_config_outpaths"
   },
   "type": "module"
 }

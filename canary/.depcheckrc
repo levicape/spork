@@ -1,0 +1,6 @@
+ignores: 
+- "@levicape/*"
+- "tsx"
+- "nx"
+- "@bufbuild/protobuf"
+- "ts-proto"

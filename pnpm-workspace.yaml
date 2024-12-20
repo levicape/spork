@@ -1,16 +1,39 @@
 packages:
   - '.'
+  - 'iac/stacks'
+  - 'iac/workflows'
   - 'canary'
   - 'protocols/*'
 
 catalog:
-  "@levicape/paloma": "0.0.6-main.6"
-  "@levicape/fourtwo": "0.1.0-main.1"
+  "@levicape/paloma": "0.0.7-nx-main.2"
+  "@levicape/fourtwo": "0.2.1-main.5"
+  "@levicape/fourtwo-pulumi": "0.2.1-main.5"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 catalogs:
   core:
     "long": "^5.2.3"
-    "zod": "3.23.8"
+    "zod": "3.24.1"
     "yaml": "^2.6.1"
     "ini": "^5.0.0"
     "pify": "^6.1.0"
