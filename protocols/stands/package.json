@@ -26,7 +26,7 @@
       },
       "nx:compile": {
         "dependsOn": [
-          "build"
+          "wait"
         ]
       },
       "nx:lint": {
@@ -43,23 +43,24 @@
   },
   "private": true,
   "scripts": {
-    "build": "$npm_package_config_packageexecutor nx exec -- buf generate",
     "clean": "rm -rf $npm_package_config_outpaths || true",
     "compile": "$npm_package_config_packageexecutor nx nx:compile --verbose",
     "dx:lint": "$npm_package_config_packageexecutor nx compile && $npm_package_config_packageexecutor nx exec -- protobuf:format && $npm_package_config_packageexecutor nx package:format",
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify it. \"",
+    "generate": "$npm_package_config_packageexecutor nx exec -- buf generate",
     "lint": "$npm_package_config_packageexecutor nx nx:lint",
     "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
     "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
-    "prebuild": "$npm_package_config_packageexecutor nx clean",
+    "pregenerate": "$npm_package_config_packageexecutor nx clean",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "protobuf:format": "$npm_package_config_packageexecutor nx exec -- buf format -w",
     "protobuf:lint": "echo 'buf lint'; # $npm_package_config_packageexecutor nx exec -- buf lint",
     "test": "$npm_package_config_packageexecutor nx nx:test",
-    "test:output": "test -d $npm_package_config_outpaths"
+    "test:output": "test -d $npm_package_config_outpaths",
+    "wait": "sleep 2 # This package is compiled by the parent package"
   },
   "type": "module"
 }

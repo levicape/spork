@@ -1,7 +1,7 @@
 ########################################
 # THIS FILE WAS AUTOMATICALLY GENERATED, DO NOT MODIFY
 ########################################
-name: "on Push: CI"
+name: "on Push: Compile, Lint, Test all workspace packages"
 on:
   push:
     branches:
@@ -11,7 +11,7 @@ env:
   NPM_REGISTRY_HOST: npm.pkg.github.com
 jobs:
   build:
-    name: Compile, Lint and Test package
+    name: Compile, Lint and Test all workspace packages
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -50,16 +50,18 @@ jobs:
         run: pnpm list;
       - name: Install Dependencies
         run: pnpm install;
-      - name: "Run package.json: lint"
-        run: pnpm run lint;
-      - name: "Run package.json: test"
-        run: pnpm run test;
+      - name: Compile
+        run: pnpx nx run-many -t compile --parallel=1 --verbose --no-cloud;
+      - name: Lint
+        run: pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud;
+      - name: Test
+        run: pnpx nx run-many -t test --parallel=1 --verbose --no-cloud;
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]GithubMainPush.yml","source":"iac/workflows/github/push/GithubMainPush.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"494d8583d078fb3c956655d3330108dfd5c9b3c06682199ffde52231773ce4cc"}
-#**:_$~- {"$$":"footer","started":"2024-12-20T10:50:09.000Z","now":"2024-12-20T10:50:09.007Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"ea5baae3e1ff44bc42db54599d8184e354e10d8e003396bfecc16e4d8907240a"}
+#**:_$~- {"$$":"footer","started":"2024-12-20T11:53:21.857Z","now":"2024-12-20T11:53:21.863Z","elapsed":"6ms"}
 # END OF GENERATED FILE
 

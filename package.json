@@ -102,24 +102,24 @@
       },
       "nx:compile": {
         "dependsOn": [
-          "nx:generate",
-          "build"
-        ]
-      },
-      "nx:generate": {
-        "dependsOn": [
-          "generate:protocols"
+          "build",
+          "@levicape/spork-canary:nx:compile"
         ]
       },
       "nx:test": {
         "dependsOn": [
-          "test:canary",
-          "test:module"
+          "test:module",
+          "@levicape/spork-canary:nx:test"
         ]
       },
       "nx:sync": {
         "dependsOn": [
           "ft:gha:sync:main"
+        ]
+      },
+      "build": {
+        "dependsOn": [
+          "generate:protocols"
         ]
       }
     }
@@ -142,7 +142,7 @@
     "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
     "clean:tsc": "rm -rf ./.tsc",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
-    "compile": "$npm_package_config_packageexecutor nx nx:compile",
+    "compile": "$npm_package_config_packageexecutor nx nx:compile --verbose",
     "dx:cli:bin": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath",
     "dx:cli:dev": "node --inspect-brk --import tsx $npm_package_config_binpath",
     "dx:commit": "$npm_package_config_packagemanager run clean:packages && $npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
@@ -157,7 +157,7 @@
     "ft:gha:push:main": "$npm_package_config_packageexecutor fourtwo github workflows gen \"./iac/workflows/github/push/GithubMainPush.js\" --output",
     "ft:gha:release:released": "$npm_package_config_packageexecutor fourtwo github workflows gen \"./iac/workflows/github/release/GithubReleaseReleased.js\" --output",
     "ft:gha:sync:main": "$npm_package_config_packageexecutor nx ft:gha:push:main --write && $npm_package_config_packageexecutor nx ft:gha:release:released --write",
-    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run compile\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run generate\" --artifact gen --destination $npm_package_config_protocols --clean",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -171,8 +171,7 @@
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "start": "node $npm_package_config_clipath server start $npm_package_config_server",
-    "test": "$npm_package_config_packageexecutor nx nx:test",
-    "test:canary": "node --experimental-strip-types canary/src/basic/server.canary.mts",
+    "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'"
   },
   "type": "module",

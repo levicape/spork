@@ -129,8 +129,8 @@ jobs:
         run: pnpm list;
       - name: Install Dependencies
         run: pnpm install;
-      - name: "Run package.json: compile"
-        run: pnpm run compile;
+      - name: "Run package.json: generate"
+        run: pnpm run generate;
       - name: "Run package.json: lint"
         run: pnpm run lint;
       - name: "Run package.json: test"
@@ -154,7 +154,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)]GithubReleaseReleased.yml","source":"iac/workflows/github/release/GithubReleaseReleased.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"c5de915abbc43b232c34bd82996b513d031b4701946a48d6867b5ade02cdace2"}
-#**:_$~- {"$$":"footer","started":"2024-12-20T10:50:12.360Z","now":"2024-12-20T10:50:12.370Z","elapsed":"10ms"}
+#**:_$~- {"$$":"body","hashed":"8be93c8a00c59e5d40026b2f2ed71d9155c29d41ef10af8fab4c52b90a831236"}
+#**:_$~- {"$$":"footer","started":"2024-12-20T11:53:25.244Z","now":"2024-12-20T11:53:25.251Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 

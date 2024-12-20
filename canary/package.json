@@ -24,17 +24,21 @@
   },
   "nx": {
     "targets": {
+      "dx:precommit": {
+        "dependsOn": [
+          "dx:prepublish"
+        ]
+      },
+      "nx:compile": {
+        "dependsOn": [
+          "build"
+        ]
+      },
       "nx:test": {
         "dependsOn": [
           "test:basic"
         ]
       }
-    },
-    "dx:precommit": {
-      "dependsOn": [
-        "dx:prepublish",
-        "nx:test"
-      ]
     }
   },
   "private": true,
@@ -45,8 +49,10 @@
   "scripts": {
     "build": "$npm_package_config_packageexecutor tsc",
     "clean": "rm -rf $npm_package_config_outpaths || true",
-    "clean:install": "echo \"Clean node_modules if npm\"",
-    "compile": "$npm_package_config_packagemanager run generate && $npm_package_config_packagemanager run build",
+    "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
+    "clean:tsc": "rm -rf ./.tsc",
+    "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
+    "compile": "$npm_package_config_packageexecutor nx nx:compile",
     "dx:lint": "$npm_package_config_packagemanager run compile && $npm_package_config_packagemanager run lint:format && $npm_package_config_packagemanager run package:format",
     "dx:precommit": "$npm_package_config_packagemanager run dx:precommit:pre && $npm_package_config_packagemanager run package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
@@ -59,9 +65,12 @@
     "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor syncpack format",
     "package:update": "$npm_package_config_packageexecutor syncpack update",
-    "prebuild": "$npm_package_config_packagemanager run clean",
-    "prelint": "$npm_package_config_packageexecutor biome format $npm_package_config_lintpaths",
-    "prepublish": "$npm_package_config_packageexecutor publint --strict"
+    "prebuild": "$npm_package_config_packageexecutor nx clean",
+    "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
+    "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
+    "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
+    "test": "$npm_package_config_packageexecutor nx nx:test",
+    "test:basic": "node --experimental-strip-types module/basic/server.canary.mjs"
   },
   "type": "module",
   "types": "module/index.d.mts"

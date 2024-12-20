@@ -19,8 +19,9 @@ import {
 import { NodeGhaConfiguration } from "../push/GithubMainPush.js";
 
 type CompileAndPublishProps = {
-	cwd?: string;
 	packageName: string;
+	cwd?: string;
+	compile?: string;
 };
 
 export default (
@@ -32,10 +33,12 @@ export default (
 			current: { register, context: _$_, env },
 		} = GithubWorkflowExpressions;
 
-		const CompileAndPublish = ({
-			cwd,
-			packageName,
-		}: CompileAndPublishProps) => {
+		const CompileAndPublish = (props: CompileAndPublishProps) => {
+			const { cwd, packageName, compile } = {
+				compile: "compile",
+				...props,
+			};
+
 			const shortname = packageName.split("/").pop();
 			return (
 				<GithubJobX
@@ -70,7 +73,7 @@ export default (
 									return (
 										<>
 											<GithubStepNodeInstallX {...node} />
-											<GithubStepNodeScriptsX {...node} scripts={["compile"]} />
+											<GithubStepNodeScriptsX {...node} scripts={[compile]} />
 											<GithubStepNodeScriptsX {...node} scripts={["lint"]} />
 											<GithubStepNodeScriptsX {...node} scripts={["test"]} />
 										</>
@@ -142,6 +145,7 @@ export default (
 		{
 			packageName: "@levicape/protobuf-spork-stands",
 			cwd: "protocols/stands",
+			compile: "generate",
 		},
 	],
 });
