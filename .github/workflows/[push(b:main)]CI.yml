@@ -51,7 +51,7 @@ jobs:
       - name: Install Dependencies
         run: pnpm install;
       - name: Compile
-        run: pnpx nx run-many -t compile --parallel=1 --verbose --no-cloud;
+        run: pnpx nx run-many -t build --parallel=1 --verbose --no-cloud;
       - name: Lint
         run: pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud;
       - name: Test
@@ -107,7 +107,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"ea497504723ef7c551cf6047bdbc365f0ce8c7131ec40be8c701b807e0f96fb1"}
-#**:_$~- {"$$":"footer","started":"2025-01-08T08:04:28.626Z","now":"2025-01-08T08:04:28.631Z","elapsed":"5ms"}
+#**:_$~- {"$$":"body","hashed":"d40d447f9eb485f98a83f7b55913ed7c60af955616a1314f29a14fc48000cd7f"}
+#**:_$~- {"$$":"footer","started":"2025-01-08T16:16:17.343Z","now":"2025-01-08T16:16:17.348Z","elapsed":"5ms"}
 # END OF GENERATED FILE
 

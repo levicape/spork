@@ -217,7 +217,7 @@ export default async () => {
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
-											<CodeCatalystStepX run="npm exec pnpm compile" />
+											<CodeCatalystStepX run="npm exec pnpm build" />
 											<CodeCatalystStepX run="npm exec pnpm lint" />
 											<CodeCatalystStepX run="npm exec pnpm test" />
 											<CodeCatalystStepX
@@ -323,7 +323,7 @@ export default async () => {
 											/>
 											<CodeCatalystStepX run="npm exec n 22" />
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
-											<CodeCatalystStepX run="npm exec pnpm compile" />
+											<CodeCatalystStepX run="npm exec pnpm build" />
 											<CodeCatalystStepX
 												run={`ls -la $CATALYST_SOURCE_DIR${OUTPUT_IMAGE_PATH}/${OUTPUT_IMAGE_PATH}`}
 											/>

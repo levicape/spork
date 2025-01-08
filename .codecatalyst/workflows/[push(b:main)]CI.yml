@@ -128,7 +128,7 @@ Actions:
             - Run: npm exec n 22
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec pnpm install --prefer-offline
-            - Run: npm exec pnpm compile
+            - Run: npm exec pnpm build
             - Run: npm exec pnpm lint
             - Run: npm exec pnpm test
             - Run: du -sh $(pwd)/**/module $(pwd)/**/commonjs || true
@@ -237,7 +237,7 @@ Actions:
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec n 22
             - Run: npm exec pnpm install --prefer-offline
-            - Run: npm exec pnpm compile
+            - Run: npm exec pnpm build
             - Run: ls -la $CATALYST_SOURCE_DIR_images/_images
             - Run: docker load --input $CATALYST_SOURCE_DIR_images/_images/application.tar.gz
             - Run: docker images
@@ -261,7 +261,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"c8ad85e1a955636356e4fe14787a83e4db2c6829b14ae912d55581534ea33023"}
-#**:_$~- {"$$":"footer","started":"2025-01-08T08:10:52.175Z","now":"2025-01-08T08:10:52.181Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"5c9bee881c5a259b7662cb802d35e8c0988a0391747176f118909f78d38199dd"}
+#**:_$~- {"$$":"footer","started":"2025-01-08T16:56:30.011Z","now":"2025-01-08T16:56:30.018Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 
