@@ -35,7 +35,7 @@ export default (
 
 		const CompileAndPublish = (props: CompileAndPublishProps) => {
 			const { cwd, packageName, compile } = {
-				compile: "compile",
+				compile: "build",
 				...props,
 			};
 

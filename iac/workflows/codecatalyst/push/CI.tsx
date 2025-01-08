@@ -323,7 +323,6 @@ export default async () => {
 											/>
 											<CodeCatalystStepX run="npm exec n 22" />
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
-											<CodeCatalystStepX run="npm exec pnpm build" />
 											<CodeCatalystStepX
 												run={`ls -la $CATALYST_SOURCE_DIR${OUTPUT_IMAGE_PATH}/${OUTPUT_IMAGE_PATH}`}
 											/>

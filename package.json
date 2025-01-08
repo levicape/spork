@@ -91,6 +91,7 @@
         "dependsOn": [
           "dx:prepublish",
           "nx:test",
+          "@levicape/spork-examples-basic:dx:precommit",
           "@levicape/spork-canary:dx:precommit",
           "iac_stacks:dx:precommit"
         ]
@@ -103,6 +104,7 @@
       "nx:compile": {
         "dependsOn": [
           "compile",
+          "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile"
         ]
       },
@@ -171,7 +173,7 @@
     "start": "node $npm_package_config_clipath server start $npm_package_config_server",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
-    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t generate,compile,lint,test --parallel=1 --verbose --no-cloud"
+    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test --parallel=1 --verbose --no-cloud"
   },
   "type": "module",
   "types": "module/index.d.mts"

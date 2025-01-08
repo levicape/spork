@@ -92,43 +92,5 @@ export default async () => (
 				</>
 			}
 		/>
-		<GithubJobX
-			id="image"
-			name="Pack application image"
-			runsOn={GithubJobBuilder.defaultRunsOn()}
-			steps={
-				<>
-					<GithubStepCheckoutX />
-					<GithubStepNodeSetupX
-						configuration={NodeGhaConfiguration({ env })}
-						children={(node) => {
-							return (
-								<>
-									<GithubStepNodeInstallX {...node} />
-									<GithubStepX
-										name="Compile"
-										run={[
-											"pnpx nx run-many -t compile --parallel=1 --verbose --no-cloud",
-										]}
-									/>
-									<GithubStepX
-										name="Lint"
-										run={[
-											"pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud",
-										]}
-									/>
-									<GithubStepX
-										name="Test"
-										run={[
-											"pnpx nx run-many -t test --parallel=1 --verbose --no-cloud",
-										]}
-									/>
-								</>
-							);
-						}}
-					/>
-				</>
-			}
-		/>
 	</GithubWorkflowX>
 );

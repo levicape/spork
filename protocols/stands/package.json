@@ -43,9 +43,9 @@
   },
   "private": true,
   "scripts": {
+    "build": "$npm_package_config_packageexecutor nx nx:compile --verbose",
     "clean": "rm -rf $npm_package_config_outpaths || true",
-    "compile": "$npm_package_config_packageexecutor nx nx:compile --verbose",
-    "dx:lint": "$npm_package_config_packageexecutor nx compile && $npm_package_config_packageexecutor nx exec -- protobuf:format && $npm_package_config_packageexecutor nx package:format",
+    "dx:lint": "$npm_package_config_packageexecutor nx build && $npm_package_config_packageexecutor nx exec -- protobuf:format && $npm_package_config_packageexecutor nx package:format",
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify it. \"",
     "generate": "$npm_package_config_packageexecutor nx exec -- buf generate",

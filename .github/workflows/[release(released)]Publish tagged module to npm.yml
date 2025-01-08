@@ -58,8 +58,8 @@ jobs:
         run: pnpm list;
       - name: Install Dependencies
         run: pnpm install;
-      - name: "Run package.json: compile"
-        run: pnpm run compile;
+      - name: "Run package.json: build"
+        run: pnpm run build;
       - name: "Run package.json: lint"
         run: pnpm run lint;
       - name: "Run package.json: test"
@@ -154,7 +154,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)]Publish tagged module to npm.yml","source":"iac/workflows/github/release/Publish tagged module to npm.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"8be93c8a00c59e5d40026b2f2ed71d9155c29d41ef10af8fab4c52b90a831236"}
-#**:_$~- {"$$":"footer","started":"2025-01-08T08:04:23.739Z","now":"2025-01-08T08:04:23.745Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"09b799c42acb0e4e3c6de347c5fed36c58ac029968f54588aca983c9902816f1"}
+#**:_$~- {"$$":"footer","started":"2025-01-08T18:01:09.090Z","now":"2025-01-08T18:01:09.095Z","elapsed":"5ms"}
 # END OF GENERATED FILE
 

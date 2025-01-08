@@ -62,8 +62,8 @@ catalogs:
       specifier: ^0.4.1
       version: 0.4.1
     hono:
-      specifier: ^4.6.12
-      version: 4.6.12
+      specifier: ^4.6.16
+      version: 4.6.16
     hono-rate-limiter:
       specifier: ^0.4.2
       version: 0.4.2
@@ -151,10 +151,10 @@ importers:
         version: 2.2.2
       '@hono/node-server':
         specifier: catalog:hono
-        version: 1.13.7(hono@4.6.12)
+        version: 1.13.7(hono@4.6.16)
       '@hono/zod-validator':
         specifier: catalog:hono
-        version: 0.4.1(hono@4.6.12)(zod@3.24.1)
+        version: 0.4.1(hono@4.6.16)(zod@3.24.1)
       '@stricli/core':
         specifier: catalog:cli
         version: 1.1.0
@@ -163,10 +163,10 @@ importers:
         version: 3.2.3
       hono:
         specifier: catalog:hono
-        version: 4.6.12
+        version: 4.6.16
       hono-rate-limiter:
         specifier: catalog:hono
-        version: 0.4.2(hono@4.6.12)
+        version: 0.4.2(hono@4.6.16)
       jsonwebtoken:
         specifier: catalog:crypto
         version: 9.0.2
@@ -228,6 +228,37 @@ importers:
       '@levicape/spork':
         specifier: 'workspace:'
         version: link:..
+      ts-proto:
+        specifier: catalog:protobuf
+        version: 2.5.0
+    devDependencies:
+      '@biomejs/biome':
+        specifier: catalog:lint
+        version: 1.9.4
+      '@types/node':
+        specifier: catalog:types
+        version: 22.10.1
+      publint:
+        specifier: catalog:package
+        version: 0.2.12
+      syncpack:
+        specifier: catalog:package
+        version: 13.0.0(typescript@5.7.2)
+      typescript:
+        specifier: catalog:dev
+        version: 5.7.2
+
+  examples/basic:
+    dependencies:
+      '@bufbuild/protobuf':
+        specifier: catalog:protobuf
+        version: 2.2.2
+      '@levicape/spork':
+        specifier: 'workspace:'
+        version: link:../..
+      hono:
+        specifier: catalog:hono
+        version: 4.6.16
       ts-proto:
         specifier: catalog:protobuf
         version: 2.5.0
@@ -2430,8 +2461,8 @@ packages:
     peerDependencies:
       hono: ^4.1.1
 
-  hono@4.6.12:
-    resolution: {integrity: sha512-eHtf4kSDNw6VVrdbd5IQi16r22m3s7mWPLd7xOMhg1a/Yyb1A0qpUFq8xYMX4FMuDe1nTKeMX5rTx7Nmw+a+Ag==}
+  hono@4.6.16:
+    resolution: {integrity: sha512-iE6xOPwDYlfnZFwk6BfIMMIH4WZm3pPhz6rc1uJM/OPew0pjG5K6p8WTLaMBY1/szF/T0TaEjprMpwn16BA0NQ==}
     engines: {node: '>=16.9.0'}
 
   hosted-git-info@7.0.2:
@@ -4970,13 +5001,13 @@ snapshots:
       protobufjs: 7.4.0
       yargs: 17.7.2
 
-  '@hono/node-server@1.13.7(hono@4.6.12)':
+  '@hono/node-server@1.13.7(hono@4.6.16)':
     dependencies:
-      hono: 4.6.12
+      hono: 4.6.16
 
-  '@hono/zod-validator@0.4.1(hono@4.6.12)(zod@3.24.1)':
+  '@hono/zod-validator@0.4.1(hono@4.6.16)(zod@3.24.1)':
     dependencies:
-      hono: 4.6.12
+      hono: 4.6.16
       zod: 3.24.1
 
   '@isaacs/cliui@8.0.2':
@@ -6949,11 +6980,11 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
-  hono-rate-limiter@0.4.2(hono@4.6.12):
+  hono-rate-limiter@0.4.2(hono@4.6.16):
     dependencies:
-      hono: 4.6.12
+      hono: 4.6.16
 
-  hono@4.6.12: {}
+  hono@4.6.16: {}
 
   hosted-git-info@7.0.2:
     dependencies:
