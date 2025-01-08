@@ -56,12 +56,58 @@ jobs:
         run: pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud;
       - name: Test
         run: pnpx nx run-many -t test --parallel=1 --verbose --no-cloud;
+  image:
+    name: Pack application image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup Node 22.12.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          scope: "@levicape"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: cache-npm
+        name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-npm-node-modules-${{ hashFiles('**/pnpm-lock.json') }}
+          restore-keys: ${{ runner.os }}-build-npm-node-modules-
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV;
+      - id: cache-pnpm-store
+        name: Cache pnpm files
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.json') }}
+          restore-keys: ${{ runner.os }}-pnpm-store-
+      - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+        name: List Dependencies
+        continue-on-error: true
+        run: pnpm list;
+      - name: Install Dependencies
+        run: pnpm install;
+      - name: Compile
+        run: pnpx nx run-many -t compile --parallel=1 --verbose --no-cloud;
+      - name: Lint
+        run: pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud;
+      - name: Test
+        run: pnpx nx run-many -t test --parallel=1 --verbose --no-cloud;
 
 ########################################
 ########################################
-#**:_$~- {"$$":"head","filename":"[push(b:main)]GithubMainPush.yml","source":"iac/workflows/github/push/GithubMainPush.js"}
+#**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"ea5baae3e1ff44bc42db54599d8184e354e10d8e003396bfecc16e4d8907240a"}
-#**:_$~- {"$$":"footer","started":"2024-12-20T11:53:21.857Z","now":"2024-12-20T11:53:21.863Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"ea497504723ef7c551cf6047bdbc365f0ce8c7131ec40be8c701b807e0f96fb1"}
+#**:_$~- {"$$":"footer","started":"2025-01-08T08:04:28.626Z","now":"2025-01-08T08:04:28.631Z","elapsed":"5ms"}
 # END OF GENERATED FILE
 

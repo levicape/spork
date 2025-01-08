@@ -14,7 +14,8 @@
   "linter": {
     "rules": {
       "correctness": {
-        "useJsxKeyInIterable": "off"
+        "useJsxKeyInIterable": "off",
+        "noChildrenProp": "off"
       },
       "suspicious": {
           "noAssignInExpressions": "off",
@@ -30,7 +31,8 @@
           "noStaticOnlyClass": "off",
           "noForEach": "off",
           "noBannedTypes": "off",
-          "useLiteralKeys": "off"
+          "useLiteralKeys": "off",
+          "noUselessFragments": "off"
       },
       "performance": {
           "noAccumulatingSpread": "off"

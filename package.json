@@ -102,7 +102,7 @@
       },
       "nx:compile": {
         "dependsOn": [
-          "build",
+          "compile",
           "@levicape/spork-canary:nx:compile"
         ]
       },
@@ -114,10 +114,10 @@
       },
       "nx:sync": {
         "dependsOn": [
-          "ft:gha:sync:main"
+          "iac-workflows:nx:sync"
         ]
       },
-      "build": {
+      "compile": {
         "dependsOn": [
           "generate:protocols"
         ]
@@ -137,26 +137,24 @@
   },
   "repository": "github:levicape/spork",
   "scripts": {
-    "build": "$npm_package_config_packageexecutor tsc",
+    "compile": "$npm_package_config_packageexecutor tsc",
     "clean": "rm -rf $npm_package_config_outpaths || true",
     "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
     "clean:tsc": "rm -rf ./.tsc",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
-    "compile": "$npm_package_config_packageexecutor nx nx:compile --verbose",
-    "dx:cli:bin": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath",
+    "build": "$npm_package_config_packageexecutor nx nx:compile --verbose",
+    "dx:cli:bin": "NODE_NO_WARNINGS=1 $npm_package_config_packageexecutor tsx $npm_package_config_binpath",
     "dx:cli:dev": "node --inspect-brk --import tsx $npm_package_config_binpath",
+    "dx:cli:mjs": "NODE_NO_WARNINGS=1 node $npm_package_config_clipath",
     "dx:commit": "$npm_package_config_packagemanager run clean:packages && $npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
-    "dx:lint": "$npm_package_config_packageexecutor nx compile && $npm_package_config_packageexecutor nx lint:format && $npm_package_config_packageexecutor nx package:format",
+    "dx:lint": "$npm_package_config_packageexecutor nx build && $npm_package_config_packageexecutor nx lint:format && $npm_package_config_packageexecutor nx package:format",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx dx:sync && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will recompile iac files and check package.json dependencies.\"",
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "dx:sync": "$npm_package_config_packageexecutor nx dx:sync:pre && $npm_package_config_packageexecutor nx nx:sync",
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
-    "dx:test": "$npm_package_config_packagemanager run clean && $npm_package_config_packagemanager run build && $npm_package_config_packagemanager run test",
-    "ft:gha:push:main": "$npm_package_config_packageexecutor fourtwo github workflows gen \"./iac/workflows/github/push/GithubMainPush.js\" --output",
-    "ft:gha:release:released": "$npm_package_config_packageexecutor fourtwo github workflows gen \"./iac/workflows/github/release/GithubReleaseReleased.js\" --output",
-    "ft:gha:sync:main": "$npm_package_config_packageexecutor nx ft:gha:push:main --write && $npm_package_config_packageexecutor nx ft:gha:release:released --write",
+    "dx:test": "$npm_package_config_packagemanager run clean && $npm_package_config_packagemanager run compile && $npm_package_config_packagemanager run test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run generate\" --artifact gen --destination $npm_package_config_protocols --clean",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
@@ -166,13 +164,14 @@
     "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
     "postclean:packages": "$npm_package_config_packagemanager install",
-    "prebuild": "$npm_package_config_packageexecutor nx clean",
+    "precompile": "$npm_package_config_packageexecutor nx clean",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "start": "node $npm_package_config_clipath server start $npm_package_config_server",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
-    "test:module": "echo 'node --test  \"module/**/*.test.js\"'"
+    "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
+    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t generate,compile,lint,test --parallel=1 --verbose --no-cloud"
   },
   "type": "module",
   "types": "module/index.d.mts"

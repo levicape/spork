@@ -1,16 +1,13 @@
 packages:
   - '.'
-  - 'iac/stacks'
-  - 'iac/workflows'
+  - 'iac/*'
+  - 'iac/images/*'
   - 'canary'
   - 'protocols/*'
-
 catalog:
-  "@levicape/paloma": "0.0.7-nx-main.2"
-  "@levicape/fourtwo": "0.2.1-main.5"
-  "@levicape/fourtwo-pulumi": "0.2.1-main.5"
-
-
+  "@levicape/paloma": "0.0.8-main.1"
+  "@levicape/fourtwo": "0.4.3-main.4"
+  "@levicape/fourtwo-pulumi": "0.4.3-main.4"
 
 
 
