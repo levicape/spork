@@ -103,22 +103,29 @@ export = async () => {
 
 		return {
 			application,
-			s3,
 			deploymentConfig,
 			deploymentGroup,
 		};
 	})();
 
-	const pipelines = ["infrastructure", "application", "website"].map(() => {
-		// CodePipeline
-		// const codePipeline = new Pipeline("codePipeline", {
-		// 	name: "artifact"
-		// });
-	});
+	// const pipelines = ["infrastructure", "application", "website"].map(() => {
+	// CodePipeline
+	// const codePipeline = new Pipeline("codePipeline", {
+	// 	name: "artifact"
+	// });
+	// });
 
 	return {
-		s3,
-		ecr,
-		codedeploy,
+		s3: ((s3) => ({
+			artifactStore: s3.artifactStore.bucket,
+		}))(s3),
+		ecr: ((ecr) => ({
+			repository: ecr.repository.name,
+		}))(ecr),
+		codedeploy: ((codedeploy) => ({
+			application: codedeploy.application.name,
+			deploymentConfig: codedeploy.deploymentConfig.arn,
+			deploymentGroup: codedeploy.deploymentGroup.arn,
+		}))(codedeploy),
 	};
 };
