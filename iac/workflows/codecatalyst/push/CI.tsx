@@ -81,6 +81,7 @@ export const PULUMI_STACKS = [
 	// "account",
 	"code",
 	"data",
+	"lambda",
 	// "environment",
 	// "platform",
 	// "schedule",
@@ -381,10 +382,6 @@ export default async () => {
 													<CodeCatalystStepX
 														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/src/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
 													/>
-												</>
-											))}
-											{...PULUMI_STACKS.flatMap((stack) => (
-												<>
 													<CodeCatalystStepX
 														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
 													/>

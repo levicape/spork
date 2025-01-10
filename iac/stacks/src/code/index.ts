@@ -4,19 +4,12 @@ import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
 import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
 import { Repository as ECRRepository } from "@pulumi/aws/ecr";
 import { getRole } from "@pulumi/aws/iam/getRole";
-import {
-	Bucket,
-	BucketServerSideEncryptionConfigurationV2,
-} from "@pulumi/aws/s3";
-import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
-import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 
 export = async () => {
 	const context = await Context.fromConfig();
 	const _ = (name: string) => `${context.prefix}-${name}`;
 
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
-
 
 	const ecr = await (async () => {
 		const repository = new ECRRepository(_("binaries"));

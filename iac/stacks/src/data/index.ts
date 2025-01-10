@@ -120,22 +120,21 @@ export = async () => {
 		const lambda = new Role(
 			_("lambda-role"),
 			{
-			  assumeRolePolicy: JSON.stringify({
-				Version: "2012-10-17",
-				Statement: [
-				  {
-					Effect: "Allow",
-					Principal: {
-					  Service: "lambda.amazonaws.com",
-					},
-					Action: "sts:AssumeRole",
-				  },
-				],
-			  }),
+				assumeRolePolicy: JSON.stringify({
+					Version: "2012-10-17",
+					Statement: [
+						{
+							Effect: "Allow",
+							Principal: {
+								Service: "lambda.amazonaws.com",
+							},
+							Action: "sts:AssumeRole",
+						},
+					],
+				}),
 			},
 			{ parent: this },
-		  );
-
+		);
 
 		//   AwsDynamoDbTable.resourcePolicy(
 		// 	this,
@@ -145,13 +144,12 @@ export = async () => {
 		// 	],
 		// 	role,
 		//   );
-	
-		  
-		  return {
+
+		return {
 			roles: {
-				lambda
-			}
-		  };
+				lambda,
+			},
+		};
 	})();
 
 	const props = (({ vpc, securitygroup }, { accesspoint }) => {

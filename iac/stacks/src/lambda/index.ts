@@ -7,18 +7,33 @@ import {
 } from "@pulumi/aws/s3";
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
+import { StackReference, getProject, getStack } from "@pulumi/pulumi";
 
 export = async () => {
 	const context = await Context.fromConfig();
+	const $ = (json: string) => {
+		return JSON.parse(json);
+	};
 	const _ = (name: string) => `${context.prefix}-${name}`;
-
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
-	// Stack reference: code/ecr/arn
-	// Stack reference: code/codedeploy/application
-	// Stack reference: code/codedeploy/deploymentgroup
+	// Stack reference: code/ecr/repository
+	const code = await (async () => {
+		const code = new StackReference(`organization/spork-code/${getStack()}`);
+		return {
+			codedeploy: $((await code.getOutputDetails("codedeploy")).value),
+			ecr: $((await code.getOutputDetails("ecr")).value),
+		};
+	})();
 	// -> Stack reference: code/props/pipeline
-    // Stack reference: data/props/lambda
+	// new StackReference(_code("props/pipeline"));
+	// Stack reference: spork-data/props
+	const data = await (async () => {
+		const data = new StackReference(`organization/spork-data/${getStack()}`);
+		return {
+			props: $((await data.getOutputDetails("props")).value),
+		};
+	})();
 
 	const s3 = await (async () => {
 		const artifactStore = new Bucket(_("artifact-store"), {
@@ -62,16 +77,13 @@ export = async () => {
 	})();
 
 	const cloudwatch = (() => {
-		const loggroup = new LogGroup(
-			_("loggroup"),
-			{
-				retentionInDays: 365,
-			},
-		);
+		const loggroup = new LogGroup(_("loggroup"), {
+			retentionInDays: 365,
+		});
 
 		return {
 			loggroup,
-		}
+		};
 	})();
 
 	// const iam = (() => {
@@ -84,7 +96,7 @@ export = async () => {
 	// 		},
 	// 		{ parent: this },
 	// 	  );
-	
+
 	// 	  [
 	// 		["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
 	// 		["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
@@ -99,18 +111,22 @@ export = async () => {
 	// 		  { parent: this },
 	// 		);
 	// 	  })
-	  
+
 	// })();
 
 	const pipeline = (() => {
-
 		return {
 			role: farRole,
-		}
+		};
 	})();
 
-
 	return {
+		_: {
+			spork: {
+				code,
+				data,
+			},
+		},
 		cloudwatch: ((cloudwatch) => ({
 			loggroup: cloudwatch.loggroup.name,
 		}))(cloudwatch),
