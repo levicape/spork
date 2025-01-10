@@ -153,27 +153,36 @@ export = async () => {
 		};
 	})();
 
-	const props = (({ vpc, securitygroup }, { accesspoint }) => {
-		const fileSystemConfig = {
-			arn: accesspoint.arn,
-			localMountPath: "/mnt/efs",
-		};
+	const props = (({ vpc, securitygroup }, { accesspoint }, { roles }) =>
+		all([
+			accesspoint.arn,
+			vpc.privateSubnetIds,
+			securitygroup.id,
+			roles.lambda.arn,
+		]).apply(
+			([accessPointArn, privateSubnetIds, securityGroupId, lambdaRoleArn]) => {
+				const fileSystemConfig = {
+					arn: accessPointArn,
+					localMountPath: "/mnt/efs",
+				};
 
-		const vpcConfig = {
-			subnetIds: vpc.privateSubnetIds,
-			securityGroupIds: [securitygroup.id],
-		};
+				const vpcConfig = {
+					subnetIds: privateSubnetIds,
+					securityGroupIds: [securityGroupId],
+				};
 
-		return {
-			lambda: {
-				role: iam.roles.lambda.arn,
-				fileSystemConfig,
-				vpcConfig,
+				return JSON.stringify({
+					lambda: {
+						role: lambdaRoleArn,
+						fileSystemConfig,
+						vpcConfig,
+					},
+				});
 			},
-		};
-	})(ec2, efs);
+		))(ec2, efs, iam);
 
 	return all([
+		props,
 		iam.roles.lambda.arn,
 		ec2.vpc.vpcId,
 		ec2.subnetIds.apply((ids) => ids.join(",")),
@@ -188,6 +197,7 @@ export = async () => {
 		efs.accesspoint.rootDirectory.path,
 	]).apply(
 		([
+			jsonProps,
 			iamLambdaArn,
 			ec2VpcId,
 			ec2SubnetIds,
@@ -199,42 +209,40 @@ export = async () => {
 			efsAccessPointArn,
 			efsAccessPointRootDirectory,
 		]) => {
-			return Object.fromEntries(
-				Object.entries({
-					props,
-					iam: {
-						roles: {
-							lambda: {
-								arn: iamLambdaArn,
-							},
+			return {
+				props: jsonProps,
+				iam: {
+					roles: {
+						lambda: {
+							arn: iamLambdaArn,
 						},
 					},
-					ec2: {
-						vpc: {
-							vpcId: ec2VpcId,
-							subnetIds: ec2SubnetIds,
-						},
-						securitygroup: {
-							securityGroupId: ec2SecurityGroupId,
-						},
+				},
+				ec2: {
+					vpc: {
+						vpcId: ec2VpcId,
+						subnetIds: ec2SubnetIds,
 					},
-					efs: {
-						filesystem: {
-							arn: efsFilesystemArn,
-							kmsKeyId: efsFilesystemKmsKeyId,
-							dnsName: efsFilesystemDnsName,
-							sizeInBytes: efsFilesystemSizeInBytes,
-						},
-						accesspoint: {
-							arn: efsAccessPointArn,
-							rootDirectory: efsAccessPointRootDirectory,
-						},
+					securitygroup: {
+						securityGroupId: ec2SecurityGroupId,
 					},
-					// sqs
-					// dynamodb
-					// streams
-				}).map(([key, value]) => [key, JSON.stringify(value)]),
-			);
+				},
+				efs: {
+					filesystem: {
+						arn: efsFilesystemArn,
+						kmsKeyId: efsFilesystemKmsKeyId,
+						dnsName: efsFilesystemDnsName,
+						sizeInBytes: efsFilesystemSizeInBytes,
+					},
+					accesspoint: {
+						arn: efsAccessPointArn,
+						rootDirectory: efsAccessPointRootDirectory,
+					},
+				},
+				// sqs
+				// dynamodb
+				// streams
+			};
 		},
 	);
 };

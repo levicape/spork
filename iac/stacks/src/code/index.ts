@@ -66,18 +66,16 @@ export = async () => {
 			codedeployDeploymentConfigArn,
 			codedeployDeploymentGroupArn,
 		]) => {
-			return Object.fromEntries(
-				Object.entries({
-					ecr: {
-						repository: ecrRepositoryArn,
-					},
-					codedeploy: {
-						application: codedeployApplicationArn,
-						deploymentConfig: codedeployDeploymentConfigArn,
-						deploymentGroup: codedeployDeploymentGroupArn,
-					},
-				}).map(([key, value]) => [key, JSON.stringify(value)]),
-			);
+			return {
+				ecr: {
+					repository: ecrRepositoryArn,
+				},
+				codedeploy: {
+					application: codedeployApplicationArn,
+					deploymentConfig: codedeployDeploymentConfigArn,
+					deploymentGroup: codedeployDeploymentGroupArn,
+				},
+			};
 		},
 	);
 };

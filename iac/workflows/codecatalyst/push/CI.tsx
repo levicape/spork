@@ -383,10 +383,16 @@ export default async () => {
 														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi stack export -C $(pwd)/iac/stacks/src/${stack} --file $(pwd)/${OUTPUT_PULUMI_PATH}/${stack}.json`}
+														run={`${PULUMI_CACHE}/bin/pulumi stack output -C $(pwd)/iac/stacks/src/${stack} --json > $(pwd)/${OUTPUT_PULUMI_PATH}/${stack}.json`}
 													/>
 													<CodeCatalystStepX
 														run={`cat ${OUTPUT_PULUMI_PATH}/${stack}.json`}
+													/>
+													<CodeCatalystStepX
+														run={`${PULUMI_CACHE}/bin/pulumi stack output -C $(pwd)/iac/stacks/src/${stack} --shell > $(pwd)/${OUTPUT_PULUMI_PATH}/${stack}.sh`}
+													/>
+													<CodeCatalystStepX
+														run={`cat ${OUTPUT_PULUMI_PATH}/${stack}.sh`}
 													/>
 												</>
 											))}
@@ -445,11 +451,39 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`ls -la ${input(OUTPUT_PULUMI_PATH)}`}
 											/>
-											{...PULUMI_STACKS.map((stack) => (
-												<CodeCatalystStepX
-													run={`cat ${input(OUTPUT_PULUMI_PATH)}/${stack}.json`}
-												/>
+											{...PULUMI_STACKS.flatMap((stack) => (
+												<>
+													<CodeCatalystStepX
+														run={`cat ${input(OUTPUT_PULUMI_PATH)}/${stack}.sh`}
+													/>
+													<CodeCatalystStepX
+														run={`source ${input(OUTPUT_PULUMI_PATH)}/${stack}.sh`}
+													/>
+												</>
 											))}
+											<CodeCatalystStepX run={"env"} />
+											<CodeCatalystStepX
+												run={`node -e '(${
+													// biome-ignore lint/complexity/useArrowFunction:
+													function () {
+														let imports =
+															process.env[
+																"_<APPLICATION_IMAGE_NAME>_LAMBDA_IMPORTS"
+															];
+
+														console.dir({ imports }, { depth: null });
+														console.dir(
+															{ imports: JSON.parse(imports ?? "") },
+															{ depth: null },
+														);
+													}
+														.toString()
+														.replaceAll(
+															"<APPLICATION_IMAGE_NAME>",
+															APPLICATION.toUpperCase(),
+														)
+												})()'`}
+											/>
 										</>
 									}
 								/>

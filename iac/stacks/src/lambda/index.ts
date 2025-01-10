@@ -9,21 +9,30 @@ import {
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { StackReference, all, getStack } from "@pulumi/pulumi";
+import { z } from "zod";
 
 class JsonParseException extends Error {
-	constructor(cause: unknown, json: string) {
+	name: string;
+
+	constructor(
+		readonly cause: unknown,
+		readonly json: string,
+	) {
 		super((cause as { message: string })?.message ?? "Unknown error");
-		this.cause = cause;
 		this.name = "JsonParseException";
-		error(`Failed to parse JSON: ${json}`);
+		error(`Failed to parse JSON: ${JSON.stringify(json)}`);
 	}
 }
 
 export = async () => {
 	const context = await Context.fromConfig();
-	const $ = (json: string): unknown => {
+	const $ = <Z extends z.AnyZodObject>(json: string, schema: Z): z.infer<Z> => {
 		try {
-			return JSON.parse(json);
+			if (typeof json !== "string") {
+				return schema.parse(json);
+			}
+
+			return schema.parse(JSON.parse(json));
 		} catch (e) {
 			throw new JsonParseException(e, json);
 		}
@@ -37,8 +46,20 @@ export = async () => {
 			`organization/spork-code/spork-code.${getStack().split(".").pop()}`,
 		);
 		return {
-			codedeploy: $((await code.getOutputDetails("codedeploy")).value),
-			ecr: $((await code.getOutputDetails("ecr")).value),
+			codedeploy: $(
+				(await code.getOutputDetails("codedeploy")).value,
+				z.object({
+					application: z.string(),
+					deploymentConfig: z.string(),
+					deploymentGroup: z.string(),
+				}),
+			),
+			ecr: $(
+				(await code.getOutputDetails("ecr")).value,
+				z.object({
+					repository: z.string(),
+				}),
+			),
 		};
 	})();
 	// -> Stack reference: code/props/pipeline
@@ -49,7 +70,22 @@ export = async () => {
 			`organization/spork-data/spork-data.${getStack().split(".").pop()}`,
 		);
 		return {
-			props: $((await data.getOutputDetails("props")).value),
+			props: $(
+				(await data.getOutputDetails("props")).value,
+				z.object({
+					lambda: z.object({
+						role: z.string(),
+						fileSystemConfig: z.object({
+							arn: z.string(),
+							localMountPath: z.string(),
+						}),
+						vpcConfig: z.object({
+							securityGroupIds: z.array(z.string()),
+							subnetIds: z.array(z.string()),
+						}),
+					}),
+				}),
+			),
 		};
 	})();
 
@@ -104,33 +140,35 @@ export = async () => {
 		};
 	})();
 
-	// const iam = (() => {
+	const lambda = (() => {
+		// new RolePolicy(
+		// 	`${name}-lambda-policy`,
+		// 	{
+		// 	  role: role.name,
+		// 	  policy: JSON.stringify(lambdaPolicyDocument),
+		// 	},
+		// 	{ parent: this },
+		//   );
 
-	// 	new RolePolicy(
-	// 		`${name}-lambda-policy`,
-	// 		{
-	// 		  role: role.name,
-	// 		  policy: JSON.stringify(lambdaPolicyDocument),
-	// 		},
-	// 		{ parent: this },
-	// 	  );
+		//   [
+		// 	["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
+		// 	["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
+		// 	["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess]
+		//   ].forEach(([policy, policyArn]) => {
+		// 	new RolePolicyAttachment(
+		// 	  `${name}-lambda-policy-${policy}`,
+		// 	  {
+		// 		role: role.name,
+		// 		policyArn,
+		// 	  },
+		// 	  { parent: this },
+		// 	);
+		//   })
 
-	// 	  [
-	// 		["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
-	// 		["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
-	// 		["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess]
-	// 	  ].forEach(([policy, policyArn]) => {
-	// 		new RolePolicyAttachment(
-	// 		  `${name}-lambda-policy-${policy}`,
-	// 		  {
-	// 			role: role.name,
-	// 			policyArn,
-	// 		  },
-	// 		  { parent: this },
-	// 		);
-	// 	  })
-
-	// })();
+		return {
+			role: data.props.lambda.role,
+		};
+	})();
 
 	const pipeline = (() => {
 		return {
@@ -140,36 +178,30 @@ export = async () => {
 
 	return all([
 		cloudwatch.loggroup.arn,
-		// iam.role.arn,
+		lambda.role,
 		pipeline.role.arn,
 		s3.artifactStore.bucket,
-	]).apply(
-		([
-			cloudwatch,
-			// iam,
-			pipeline,
-			s3,
-		]) => {
-			return Object.fromEntries(
-				Object.entries({
-					_: {
-						spork: {
-							code,
-							data,
-						},
-					},
-					cloudwatch: {
-						loggroup: cloudwatch,
-					},
-					// iam: iam,
-					pipeline: {
-						role: pipeline,
-					},
-					s3: {
-						artifactStore: s3,
-					},
-				}).map(([key, value]) => [key, JSON.stringify(value)]),
-			);
-		},
-	);
+	]).apply(([cloudwatch, lambdaRole, pipeline, s3]) => {
+		return {
+			_SPORK_LAMBDA_IMPORTS: {
+				spork: {
+					code,
+					data,
+				},
+			},
+			cloudwatch: {
+				loggroup: cloudwatch,
+			},
+			lambda: {
+				// arn: functionArn,
+				role: lambdaRole,
+			},
+			pipeline: {
+				role: pipeline,
+			},
+			s3: {
+				artifactStore: s3,
+			},
+		};
+	});
 };

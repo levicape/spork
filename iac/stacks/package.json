@@ -10,7 +10,8 @@
     "@levicape/fourtwo-pulumi": "catalog:",
     "@pulumi/aws": "catalog:pulumi",
     "@pulumi/awsx": "catalog:pulumi",
-    "@pulumi/pulumi": "catalog:pulumi"
+    "@pulumi/pulumi": "catalog:pulumi",
+    "zod": "catalog:core"
   },
   "devDependencies": {
     "@types/node": "catalog:types",

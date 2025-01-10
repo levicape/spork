@@ -296,6 +296,9 @@ importers:
       '@pulumi/pulumi':
         specifier: catalog:pulumi
         version: 3.145.0(typescript@5.7.2)
+      zod:
+        specifier: catalog:core
+        version: 3.24.1
     devDependencies:
       '@types/node':
         specifier: catalog:types
