@@ -1,8 +1,5 @@
 import { Context } from "@levicape/fourtwo-pulumi";
-import { Application } from "@pulumi/aws/codedeploy";
-import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
-import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
-import { Repository as ECRRepository } from "@pulumi/aws/ecr";
+import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import {
 	Bucket,
@@ -16,6 +13,12 @@ export = async () => {
 	const _ = (name: string) => `${context.prefix}-${name}`;
 
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
+
+	// Stack reference: code/ecr/arn
+	// Stack reference: code/codedeploy/application
+	// Stack reference: code/codedeploy/deploymentgroup
+	// -> Stack reference: code/props/pipeline
+    // Stack reference: data/props/lambda
 
 	const s3 = await (async () => {
 		const artifactStore = new Bucket(_("artifact-store"), {
@@ -58,74 +61,65 @@ export = async () => {
 		};
 	})();
 
-	const ecr = await (async () => {
-		const repository = new ECRRepository(_("binaries"));
+	const cloudwatch = (() => {
+		const loggroup = new LogGroup(
+			_("loggroup"),
+			{
+				retentionInDays: 365,
+			},
+		);
 
 		return {
-			repository,
-		};
+			loggroup,
+		}
 	})();
 
-	const codedeploy = await (async () => {
-		const application = new Application(_("application"), {
-			computePlatform: "Lambda",
-		});
+	// const iam = (() => {
 
-		const deploymentConfig = new DeploymentConfig(_("deployment-config"), {
-			computePlatform: "Lambda",
-			trafficRoutingConfig: {
-				type: "TimeBasedLinear",
-				timeBasedLinear: {
-					interval: 10,
-					percentage: 10,
-				},
-			},
-		});
+	// 	new RolePolicy(
+	// 		`${name}-lambda-policy`,
+	// 		{
+	// 		  role: role.name,
+	// 		  policy: JSON.stringify(lambdaPolicyDocument),
+	// 		},
+	// 		{ parent: this },
+	// 	  );
+	
+	// 	  [
+	// 		["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
+	// 		["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
+	// 		["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess]
+	// 	  ].forEach(([policy, policyArn]) => {
+	// 		new RolePolicyAttachment(
+	// 		  `${name}-lambda-policy-${policy}`,
+	// 		  {
+	// 			role: role.name,
+	// 			policyArn,
+	// 		  },
+	// 		  { parent: this },
+	// 		);
+	// 	  })
+	  
+	// })();
 
-		const deploymentGroup = new DeploymentGroup(_("deployment-group"), {
-			appName: application.name,
-			deploymentGroupName: _("deployment-group"),
-			serviceRoleArn: farRole.arn,
-			deploymentConfigName: deploymentConfig.id,
-			deploymentStyle: {
-				deploymentOption: "WITH_TRAFFIC_CONTROL",
-				deploymentType: "BLUE_GREEN",
-			},
-			// autoRollbackConfiguration: {
-			// 	enabled: true,
-			// 	events: ["DEPLOYMENT_STOP_ON_ALARM"],
-			// },
-			// alarmConfiguration: {
-			// 	alarms: ["my-alarm-name"],
-			// 	enabled: true,
-			// },
-		});
+	const pipeline = (() => {
 
 		return {
-			application,
-			deploymentConfig,
-			deploymentGroup,
-		};
+			role: farRole,
+		}
 	})();
 
-	// const pipelines = ["infrastructure", "application", "website"].map(() => {
-	// CodePipeline
-	// const codePipeline = new Pipeline("codePipeline", {
-	// 	name: "artifact"
-	// });
-	// });
 
 	return {
+		cloudwatch: ((cloudwatch) => ({
+			loggroup: cloudwatch.loggroup.name,
+		}))(cloudwatch),
+		// iam: iam,
+		pipeline: ((pipeline) => ({
+			role: pipeline.role.arn,
+		}))(pipeline),
 		s3: ((s3) => ({
 			artifactStore: s3.artifactStore.bucket,
 		}))(s3),
-		ecr: ((ecr) => ({
-			repository: ecr.repository.name,
-		}))(ecr),
-		codedeploy: ((codedeploy) => ({
-			application: codedeploy.application.name,
-			deploymentConfig: codedeploy.deploymentConfig.arn,
-			deploymentGroup: codedeploy.deploymentGroup.arn,
-		}))(codedeploy),
 	};
 };

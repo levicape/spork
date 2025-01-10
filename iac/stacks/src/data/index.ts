@@ -3,6 +3,7 @@ import { SecurityGroup } from "@pulumi/aws/ec2/securityGroup";
 import { AccessPoint } from "@pulumi/aws/efs/accessPoint";
 import { FileSystem } from "@pulumi/aws/efs/fileSystem";
 import { MountTarget } from "@pulumi/aws/efs/mountTarget";
+import { Role } from "@pulumi/aws/iam/role";
 import { Vpc } from "@pulumi/awsx/ec2/vpc";
 
 export = async () => {
@@ -115,6 +116,44 @@ export = async () => {
 		};
 	})(ec2);
 
+	const iam = (() => {
+		const lambda = new Role(
+			_("lambda-role"),
+			{
+			  assumeRolePolicy: JSON.stringify({
+				Version: "2012-10-17",
+				Statement: [
+				  {
+					Effect: "Allow",
+					Principal: {
+					  Service: "lambda.amazonaws.com",
+					},
+					Action: "sts:AssumeRole",
+				  },
+				],
+			  }),
+			},
+			{ parent: this },
+		  );
+
+
+		//   AwsDynamoDbTable.resourcePolicy(
+		// 	this,
+		// 	`${name}-lambda-data`,
+		// 	[
+		// 	  ["users", accountsTable],
+		// 	],
+		// 	role,
+		//   );
+	
+		  
+		  return {
+			roles: {
+				lambda
+			}
+		  };
+	})();
+
 	const props = (({ vpc, securitygroup }, { accesspoint }) => {
 		const fileSystemConfig = {
 			arn: accesspoint.arn,
@@ -128,6 +167,7 @@ export = async () => {
 
 		return {
 			lambda: {
+				role: iam.roles.lambda.arn,
 				fileSystemConfig,
 				vpcConfig,
 			},
@@ -136,6 +176,15 @@ export = async () => {
 
 	return {
 		props,
+		iam: ((iam) => {
+			return {
+				roles: {
+					lambda: {
+						arn: iam.roles.lambda.arn,
+					},
+				},
+			};
+		})(iam),
 		ec2: ((ec2) => {
 			return {
 				vpc: {

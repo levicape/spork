@@ -17,46 +17,6 @@ export = async () => {
 
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
-	const s3 = await (async () => {
-		const artifactStore = new Bucket(_("artifact-store"), {
-			acl: "private",
-		});
-
-		new BucketServerSideEncryptionConfigurationV2(
-			_("artifact-store-encryption"),
-			{
-				bucket: artifactStore.bucket,
-				rules: [
-					{
-						applyServerSideEncryptionByDefault: {
-							sseAlgorithm: "AES256",
-						},
-					},
-				],
-			},
-		);
-		new BucketVersioningV2(
-			_("artifact-store-versioning"),
-
-			{
-				bucket: artifactStore.bucket,
-				versioningConfiguration: {
-					status: "Enabled",
-				},
-			},
-			{ parent: this },
-		);
-		new BucketPublicAccessBlock(_("artifact-store-public-access-block"), {
-			bucket: artifactStore.bucket,
-			blockPublicAcls: true,
-			blockPublicPolicy: true,
-			ignorePublicAcls: true,
-			restrictPublicBuckets: true,
-		});
-		return {
-			artifactStore,
-		};
-	})();
 
 	const ecr = await (async () => {
 		const repository = new ECRRepository(_("binaries"));
@@ -101,9 +61,6 @@ export = async () => {
 	})();
 
 	return {
-		s3: ((s3) => ({
-			artifactStore: s3.artifactStore.bucket,
-		}))(s3),
 		ecr: ((ecr) => ({
 			repository: ecr.repository.name,
 		}))(ecr),
