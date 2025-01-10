@@ -1,3 +1,4 @@
+import { error } from "node:console";
 import { Context } from "@levicape/fourtwo-pulumi";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { getRole } from "@pulumi/aws/iam/getRole";
@@ -7,12 +8,25 @@ import {
 } from "@pulumi/aws/s3";
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
-import { StackReference, getStack } from "@pulumi/pulumi";
+import { StackReference, all, getStack } from "@pulumi/pulumi";
+
+class JsonParseException extends Error {
+	constructor(cause: unknown, json: string) {
+		super((cause as { message: string })?.message ?? "Unknown error");
+		this.cause = cause;
+		this.name = "JsonParseException";
+		error(`Failed to parse JSON: ${json}`);
+	}
+}
 
 export = async () => {
 	const context = await Context.fromConfig();
-	const $ = (json: string) => {
-		return JSON.parse(json);
+	const $ = (json: string): unknown => {
+		try {
+			return JSON.parse(json);
+		} catch (e) {
+			throw new JsonParseException(e, json);
+		}
 	};
 	const _ = (name: string) => `${context.prefix}-${name}`;
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
@@ -124,22 +138,38 @@ export = async () => {
 		};
 	})();
 
-	return {
-		_: {
-			spork: {
-				code,
-				data,
-			},
+	return all([
+		cloudwatch.loggroup.arn,
+		// iam.role.arn,
+		pipeline.role.arn,
+		s3.artifactStore.bucket,
+	]).apply(
+		([
+			cloudwatch,
+			// iam,
+			pipeline,
+			s3,
+		]) => {
+			return Object.fromEntries(
+				Object.entries({
+					_: {
+						spork: {
+							code,
+							data,
+						},
+					},
+					cloudwatch: {
+						loggroup: cloudwatch,
+					},
+					// iam: iam,
+					pipeline: {
+						role: pipeline,
+					},
+					s3: {
+						artifactStore: s3,
+					},
+				}).map(([key, value]) => [key, JSON.stringify(value)]),
+			);
 		},
-		cloudwatch: ((cloudwatch) => ({
-			loggroup: cloudwatch.loggroup.name,
-		}))(cloudwatch),
-		// iam: iam,
-		pipeline: ((pipeline) => ({
-			role: pipeline.role.arn,
-		}))(pipeline),
-		s3: ((s3) => ({
-			artifactStore: s3.artifactStore.bucket,
-		}))(s3),
-	};
+	);
 };

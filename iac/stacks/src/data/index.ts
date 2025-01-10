@@ -5,6 +5,7 @@ import { FileSystem } from "@pulumi/aws/efs/fileSystem";
 import { MountTarget } from "@pulumi/aws/efs/mountTarget";
 import { Role } from "@pulumi/aws/iam/role";
 import { Vpc } from "@pulumi/awsx/ec2/vpc";
+import { all } from "@pulumi/pulumi";
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -172,52 +173,68 @@ export = async () => {
 		};
 	})(ec2, efs);
 
-	return {
-		props,
-		iam: ((iam) => {
-			return {
-				roles: {
-					lambda: {
-						arn: iam.roles.lambda.arn,
+	return all([
+		iam.roles.lambda.arn,
+		ec2.vpc.vpcId,
+		ec2.subnetIds.apply((ids) => ids.join(",")),
+		ec2.securitygroup.id,
+		efs.filesystem.arn,
+		efs.filesystem.kmsKeyId,
+		efs.filesystem.dnsName,
+		efs.filesystem.sizeInBytes.apply((size) =>
+			size.map((s) => s.value).join(","),
+		),
+		efs.accesspoint.arn,
+		efs.accesspoint.rootDirectory.path,
+	]).apply(
+		([
+			iamLambdaArn,
+			ec2VpcId,
+			ec2SubnetIds,
+			ec2SecurityGroupId,
+			efsFilesystemArn,
+			efsFilesystemKmsKeyId,
+			efsFilesystemDnsName,
+			efsFilesystemSizeInBytes,
+			efsAccessPointArn,
+			efsAccessPointRootDirectory,
+		]) => {
+			return Object.fromEntries(
+				Object.entries({
+					props,
+					iam: {
+						roles: {
+							lambda: {
+								arn: iamLambdaArn,
+							},
+						},
 					},
-				},
-			};
-		})(iam),
-		ec2: ((ec2) => {
-			return {
-				vpc: {
-					vpcId: ec2.vpc.vpcId,
-					subnetIds: ec2.subnetIds,
-				},
-				securitygroup: {
-					securityGroupId: ec2.securitygroup.id,
-				},
-			};
-		})(ec2),
-		efs: ((efs) => {
-			return {
-				filesystem: {
-					arn: efs.filesystem.arn,
-					kmsKeyId: efs.filesystem.kmsKeyId,
-					dnsName: efs.filesystem.dnsName,
-					sizeInBytes: efs.filesystem.sizeInBytes,
-				},
-				mounttargets: efs.mounttargets.apply((mounttargets) =>
-					mounttargets.map((mounttarget) => ({
-						fileSystemId: mounttarget.fileSystemId,
-						networkInterfaceId: mounttarget.networkInterfaceId,
-						ipAddress: mounttarget.ipAddress,
-					})),
-				),
-				accesspoint: {
-					arn: efs.accesspoint.arn,
-					uid: efs.accesspoint.posixUser,
-					rootDirectory: efs.accesspoint.rootDirectory,
-				},
-			};
-		})(efs),
-		// sqs
-		// dynamodb
-		// streams
-	};
+					ec2: {
+						vpc: {
+							vpcId: ec2VpcId,
+							subnetIds: ec2SubnetIds,
+						},
+						securitygroup: {
+							securityGroupId: ec2SecurityGroupId,
+						},
+					},
+					efs: {
+						filesystem: {
+							arn: efsFilesystemArn,
+							kmsKeyId: efsFilesystemKmsKeyId,
+							dnsName: efsFilesystemDnsName,
+							sizeInBytes: efsFilesystemSizeInBytes,
+						},
+						accesspoint: {
+							arn: efsAccessPointArn,
+							rootDirectory: efsAccessPointRootDirectory,
+						},
+					},
+					// sqs
+					// dynamodb
+					// streams
+				}).map(([key, value]) => [key, JSON.stringify(value)]),
+			);
+		},
+	);
 };

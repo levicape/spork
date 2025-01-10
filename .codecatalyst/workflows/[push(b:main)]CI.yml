@@ -329,18 +329,18 @@ Actions:
             - Run: npm exec n 22
             - Run: npm exec pnpm install --prefer-offline
             - Run: ls -la $CATALYST_SOURCE_DIR_images/_images
-            - Run: docker load --input _images/application.tar.gz
+            - Run: docker load --input $CATALYST_SOURCE_DIR_images/_images/application.tar.gz
             - Run: docker images
             - Run: ls -la $CATALYST_SOURCE_DIR_pulumi/_pulumi
-            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/c.json
-            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/d.json
-            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/l.json
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/code.json
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/data.json
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/lambda.json
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"d3a71d1de3ba3f24940f48dbd20a2bf505a348290679160fac38a488b9c86957"}
-#**:_$~- {"$$":"footer","started":"2025-01-10T11:53:47.473Z","now":"2025-01-10T11:53:47.482Z","elapsed":"9ms"}
+#**:_$~- {"$$":"body","hashed":"6ab7de17672cab529f35c7c030b0170c06356f8e03c3d263462eb5bcf28f0e7c"}
+#**:_$~- {"$$":"footer","started":"2025-01-10T13:15:12.421Z","now":"2025-01-10T13:15:12.428Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 

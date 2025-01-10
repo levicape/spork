@@ -438,14 +438,14 @@ export default async () => {
 											/>
 											{...OUTPUT_IMAGES.map(([file]) => (
 												<CodeCatalystStepX
-													run={`docker load --input ${OUTPUT_IMAGE_PATH}/${file}`}
+													run={`docker load --input ${input(OUTPUT_IMAGE_PATH)}/${file}`}
 												/>
 											))}
 											<CodeCatalystStepX run={"docker images"} />
 											<CodeCatalystStepX
 												run={`ls -la ${input(OUTPUT_PULUMI_PATH)}`}
 											/>
-											{...PULUMI_STACKS.map(([stack]) => (
+											{...PULUMI_STACKS.map((stack) => (
 												<CodeCatalystStepX
 													run={`cat ${input(OUTPUT_PULUMI_PATH)}/${stack}.json`}
 												/>

@@ -4,6 +4,7 @@ import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
 import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
 import { Repository as ECRRepository } from "@pulumi/aws/ecr";
 import { getRole } from "@pulumi/aws/iam/getRole";
+import { all } from "@pulumi/pulumi/output";
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -53,14 +54,30 @@ export = async () => {
 		};
 	})();
 
-	return {
-		ecr: ((ecr) => ({
-			repository: ecr.repository.name,
-		}))(ecr),
-		codedeploy: ((codedeploy) => ({
-			application: codedeploy.application.name,
-			deploymentConfig: codedeploy.deploymentConfig.arn,
-			deploymentGroup: codedeploy.deploymentGroup.arn,
-		}))(codedeploy),
-	};
+	return all([
+		ecr.repository.arn,
+		codedeploy.application.arn,
+		codedeploy.deploymentConfig.arn,
+		codedeploy.deploymentGroup.arn,
+	]).apply(
+		([
+			ecrRepositoryArn,
+			codedeployApplicationArn,
+			codedeployDeploymentConfigArn,
+			codedeployDeploymentGroupArn,
+		]) => {
+			return Object.fromEntries(
+				Object.entries({
+					ecr: {
+						repository: ecrRepositoryArn,
+					},
+					codedeploy: {
+						application: codedeployApplicationArn,
+						deploymentConfig: codedeployDeploymentConfigArn,
+						deploymentGroup: codedeployDeploymentGroupArn,
+					},
+				}).map(([key, value]) => [key, JSON.stringify(value)]),
+			);
+		},
+	);
 };
