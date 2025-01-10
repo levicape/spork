@@ -3,13 +3,11 @@ packages:
   - 'canary'
   - 'examples/*'
   - 'iac/*'
-  - 'iac/images/*'
   - 'protocols/*'
 catalog:
   "@levicape/paloma": "0.0.8-main.1"
   "@levicape/fourtwo": "0.4.3-main.4"
   "@levicape/fourtwo-pulumi": "0.4.3-main.4"
-
 
 
 

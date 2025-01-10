@@ -78,8 +78,9 @@ export const OUTPUT_IMAGES = [
 ] as const;
 
 export const PULUMI_STACKS = [
+	// "account",
 	"code",
-	// "domain",
+	"data",
 	// "environment",
 	// "platform",
 	// "schedule",
@@ -288,9 +289,14 @@ export default async () => {
 									}
 								/>
 							),
-							Preview: (
+						}}
+					</CodeCatalystActionGroupX>
+				),
+				Deployment: (
+					<CodeCatalystActionGroupX dependsOn={["Integration"]}>
+						{{
+							Current: (
 								<CodeCatalystBuildX
-									dependsOn={["Image"]}
 									architecture={"arm64"}
 									caching={FileCaching({ pulumi: true })}
 									timeout={10}
@@ -352,35 +358,35 @@ export default async () => {
 											{...PULUMI_STACKS.flatMap((stack) => (
 												<>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-${stack}.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/${stack} || true`}
+														run={`${PULUMI_CACHE}/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-${stack}.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/${stack} || true`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-${stack}.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/${stack} || true`}
+														run={`${PULUMI_CACHE}/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-${stack}.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/${stack} || true`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/${stack}`}
+														run={`${PULUMI_CACHE}/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/${stack}`}
+														run={`${PULUMI_CACHE}/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/${stack}`}
+														run={`${PULUMI_CACHE}/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/${stack}`}
+														run={`${PULUMI_CACHE}/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/${stack}`}
+														run={`${PULUMI_CACHE}/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
+														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/src/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
 													/>
 												</>
 											))}
 											{...PULUMI_STACKS.flatMap((stack) => (
 												<>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/${stack} --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
+														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
 													/>
 												</>
 											))}

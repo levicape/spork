@@ -183,10 +183,12 @@ Actions:
             - Run: docker save $APPLICATION_IMAGE_NAME | gzip > _images/application.tar.gz
             - Run: du -sh _images/application.tar.gz
             - Run: ls -la _images
-      Preview:
+  Deployment:
+    DependsOn:
+      - Integration
+    Actions:
+      Current:
         Identifier: aws/build@v1.0.0
-        DependsOn:
-          - Image
         Timeout: 10
         Environment:
           Name: current
@@ -246,21 +248,30 @@ Actions:
             - Run: cat .pulumi-ci | grep "export" >> .export-cd
             - Run: cat .export-cd
             - Run: source .export-cd
-            - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-code.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/code || true
-            - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-code.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/code || true
-            - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/code
-            - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/code
-            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/code  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
-            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/code --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
+            - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-code.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/code || true
+            - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-code.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/code || true
+            - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/code
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/code
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/code
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/code
+            - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/code
+            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/code  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
+            - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-data.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/data || true
+            - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-data.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/data || true
+            - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/data
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/data
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/data
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/data
+            - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/data
+            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/data  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
+            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/code --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
+            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/data --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"bf89d7198fc42c14fdac52dfb67e2c818ba95cc2d3ea04392502304736ec9116"}
-#**:_$~- {"$$":"footer","started":"2025-01-08T18:01:11.321Z","now":"2025-01-08T18:01:11.327Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"e4de16d243fa36d664d4999b12998eb2f4a6fd44fad3caf6bffc1bd29d661fbe"}
+#**:_$~- {"$$":"footer","started":"2025-01-10T08:24:21.975Z","now":"2025-01-10T08:24:21.981Z","elapsed":"6ms"}
 # END OF GENERATED FILE
 

@@ -1,4 +1,4 @@
-name: paloma-code
+name: spork-code
 description: State bucket and associated SSM parameters
 runtime:
   name: nodejs
