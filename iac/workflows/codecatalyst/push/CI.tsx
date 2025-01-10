@@ -72,6 +72,7 @@ export const DOCKER_IMAGES = [
 ] as const;
 
 export const OUTPUT_IMAGE_PATH = "_images" as const;
+export const OUTPUT_PULUMI_PATH = "_pulumi" as const;
 
 export const OUTPUT_IMAGES = [
 	["application.tar.gz", "$APPLICATION_IMAGE_NAME"],
@@ -89,11 +90,14 @@ export const PULUMI_STACKS = [
 	// "website",
 ] as const;
 
+const input = (name: `_${string}`) => `$CATALYST_SOURCE_DIR${name}/${name}`;
+
 export default async () => {
 	let {
 		current: { register, context: _$_, env, secret },
 	} = CodeCatalystWorkflowExpressions;
 
+	const APPLICATION = "spork";
 	return (
 		<CodeCatalystWorkflowX
 			name="main_OnPush__CI_CD"
@@ -237,7 +241,9 @@ export default async () => {
 									timeout={10}
 									inputs={{
 										Sources: ["WorkflowSource"],
-										Variables: [register("APPLICATION_IMAGE_NAME", "spork")],
+										Variables: [
+											register("APPLICATION_IMAGE_NAME", APPLICATION),
+										],
 									}}
 									outputs={{
 										Artifacts: [
@@ -290,21 +296,16 @@ export default async () => {
 									}
 								/>
 							),
-						}}
-					</CodeCatalystActionGroupX>
-				),
-				Deployment: (
-					<CodeCatalystActionGroupX dependsOn={["Integration"]}>
-						{{
 							Current: (
 								<CodeCatalystBuildX
+									dependsOn={["Install"]}
 									architecture={"arm64"}
 									caching={FileCaching({ pulumi: true })}
 									timeout={10}
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
-											register("APPLICATION_IMAGE_NAME", "spork"),
+											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("BRANCH_NAME", _$_("BranchName")),
 											register("COMMIT_ID", _$_("CommitId")),
 											register("CI_ENVIRONMENT", "current"),
@@ -315,7 +316,11 @@ export default async () => {
 												secret("PULUMI_CONFIG_PASSPHRASE"),
 											),
 										],
-										Artifacts: ["images"],
+									}}
+									outputs={{
+										Artifacts: [
+											{ Name: "pulumi", Files: [`${OUTPUT_PULUMI_PATH}/**/*`] },
+										],
 									}}
 									environment={{
 										Name: "current",
@@ -330,15 +335,6 @@ export default async () => {
 											/>
 											<CodeCatalystStepX run="npm exec n 22" />
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
-											<CodeCatalystStepX
-												run={`ls -la $CATALYST_SOURCE_DIR${OUTPUT_IMAGE_PATH}/${OUTPUT_IMAGE_PATH}`}
-											/>
-											{...OUTPUT_IMAGES.map(([file]) => (
-												<CodeCatalystStepX
-													run={`docker load --input $CATALYST_SOURCE_DIR${OUTPUT_IMAGE_PATH}/${OUTPUT_IMAGE_PATH}/${file}`}
-												/>
-											))}
-											<CodeCatalystStepX run={"docker images"} />
 											<CodeCatalystStepX
 												run={`aws ssm get-parameter --name ${AwsStateBackendCommandsParameter()}`}
 											/>
@@ -356,6 +352,7 @@ export default async () => {
 											/>
 											<CodeCatalystStepX run={"cat .export-cd"} />
 											<CodeCatalystStepX run={`source .export-cd`} />
+											<CodeCatalystStepX run={`mkdir ${OUTPUT_PULUMI_PATH}`} />
 											{...PULUMI_STACKS.flatMap((stack) => (
 												<>
 													<CodeCatalystStepX
@@ -385,7 +382,73 @@ export default async () => {
 													<CodeCatalystStepX
 														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
 													/>
+													<CodeCatalystStepX
+														run={`${PULUMI_CACHE}/bin/pulumi stack export -C $(pwd)/iac/stacks/src/${stack} --file $(pwd)/${OUTPUT_PULUMI_PATH}/${stack}.json`}
+													/>
+													<CodeCatalystStepX
+														run={`cat ${OUTPUT_PULUMI_PATH}/${stack}.json`}
+													/>
 												</>
+											))}
+
+											<CodeCatalystStepX run={`du -sh ${OUTPUT_PULUMI_PATH}`} />
+										</>
+									}
+								/>
+							),
+						}}
+					</CodeCatalystActionGroupX>
+				),
+				Deployment: (
+					<CodeCatalystActionGroupX dependsOn={["Integration"]}>
+						{{
+							Lambda: (
+								<CodeCatalystBuildX
+									architecture={"arm64"}
+									caching={FileCaching()}
+									timeout={10}
+									inputs={{
+										Sources: ["WorkflowSource"],
+										Variables: [
+											register("APPLICATION_IMAGE_NAME", APPLICATION),
+											register("AWS_REGION", "us-west-2"),
+											register("PULUMI_HOME", PULUMI_CACHE),
+											register(
+												"PULUMI_CONFIG_PASSPHRASE",
+												secret("PULUMI_CONFIG_PASSPHRASE"),
+											),
+										],
+										Artifacts: ["images", "pulumi"],
+									}}
+									environment={{
+										Name: "current",
+									}}
+									steps={
+										<>
+											<CodeCatalystStepX
+												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
+											/>
+											<CodeCatalystStepX
+												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
+											/>
+											<CodeCatalystStepX run="npm exec n 22" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
+											<CodeCatalystStepX
+												run={`ls -la ${input(OUTPUT_IMAGE_PATH)}`}
+											/>
+											{...OUTPUT_IMAGES.map(([file]) => (
+												<CodeCatalystStepX
+													run={`docker load --input ${OUTPUT_IMAGE_PATH}/${file}`}
+												/>
+											))}
+											<CodeCatalystStepX run={"docker images"} />
+											<CodeCatalystStepX
+												run={`ls -la ${input(OUTPUT_PULUMI_PATH)}`}
+											/>
+											{...PULUMI_STACKS.map(([stack]) => (
+												<CodeCatalystStepX
+													run={`cat ${input(OUTPUT_PULUMI_PATH)}/${stack}.json`}
+												/>
 											))}
 										</>
 									}

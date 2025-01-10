@@ -7,7 +7,7 @@ import {
 } from "@pulumi/aws/s3";
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
-import { StackReference, getProject, getStack } from "@pulumi/pulumi";
+import { StackReference, getStack } from "@pulumi/pulumi";
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -19,7 +19,9 @@ export = async () => {
 
 	// Stack reference: code/ecr/repository
 	const code = await (async () => {
-		const code = new StackReference(`organization/spork-code/${getStack()}`);
+		const code = new StackReference(
+			`organization/spork-code/spork-code.${getStack().split(".").pop()}`,
+		);
 		return {
 			codedeploy: $((await code.getOutputDetails("codedeploy")).value),
 			ecr: $((await code.getOutputDetails("ecr")).value),
@@ -29,7 +31,9 @@ export = async () => {
 	// new StackReference(_code("props/pipeline"));
 	// Stack reference: spork-data/props
 	const data = await (async () => {
-		const data = new StackReference(`organization/spork-data/${getStack()}`);
+		const data = new StackReference(
+			`organization/spork-data/spork-data.${getStack().split(".").pop()}`,
+		);
 		return {
 			props: $((await data.getOutputDetails("props")).value),
 		};
