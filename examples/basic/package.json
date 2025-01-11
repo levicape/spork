@@ -1,6 +1,7 @@
 {
   "name": "@levicape/spork-examples-basic",
   "config": {
+    "packagebin": "corepack pnpm",
     "packagemanager": "pnpm",
     "packageexecutor": "pnpm exec",
     "lintpaths": "./src",
@@ -68,8 +69,6 @@
     "clean": "rm -rf $npm_package_config_outpaths || true",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
     "compile": "$npm_package_config_packageexecutor tsc",
-    "dx:config:post": "$npm_package_config_packagemanager config set recursive-install true",
-    "dx:config:pre": "$npm_package_config_packagemanager config set recursive-install false",
     "dx:lint": "$npm_package_config_packageexecutor nx nx:compile && $npm_package_config_packageexecutor nx lint:format && $npm_package_config_packageexecutor nx package:format",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",

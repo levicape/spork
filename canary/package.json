@@ -2,6 +2,7 @@
   "name": "@levicape/spork-canary",
   "config": {
     "packagemanager": "pnpm",
+    "packagebin": "corepack pnpm",
     "packageexecutor": "pnpm exec",
     "lintpaths": "./src",
     "outpaths": "./module"
@@ -53,10 +54,10 @@
     "clean:tsc": "rm -rf ./.tsc",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
     "compile": "$npm_package_config_packageexecutor tsc",
-    "dx:lint": "$npm_package_config_packagemanager run compile && $npm_package_config_packagemanager run lint:format && $npm_package_config_packagemanager run package:format",
-    "dx:precommit": "$npm_package_config_packagemanager run dx:precommit:pre && $npm_package_config_packagemanager run package:deps",
+    "dx:lint": "$npm_package_config_packagebin run compile && $npm_package_config_packagebin run lint:format && $npm_package_config_packagebin run package:format",
+    "dx:precommit": "$npm_package_config_packagebin run dx:precommit:pre && $npm_package_config_packagebin run package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
-    "dx:prepublish": "$npm_package_config_packagemanager run dx:prepublish:pre && $npm_package_config_packagemanager run dx:lint && $npm_package_config_packagemanager run prepublish",
+    "dx:prepublish": "$npm_package_config_packagebin run dx:prepublish:pre && $npm_package_config_packagebin run dx:lint && $npm_package_config_packagebin run prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor biome check --write $npm_package_config_lintpaths",
