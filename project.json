@@ -1,0 +1,20 @@
+{
+	"targets": {
+		"cli:ccr": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"ccr -V -e current=default"
+				]
+			}
+		},
+		"cli:ccr:dryrun": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"ccr -n -V -e current=default"
+				]
+			}
+		}
+	}
+}

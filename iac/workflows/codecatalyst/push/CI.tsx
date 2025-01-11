@@ -56,7 +56,7 @@ export const PULUMI_CACHE = FileCaching({ pulumi: true }).FileCaching.a64_pulumi
 
 export const NPM_GLOBAL_CACHE = FileCaching().FileCaching.a64_npm_global.Path;
 
-export const PNPM_STORE = FileCaching().FileCaching.a64_pnpm_store.Path;
+export const PNP_STORE = FileCaching().FileCaching.a64_pnpm_store.Path;
 
 export const DOCKER_CACHE = FileCaching({ docker: true }).FileCaching.a64_docker
 	?.Path as string;
@@ -128,7 +128,6 @@ export default async () => {
 											register("PAKETO_LAUNCHER_IMAGE", "heroku/heroku:24"),
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
-											register("COREPACK_HOME", `${NPM_GLOBAL_CACHE}/corepack`),
 											register("PULUMI_VERSION", "3.144.1"),
 											register(
 												"NODE_AUTH_TOKEN",
@@ -157,11 +156,10 @@ export default async () => {
 												<CodeCatalystStepX run={`npm install --g ${pkg}`} />
 											))}
 											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="corepack install" />
 											<CodeCatalystStepX
-												run={`corepack pnpm config set store-dir ${PNPM_STORE}`}
+												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="corepack pnpm install" />
+											<CodeCatalystStepX run="npm exec pnpm install" />
 											{...[...ALL_CACHES, `${DOCKER_CACHE}/images`].flatMap(
 												(cache) => {
 													return (
@@ -192,9 +190,9 @@ export default async () => {
 												run={`[ -f ${PULUMI_CACHE}/bin/pulumi ] && ${PULUMI_CACHE}/bin/pulumi version | grep $PULUMI_VERSION || curl -fsSL https://get.pulumi.com | sh -s -- --version $PULUMI_VERSION --install-root ${PULUMI_CACHE}`}
 											/>
 											<CodeCatalystStepX run={`du -sh ${PULUMI_CACHE}`} />
-											<CodeCatalystStepX run="corepack pnpm list" />
+											<CodeCatalystStepX run="npm exec pnpm list" />
 											<CodeCatalystStepX
-												run={`du -sh node_modules ${NPM_GLOBAL_CACHE} ${PNPM_STORE}`}
+												run={`du -sh node_modules ${NPM_GLOBAL_CACHE} ${PNP_STORE}`}
 											/>
 										</>
 									}
@@ -221,14 +219,13 @@ export default async () => {
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
 											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="corepack install" />
 											<CodeCatalystStepX
-												run={`corepack pnpm config set store-dir ${PNPM_STORE}`}
+												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="corepack pnpm install --prefer-offline" />
-											<CodeCatalystStepX run="corepack pnpm build" />
-											<CodeCatalystStepX run="corepack pnpm lint" />
-											<CodeCatalystStepX run="corepack pnpm test" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec pnpm build" />
+											<CodeCatalystStepX run="npm exec pnpm lint" />
+											<CodeCatalystStepX run="npm exec pnpm test" />
 											<CodeCatalystStepX
 												run={`du -sh $(pwd)/**/module $(pwd)/**/commonjs || true`}
 											/>
@@ -246,7 +243,6 @@ export default async () => {
 										Sources: ["WorkflowSource"],
 										Variables: [
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
-											register("COREPACK_HOME", `${NPM_GLOBAL_CACHE}/corepack`),
 										],
 									}}
 									outputs={{
@@ -274,14 +270,13 @@ export default async () => {
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
 											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="corepack install" />
 											<CodeCatalystStepX
-												run={`corepack pnpm config set store-dir ${PNPM_STORE}`}
+												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="corepack pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
 											<CodeCatalystStepX
 												run={
-													"corepack pnpm exec nx pack:build iac-images-application --verbose"
+													"npm exec pnpm exec nx pack:build iac-images-application --verbose"
 												}
 											/>
 											{...OUTPUT_IMAGES.flatMap(([file, image]) => {
@@ -315,7 +310,6 @@ export default async () => {
 											register("COMMIT_ID", _$_("CommitId")),
 											register("CI_ENVIRONMENT", "current"),
 											register("AWS_REGION", "us-west-2"),
-											register("COREPACK_HOME", `${NPM_GLOBAL_CACHE}/corepack`),
 											register("PULUMI_HOME", PULUMI_CACHE),
 											register(
 												"PULUMI_CONFIG_PASSPHRASE",
@@ -336,18 +330,17 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="corepack install" />
 											<CodeCatalystStepX
-												run={`corepack pnpm config set store-dir ${PNPM_STORE}`}
+												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="corepack pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec n 22" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
 											<CodeCatalystStepX
 												run={`aws ssm get-parameter --name ${AwsStateBackendCommandsParameter()}`}
 											/>
 											<CodeCatalystStepX
 												run={[
-													"corepack pnpm exec fourtwo aws pulumi ci -- --region $AWS_REGION",
+													"npm exec pnpm exec fourtwo aws pulumi ci -- --region $AWS_REGION",
 													"> .pulumi-ci",
 												]
 													.map((x) => x.trim())
@@ -425,7 +418,6 @@ export default async () => {
 										Variables: [
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("AWS_REGION", "us-west-2"),
-											register("COREPACK_HOME", `${NPM_GLOBAL_CACHE}/corepack`),
 											register("PULUMI_HOME", PULUMI_CACHE),
 											register(
 												"PULUMI_CONFIG_PASSPHRASE",
@@ -443,10 +435,10 @@ export default async () => {
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
 											<CodeCatalystStepX
-												run={`corepack pnpm config set store-dir ${PNPM_STORE}`}
+												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
 											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="corepack pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
 											<CodeCatalystStepX
 												run={`ls -la ${input(OUTPUT_IMAGE_PATH)}`}
 											/>
