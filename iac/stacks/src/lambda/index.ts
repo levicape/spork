@@ -13,8 +13,8 @@ import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock"
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { StackReference, all, getStack } from "@pulumi/pulumi";
 import type { z } from "zod";
-import { SporkCodeStackExportsZod } from "../code/exports";
-import { DatalayerStackExportsZod } from "../datalayer/exports";
+import { SporkCodestarStackExportsZod } from "../codestar/exports";
+import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
 
 class JsonParseException extends Error {
 	name: string;
@@ -49,18 +49,18 @@ export = async () => {
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
 	// Stack references
-	const code = await (async () => {
+	const codestar = await (async () => {
 		const code = new StackReference(
-			`organization/spork-code/spork-code.${getStack().split(".").pop()}`,
+			`organization/spork-codestar/spork-codestar.${getStack().split(".").pop()}`,
 		);
 		return {
 			codedeploy: $(
-				(await code.getOutputDetails("codedeploy")).value,
-				SporkCodeStackExportsZod.shape.codedeploy,
+				(await code.getOutputDetails("spork_codestar_codedeploy")).value,
+				SporkCodestarStackExportsZod.shape.spork_codestar_codedeploy,
 			),
 			ecr: $(
-				(await code.getOutputDetails("ecr")).value,
-				SporkCodeStackExportsZod.shape.ecr,
+				(await code.getOutputDetails("spork_codestar_ecr")).value,
+				SporkCodestarStackExportsZod.shape.spork_codestar_ecr,
 			),
 		};
 	})();
@@ -71,16 +71,20 @@ export = async () => {
 		);
 		return {
 			props: $(
-				(await data.getOutputDetails("props")).value,
-				DatalayerStackExportsZod.shape.props,
+				(await data.getOutputDetails("_SPORK_DATALAYER_PROPS")).value,
+				SporkDatalayerStackExportsZod.shape._SPORK_DATALAYER_PROPS,
 			),
 			ec2: $(
-				(await data.getOutputDetails("ec2")).value,
-				DatalayerStackExportsZod.shape.ec2,
+				(await data.getOutputDetails("spork_datalayer_ec2")).value,
+				SporkDatalayerStackExportsZod.shape.spork_datalayer_ec2,
 			),
 			efs: $(
-				(await data.getOutputDetails("efs")).value,
-				DatalayerStackExportsZod.shape.efs,
+				(await data.getOutputDetails("spork_datalayer_efs")).value,
+				SporkDatalayerStackExportsZod.shape.spork_datalayer_efs,
+			),
+			iam: $(
+				(await data.getOutputDetails("spork_datalayer_iam")).value,
+				SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
 			),
 			// Import cloudmap namespace
 		};
@@ -88,7 +92,7 @@ export = async () => {
 	//
 
 	// Resources
-	const s3 = await (async () => {
+	const s3 = (() => {
 		const artifactStore = new Bucket(_("artifact-store"), {
 			acl: "private",
 		});
@@ -124,6 +128,7 @@ export = async () => {
 			ignorePublicAcls: true,
 			restrictPublicBuckets: true,
 		});
+
 		return {
 			artifactStore,
 		};
@@ -143,48 +148,50 @@ export = async () => {
 		return {};
 	})();
 
-	const handler = (({ code, datalayer }, cloudwatch) => {
+	const handler = (({ datalayer }, cloudwatch) => {
 		// const table = data.
-		const role = datalayer.props.lambda.role;
+		const role = datalayer.iam.roles.lambda.name;
 		const loggroup = cloudwatch.loggroup;
 
-		const lambdaPolicyDocument = {
-			Version: "2012-10-17",
-			Statement: [
-				//   {
-				// 	Effect: "Allow",
-				// 	Action: [
-				// 	  "dynamodb:DescribeStream",
-				// 	  "dynamodb:GetRecords",
-				// 	  "dynamodb:GetShardIterator",
-				// 	  "dynamodb:ListStreams",
-				// 	],
-				// 	Resource: "*",
-				//   },
-				{
-					Effect: "Allow",
-					Action: [
-						"ec2:CreateNetworkInterface",
-						"ec2:DescribeNetworkInterfaces",
-						"ec2:DeleteNetworkInterface",
-					],
-					Resource: "*",
-				},
-				{
-					Effect: "Allow",
-					Action: [
-						"logs:CreateLogGroup",
-						"logs:CreateLogStream",
-						"logs:PutLogEvents",
-					],
-					Resource: loggroup.arn,
-				},
-			],
-		};
+		const lambdaPolicyDocument = all([loggroup.arn]).apply(([loggroupArn]) => {
+			return {
+				Version: "2012-10-17",
+				Statement: [
+					//   {
+					// 	Effect: "Allow",
+					// 	Action: [
+					// 	  "dynamodb:DescribeStream",
+					// 	  "dynamodb:GetRecords",
+					// 	  "dynamodb:GetShardIterator",
+					// 	  "dynamodb:ListStreams",
+					// 	],
+					// 	Resource: "*",
+					//   },
+					{
+						Effect: "Allow",
+						Action: [
+							"ec2:CreateNetworkInterface",
+							"ec2:DescribeNetworkInterfaces",
+							"ec2:DeleteNetworkInterface",
+						],
+						Resource: "*",
+					},
+					{
+						Effect: "Allow",
+						Action: [
+							"logs:CreateLogGroup",
+							"logs:CreateLogStream",
+							"logs:PutLogEvents",
+						],
+						Resource: loggroupArn,
+					},
+				],
+			};
+		});
 
 		new RolePolicy(_("lambda-policy"), {
 			role,
-			policy: JSON.stringify(lambdaPolicyDocument),
+			policy: lambdaPolicyDocument.apply((lpd) => JSON.stringify(lpd)),
 		});
 
 		[
@@ -307,7 +314,7 @@ export = async () => {
 				routes: {},
 			},
 		};
-	})({ code, datalayer }, cloudwatch);
+	})({ codestar, datalayer }, cloudwatch);
 
 	const cloudmap = (({ datalayer }) => {
 		// const vpc = data.ec2.vpc;
@@ -329,7 +336,7 @@ export = async () => {
 		// 			dnsRecords: [
 		// 				{
 		// 					type: "A",
-		// 					ttl: 300,
+		// 					ttl: 55,
 		// 				},
 		// 			],
 		// 		},
@@ -362,14 +369,15 @@ export = async () => {
 
 	return all([
 		cloudwatch.loggroup.arn,
-		handler.role,
+		handler.role.arn,
+		handler.role.name,
 		pipeline.role.arn,
 		s3.artifactStore.bucket,
-	]).apply(([cloudwatch, functionRole, pipeline, s3]) => {
+	]).apply(([cloudwatch, functionRoleArn, functionRoleName, pipeline, s3]) => {
 		return {
 			_SPORK_LAMBDA_IMPORTS: {
 				spork: {
-					code,
+					codestar,
 					datalayer,
 				},
 			},
@@ -385,7 +393,8 @@ export = async () => {
 			},
 			spork_lambda_handler: {
 				role: {
-					arn: functionRole,
+					arn: functionRoleArn,
+					name: functionRoleName,
 				},
 				http: {
 					// arn: functionArn,

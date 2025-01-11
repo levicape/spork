@@ -167,8 +167,15 @@ export = async () => {
 			vpc.privateSubnetIds,
 			securitygroup.id,
 			roles.lambda.arn,
+			roles.lambda.name,
 		]).apply(
-			([accessPointArn, privateSubnetIds, securityGroupId, lambdaRoleArn]) => {
+			([
+				accessPointArn,
+				privateSubnetIds,
+				securityGroupId,
+				lambdaRoleArn,
+				lambdaRoleName,
+			]) => {
 				const fileSystemConfig = {
 					arn: accessPointArn,
 					localMountPath: "/mnt/efs",
@@ -181,7 +188,10 @@ export = async () => {
 
 				return JSON.stringify({
 					lambda: {
-						role: lambdaRoleArn,
+						role: {
+							arn: lambdaRoleArn,
+							name: lambdaRoleName,
+						},
 						fileSystemConfig,
 						vpcConfig,
 					},
@@ -192,6 +202,7 @@ export = async () => {
 	return all([
 		props,
 		iam.roles.lambda.arn,
+		iam.roles.lambda.name,
 		ec2.vpc.vpcId,
 		ec2.subnetIds.apply((ids) => ids.join(",")),
 		ec2.securitygroup.id,
@@ -206,7 +217,8 @@ export = async () => {
 	]).apply(
 		([
 			jsonProps,
-			iamLambdaArn,
+			iamRoleLambdaArn,
+			iamRoleLambdaName,
 			ec2VpcId,
 			ec2SubnetIds,
 			ec2SecurityGroupId,
@@ -218,15 +230,16 @@ export = async () => {
 			efsAccessPointRootDirectory,
 		]) => {
 			return {
-				props: jsonProps,
-				iam: {
+				_SPORK_DATALAYER_PROPS: jsonProps,
+				spork_datalayer_iam: {
 					roles: {
 						lambda: {
-							arn: iamLambdaArn,
+							arn: iamRoleLambdaArn,
+							name: iamRoleLambdaName,
 						},
 					},
 				},
-				ec2: {
+				spork_datalayer_ec2: {
 					vpc: {
 						vpcId: ec2VpcId,
 						subnetIds: ec2SubnetIds,
@@ -235,7 +248,7 @@ export = async () => {
 						securityGroupId: ec2SecurityGroupId,
 					},
 				},
-				efs: {
+				spork_datalayer_efs: {
 					filesystem: {
 						arn: efsFilesystemArn,
 						kmsKeyId: efsFilesystemKmsKeyId,

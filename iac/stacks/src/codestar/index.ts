@@ -69,13 +69,13 @@ export = async () => {
 			codedeployDeploymentGroupArn,
 		]) => {
 			return {
-				ecr: {
+				spork_codestar_ecr: {
 					repository: {
 						arn: ecrRepositoryArn,
 						url: ecrRepositoryUrl,
 					},
 				},
-				codedeploy: {
+				spork_codestar_codedeploy: {
 					application: {
 						arn: codedeployApplicationArn,
 					},

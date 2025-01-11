@@ -1,4 +1,4 @@
-name: spork-code
+name: spork-codestar
 description: State bucket and associated SSM parameters
 runtime:
   name: nodejs

@@ -1,9 +1,12 @@
 import { z } from "zod";
 
-export const DatalayerStackExportsZod = z.object({
-	props: z.object({
+export const SporkDatalayerStackExportsZod = z.object({
+	_SPORK_DATALAYER_PROPS: z.object({
 		lambda: z.object({
-			role: z.string(),
+			role: z.object({
+				arn: z.string(),
+				name: z.string(),
+			}),
 			fileSystemConfig: z.object({
 				arn: z.string(),
 				localMountPath: z.string(),
@@ -14,7 +17,7 @@ export const DatalayerStackExportsZod = z.object({
 			}),
 		}),
 	}),
-	ec2: z.object({
+	spork_datalayer_ec2: z.object({
 		vpc: z.object({
 			vpcId: z.string(),
 			subnetIds: z.string(),
@@ -23,7 +26,7 @@ export const DatalayerStackExportsZod = z.object({
 			securityGroupId: z.string(),
 		}),
 	}),
-	efs: z.object({
+	spork_datalayer_efs: z.object({
 		filesystem: z.object({
 			arn: z.string(),
 			kmsKeyId: z.string(),
@@ -35,10 +38,11 @@ export const DatalayerStackExportsZod = z.object({
 			rootDirectory: z.string(),
 		}),
 	}),
-	iam: z.object({
+	spork_datalayer_iam: z.object({
 		roles: z.object({
 			lambda: z.object({
 				arn: z.string(),
+				name: z.string(),
 			}),
 		}),
 	}),

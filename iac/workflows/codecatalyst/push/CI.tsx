@@ -80,14 +80,15 @@ export const OUTPUT_IMAGES = [
 
 export const PULUMI_STACKS = [
 	// "account",
-	"code",
+	"codestar",
 	"datalayer",
 	"lambda",
-	// "environment",
-	// "platform",
-	// "schedule",
-	// "test",
-	// "website",
+	// "scheduledtasks",
+	// "observability",
+	// "qualityassurance",
+	// "websiteinternal",
+	// "websitefrontend",
+	// "websitemarketing",
 ] as const;
 
 const input = (name: `_${string}`) => `$CATALYST_SOURCE_DIR${name}/${name}`;
@@ -123,11 +124,11 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NPM_REGISTRY_PROTOCOL", "https"),
+											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register("PAKETO_CLI_IMAGE", "buildpacksio/pack:latest"),
 											register("PAKETO_BUILDER_IMAGE", "heroku/builder:24"),
 											register("PAKETO_LAUNCHER_IMAGE", "heroku/heroku:24"),
-											register("NPM_REGISTRY_PROTOCOL", "https"),
-											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register("PULUMI_VERSION", "3.144.1"),
 											register(
 												"NODE_AUTH_TOKEN",
@@ -305,8 +306,6 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
-											register("BRANCH_NAME", _$_("BranchName")),
-											register("COMMIT_ID", _$_("CommitId")),
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("CI_ENVIRONMENT", "current"),
 											register("AWS_REGION", "us-west-2"),
@@ -378,10 +377,10 @@ export default async () => {
 														run={`${PULUMI_CACHE}/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/src/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
+														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/src/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}"`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"`}
+														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}"`}
 													/>
 													<CodeCatalystStepX
 														run={`${PULUMI_CACHE}/bin/pulumi stack output -C $(pwd)/iac/stacks/src/${stack} --json > $(pwd)/${OUTPUT_PULUMI_PATH}/${stack}.json`}
@@ -417,8 +416,6 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
-											register("BRANCH_NAME", _$_("BranchName")),
-											register("COMMIT_ID", _$_("CommitId")),
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register(
 												"APPLICATION_IMAGE_TAG",
@@ -481,7 +478,7 @@ export default async () => {
 
 														let envs = {
 															"_<APPLICATION_IMAGE_NAME>_CODE_REPOSITORY_URL":
-																imports.spork.code.ecr.repository.url,
+																imports.spork.codestar.ecr.repository.url,
 														};
 
 														Object.entries(envs).forEach(([key, value]) => {
@@ -508,7 +505,7 @@ export default async () => {
 												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL`}
 											/>
 											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_NAME`} />
-											{...["$COMMIT_ID"].map((tag) => (
+											{...[_$_("WorkflowSource.CommitId")].map((tag) => (
 												<>
 													<CodeCatalystStepX run={`echo ${tag}`} />
 													<CodeCatalystStepX

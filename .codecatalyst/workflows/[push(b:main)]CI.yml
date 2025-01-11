@@ -43,16 +43,16 @@ Actions:
           Sources:
             - WorkflowSource
           Variables:
+            - Name: NPM_REGISTRY_PROTOCOL
+              Value: https
+            - Name: NPM_REGISTRY_HOST
+              Value: npm.pkg.github.com
             - Name: PAKETO_CLI_IMAGE
               Value: buildpacksio/pack:latest
             - Name: PAKETO_BUILDER_IMAGE
               Value: heroku/builder:24
             - Name: PAKETO_LAUNCHER_IMAGE
               Value: heroku/heroku:24
-            - Name: NPM_REGISTRY_PROTOCOL
-              Value: https
-            - Name: NPM_REGISTRY_HOST
-              Value: npm.pkg.github.com
             - Name: PULUMI_VERSION
               Value: 3.144.1
             - Name: NODE_AUTH_TOKEN
@@ -212,10 +212,6 @@ Actions:
           Sources:
             - WorkflowSource
           Variables:
-            - Name: BRANCH_NAME
-              Value: ${BranchName}
-            - Name: COMMIT_ID
-              Value: ${CommitId}
             - Name: APPLICATION_IMAGE_NAME
               Value: spork
             - Name: CI_ENVIRONMENT
@@ -249,19 +245,19 @@ Actions:
             - Run: cat .export-cd
             - Run: source .export-cd
             - Run: mkdir _pulumi
-            - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-code.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/code || true
-            - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-code.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/code || true
-            - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/code
-            - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/code
-            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/code  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
-            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/code --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
-            - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/code --json > $(pwd)/_pulumi/code.json
-            - Run: cat _pulumi/code.json
-            - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/code --shell > $(pwd)/_pulumi/code.sh
-            - Run: cat _pulumi/code.sh
+            - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-codestar.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/codestar || true
+            - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-codestar.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/codestar || true
+            - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/codestar
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/codestar
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/codestar
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/codestar
+            - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/codestar
+            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/codestar  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}"
+            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/codestar --yes --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}"
+            - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/codestar --json > $(pwd)/_pulumi/codestar.json
+            - Run: cat _pulumi/codestar.json
+            - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/codestar --shell > $(pwd)/_pulumi/codestar.sh
+            - Run: cat _pulumi/codestar.sh
             - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-datalayer.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/datalayer || true
             - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-datalayer.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/datalayer || true
             - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/datalayer
@@ -269,8 +265,8 @@ Actions:
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/datalayer
             - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/datalayer
             - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/datalayer
-            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/datalayer  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
-            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/datalayer --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
+            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/datalayer  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}"
+            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/datalayer --yes --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}"
             - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/datalayer --json > $(pwd)/_pulumi/datalayer.json
             - Run: cat _pulumi/datalayer.json
             - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/datalayer --shell > $(pwd)/_pulumi/datalayer.sh
@@ -282,8 +278,8 @@ Actions:
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/lambda
             - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/lambda
             - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/lambda
-            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/lambda  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
-            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/lambda --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
+            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/lambda  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}"
+            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/lambda --yes --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}"
             - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/lambda --json > $(pwd)/_pulumi/lambda.json
             - Run: cat _pulumi/lambda.json
             - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/lambda --shell > $(pwd)/_pulumi/lambda.sh
@@ -316,10 +312,6 @@ Actions:
           Sources:
             - WorkflowSource
           Variables:
-            - Name: BRANCH_NAME
-              Value: ${BranchName}
-            - Name: COMMIT_ID
-              Value: ${CommitId}
             - Name: APPLICATION_IMAGE_NAME
               Value: spork
             - Name: APPLICATION_IMAGE_TAG
@@ -346,30 +338,30 @@ Actions:
             - Run: docker load --input $CATALYST_SOURCE_DIR_images/_images/application.tar.gz
             - Run: docker images
             - Run: ls -la $CATALYST_SOURCE_DIR_pulumi/_pulumi
-            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/code.sh
-            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/code.sh
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/codestar.sh
+            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/codestar.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/datalayer.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/datalayer.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/lambda.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/lambda.sh
             - Run: env
             - Run: |-
-                node -e '(function(){let imports=JSON.parse(process.env["_SPORK_LAMBDA_IMPORTS"]??"");let envs={"_SPORK_CODE_REPOSITORY_URL":imports.spork.code.ecr.repository.url};Object.entries(envs).forEach(([key,value])=>{process.stdout.write(`export ${key}="${value}"
+                node -e '(function(){let imports=JSON.parse(process.env["_SPORK_LAMBDA_IMPORTS"]??"");let envs={"_SPORK_CODE_REPOSITORY_URL":imports.spork.codestar.ecr.repository.url};Object.entries(envs).forEach(([key,value])=>{process.stdout.write(`export ${key}="${value}"
                 `)})})()' > .ci-env
             - Run: cat .ci-env
             - Run: source .ci-env
             - Run: export _AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
             - Run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_SPORK_CODE_REPOSITORY_URL
             - Run: echo $APPLICATION_IMAGE_NAME
-            - Run: echo $COMMIT_ID
-            - Run: echo "Tagging $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:$COMMIT_ID"
-            - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:$COMMIT_ID
+            - Run: echo ${WorkflowSource.CommitId}
+            - Run: echo "Tagging $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${WorkflowSource.CommitId}"
+            - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${WorkflowSource.CommitId}
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"6debbd718dc9d8ca39bc0d820a579e4bb0908f13e51f286515f08b440181720f"}
-#**:_$~- {"$$":"footer","started":"2025-01-11T22:01:16.030Z","now":"2025-01-11T22:01:16.038Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"a505f91c6adcda460e58452918a7407321423728cf3d723aad335f2e5b5e9cce"}
+#**:_$~- {"$$":"footer","started":"2025-01-12T00:48:51.850Z","now":"2025-01-12T00:48:51.858Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 
