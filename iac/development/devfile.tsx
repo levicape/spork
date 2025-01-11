@@ -38,14 +38,14 @@ let data = (
 				id={"install-corepack"}
 				exec={{
 					component: "source",
-					commandLine: "corepack enable",
+					commandLine: "sudo corepack enable",
 				}}
-			/>,			
+			/>,
 			<DevfileCommandX
 				id={"install-pnpm"}
 				exec={{
 					component: "source",
-					commandLine: "corepack use pnpm@latest",
+					commandLine: "sudo corepack use pnpm@latest",
 				}}
 			/>,
 			<DevfileCommandX

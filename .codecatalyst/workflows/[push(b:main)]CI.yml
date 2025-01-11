@@ -53,6 +53,8 @@ Actions:
               Value: https
             - Name: NPM_REGISTRY_HOST
               Value: npm.pkg.github.com
+            - Name: COREPACK_HOME
+              Value: /tmp/npm-global/corepack
             - Name: PULUMI_VERSION
               Value: 3.144.1
             - Name: NODE_AUTH_TOKEN
@@ -66,11 +68,11 @@ Actions:
             - Run: npm config set //$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN --location project
             - Run: npm config set prefix=/tmp/npm-global
             - Run: npm root -g
-            - Run: npm install --g pnpm
             - Run: npm install --g n
             - Run: npm exec n 22
-            - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec pnpm install
+            - Run: corepack install
+            - Run: corepack pnpm config set store-dir /tmp/pnpm-store
+            - Run: corepack pnpm install
             - Run: mkdir -p /tmp/npm-global
             - Run: mkdir -p /tmp/pnpm-store
             - Run: mkdir -p /tmp/nx-cache
@@ -91,7 +93,7 @@ Actions:
             - Run: du -sh /tmp/docker-cache/images/launcher.tar.gz
             - Run: "[ -f /tmp/pulumi/bin/pulumi ] && /tmp/pulumi/bin/pulumi version | grep $PULUMI_VERSION || curl -fsSL https://get.pulumi.com | sh -s -- --version $PULUMI_VERSION --install-root /tmp/pulumi"
             - Run: du -sh /tmp/pulumi
-            - Run: npm exec pnpm list
+            - Run: corepack pnpm list
             - Run: du -sh node_modules /tmp/npm-global /tmp/pnpm-store
       Compile:
         Identifier: aws/build@v1.0.0
@@ -126,11 +128,12 @@ Actions:
           Steps:
             - Run: npm config set prefix=/tmp/npm-global
             - Run: npm exec n 22
-            - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec pnpm install --prefer-offline
-            - Run: npm exec pnpm build
-            - Run: npm exec pnpm lint
-            - Run: npm exec pnpm test
+            - Run: corepack install
+            - Run: corepack pnpm config set store-dir /tmp/pnpm-store
+            - Run: corepack pnpm install --prefer-offline
+            - Run: corepack pnpm build
+            - Run: corepack pnpm lint
+            - Run: corepack pnpm test
             - Run: du -sh $(pwd)/**/module $(pwd)/**/commonjs || true
       Image:
         Identifier: aws/build@v1.0.0
@@ -161,6 +164,8 @@ Actions:
           Variables:
             - Name: APPLICATION_IMAGE_NAME
               Value: spork
+            - Name: COREPACK_HOME
+              Value: /tmp/npm-global/corepack
         Outputs:
           Artifacts:
             - Name: images
@@ -177,9 +182,10 @@ Actions:
             - Run: mkdir -p _images
             - Run: npm config set prefix=/tmp/npm-global
             - Run: npm exec n 22
-            - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec pnpm install --prefer-offline
-            - Run: npm exec pnpm exec nx pack:build iac-images-application --verbose
+            - Run: corepack install
+            - Run: corepack pnpm config set store-dir /tmp/pnpm-store
+            - Run: corepack pnpm install --prefer-offline
+            - Run: corepack pnpm exec nx pack:build iac-images-application --verbose
             - Run: docker save $APPLICATION_IMAGE_NAME | gzip > _images/application.tar.gz
             - Run: du -sh _images/application.tar.gz
             - Run: ls -la _images
@@ -222,6 +228,8 @@ Actions:
               Value: current
             - Name: AWS_REGION
               Value: us-west-2
+            - Name: COREPACK_HOME
+              Value: /tmp/npm-global/corepack
             - Name: PULUMI_HOME
               Value: /tmp/pulumi
             - Name: PULUMI_CONFIG_PASSPHRASE
@@ -237,11 +245,12 @@ Actions:
             Image: CodeCatalystLinux_Arm64:2024_03
           Steps:
             - Run: npm config set prefix=/tmp/npm-global
-            - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec n 22
-            - Run: npm exec pnpm install --prefer-offline
+            - Run: corepack install
+            - Run: corepack pnpm config set store-dir /tmp/pnpm-store
+            - Run: corepack pnpm install --prefer-offline
             - Run: aws ssm get-parameter --name /fourtwo/_principal/pulumi/backend/StateBackendCommandReference
-            - Run: npm exec pnpm exec fourtwo aws pulumi ci -- --region $AWS_REGION > .pulumi-ci
+            - Run: corepack pnpm exec fourtwo aws pulumi ci -- --region $AWS_REGION > .pulumi-ci
             - Run: cat .pulumi-ci
             - Run: cat .pulumi-ci | grep "export" >> .export-cd
             - Run: cat .export-cd
@@ -318,6 +327,8 @@ Actions:
               Value: spork
             - Name: AWS_REGION
               Value: us-west-2
+            - Name: COREPACK_HOME
+              Value: /tmp/npm-global/corepack
             - Name: PULUMI_HOME
               Value: /tmp/pulumi
             - Name: PULUMI_CONFIG_PASSPHRASE
@@ -331,9 +342,9 @@ Actions:
             Image: CodeCatalystLinux_Arm64:2024_03
           Steps:
             - Run: npm config set prefix=/tmp/npm-global
-            - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
+            - Run: corepack pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec n 22
-            - Run: npm exec pnpm install --prefer-offline
+            - Run: corepack pnpm install --prefer-offline
             - Run: ls -la $CATALYST_SOURCE_DIR_images/_images
             - Run: docker load --input $CATALYST_SOURCE_DIR_images/_images/application.tar.gz
             - Run: docker images
@@ -351,7 +362,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"167b137bf8cae4ce9992dce5642de2408c9030ebe7f58915e7f69b171a6200fa"}
-#**:_$~- {"$$":"footer","started":"2025-01-11T05:29:19.982Z","now":"2025-01-11T05:29:19.989Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"ec372490cb75a2c4421d8112ebb9f1be393a98e907011c4ef103512a0561d02e"}
+#**:_$~- {"$$":"footer","started":"2025-01-11T06:46:43.239Z","now":"2025-01-11T06:46:43.247Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 
