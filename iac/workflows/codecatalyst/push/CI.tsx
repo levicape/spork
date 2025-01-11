@@ -478,12 +478,14 @@ export default async () => {
 														);
 
 														let envs = {
-															"_<APPLICATION_IMAGE_NAME>_CODE_REPOSITORY":
-																imports.spork.code.ecr.repository,
+															"_<APPLICATION_IMAGE_NAME>_CODE_REPOSITORY_URL":
+																imports.spork.code.ecr.repository.url,
 														};
 
 														Object.entries(envs).forEach(([key, value]) => {
-															process.stdout.write(`export ${key}=${value}\n`);
+															process.stdout.write(
+																`export ${key}="${value}"\n`,
+															);
 														});
 													}
 														.toString()
@@ -501,15 +503,16 @@ export default async () => {
 												}
 											/>
 											<CodeCatalystStepX
-												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`}
+												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL`}
 											/>
 											{...["$CC_ENVIRONMENT"].map((tag) => (
 												<>
 													<CodeCatalystStepX
-														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_IMAGE_TAG:${tag}`}
+														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}
 													/>
+													<CodeCatalystStepX run={"docker images"} />
 													{/* <CodeCatalystStepX
-														run={`docker push $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_IMAGE_TAG:${tag}`}
+														run={`docker push $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}
 													/> */}
 												</>
 											))}

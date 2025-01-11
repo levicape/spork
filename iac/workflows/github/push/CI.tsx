@@ -13,7 +13,6 @@ import {
 } from "@levicape/fourtwo/x/github";
 import {
 	GithubStepNodeInstallX,
-	GithubStepNodeScriptsX,
 	GithubStepNodeSetupX,
 } from "@levicape/fourtwo/x/github/node";
 
@@ -89,6 +88,31 @@ export default async () => (
 							);
 						}}
 					/>
+				</>
+			}
+		/>
+		<GithubJobX
+			id="build-image"
+			name="Build Docker Image"
+			runsOn={GithubJobBuilder.defaultRunsOn()}
+			steps={
+				<>
+					<GithubStepCheckoutX />
+					<GithubStepNodeSetupX configuration={NodeGhaConfiguration({ env })}>
+						{(node) => {
+							return (
+								<>
+									<GithubStepNodeInstallX {...node} />
+									<GithubStepX
+										name="Build Docker Image"
+										run={[
+											"pnpm exec nx pack:build iac-images-application --verbose",
+										]}
+									/>
+								</>
+							);
+						}}
+					</GithubStepNodeSetupX>
 				</>
 			}
 		/>

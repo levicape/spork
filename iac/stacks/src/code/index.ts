@@ -56,24 +56,35 @@ export = async () => {
 
 	return all([
 		ecr.repository.arn,
+		ecr.repository.repositoryUrl,
 		codedeploy.application.arn,
 		codedeploy.deploymentConfig.arn,
 		codedeploy.deploymentGroup.arn,
 	]).apply(
 		([
 			ecrRepositoryArn,
+			ecrRepositoryUrl,
 			codedeployApplicationArn,
 			codedeployDeploymentConfigArn,
 			codedeployDeploymentGroupArn,
 		]) => {
 			return {
 				ecr: {
-					repository: ecrRepositoryArn,
+					repository: {
+						arn: ecrRepositoryArn,
+						url: ecrRepositoryUrl,
+					},
 				},
 				codedeploy: {
-					application: codedeployApplicationArn,
-					deploymentConfig: codedeployDeploymentConfigArn,
-					deploymentGroup: codedeployDeploymentGroupArn,
+					application: {
+						arn: codedeployApplicationArn,
+					},
+					deploymentConfig: {
+						arn: codedeployDeploymentConfigArn,
+					},
+					deploymentGroup: {
+						arn: codedeployDeploymentGroupArn,
+					},
 				},
 			};
 		},

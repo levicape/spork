@@ -49,15 +49,24 @@ export = async () => {
 			codedeploy: $(
 				(await code.getOutputDetails("codedeploy")).value,
 				z.object({
-					application: z.string(),
-					deploymentConfig: z.string(),
-					deploymentGroup: z.string(),
+					application: z.object({
+						arn: z.string(),
+					}),
+					deploymentConfig: z.object({
+						arn: z.string(),
+					}),
+					deploymentGroup: z.object({
+						arn: z.string(),
+					}),
 				}),
 			),
 			ecr: $(
 				(await code.getOutputDetails("ecr")).value,
 				z.object({
-					repository: z.string(),
+					repository: z.object({
+						arn: z.string(),
+						url: z.string(),
+					}),
 				}),
 			),
 		};

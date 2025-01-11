@@ -350,19 +350,20 @@ Actions:
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/lambda.sh
             - Run: env
             - Run: |-
-                node -e '(function(){let imports=JSON.parse(process.env["_SPORK_LAMBDA_IMPORTS"]??"");let envs={"_SPORK_CODE_REPOSITORY":imports.spork.code.ecr.repository};Object.entries(envs).forEach(([key,value])=>{process.stdout.write(`export ${key}=${value}
+                node -e '(function(){let imports=JSON.parse(process.env["_SPORK_LAMBDA_IMPORTS"]??"");let envs={"_SPORK_CODE_REPOSITORY_URL":imports.spork.code.ecr.repository.url};Object.entries(envs).forEach(([key,value])=>{process.stdout.write(`export ${key}="${value}"
                 `)})})()' > .ci-env
             - Run: cat .ci-env
             - Run: source .ci-env
             - Run: export _AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-            - Run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-            - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_IMAGE_TAG:$CC_ENVIRONMENT
+            - Run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_SPORK_CODE_REPOSITORY_URL
+            - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:$CC_ENVIRONMENT
+            - Run: docker images
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"73779654032f3fd32fc8c5e75ac4a6edb589c638c6183398a77bf96afd8f59d8"}
-#**:_$~- {"$$":"footer","started":"2025-01-11T17:11:24.600Z","now":"2025-01-11T17:11:24.607Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"a48cee7228f3fa824af2f04055b7e7d5db35699388448ec957371419ed45c487"}
+#**:_$~- {"$$":"footer","started":"2025-01-11T19:16:21.120Z","now":"2025-01-11T19:16:21.127Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 
