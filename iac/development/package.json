@@ -1,0 +1,9 @@
+{
+  "name": "iac-development",
+  "dependencies": {
+    "@levicape/fourtwo": "catalog:",
+    "js-yaml": "catalog:core"
+  },
+  "private": "true",
+  "type": "module"
+}

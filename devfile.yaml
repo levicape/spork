@@ -1,0 +1,42 @@
+schemaVersion: 2.0.0
+metadata:
+  name: spork
+components:
+  - name: source
+    container:
+      image: public.ecr.aws/aws-mde/universal-image:4.0
+      mountSources: true
+      command:
+        - sleep
+        - infinity
+commands:
+  - id: update-node
+    exec:
+      component: source
+      commandLine: sudo npx -y n 22
+  - id: install-corepack
+    exec:
+      component: source
+      commandLine: corepack enable
+  - id: install-pnpm
+    exec:
+      component: source
+      commandLine: corepack use pnpm@latest
+  - id: start-docker
+    exec:
+      component: source
+      commandLine: ./entrypoint.sh
+  - id: install-codecatalyst-workflow-cli
+    exec:
+      component: source
+      commandLine: >-
+        curl -sL
+        https://github.com/aws/codecatalyst-runner-cli/releases/latest/download/ccr_Linux_arm64.tar.gz
+        -o - | tar -zx ccr && sudo mv ccr /usr/local/bin/ccr
+events:
+  postStart:
+    - update-node
+    - install-corepack
+    - install-pnpm
+    - start-docker
+    - install-codecatalyst-workflow-cli
