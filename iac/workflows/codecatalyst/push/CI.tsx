@@ -153,7 +153,7 @@ export default async () => {
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
 											<CodeCatalystStepX run="npm root -g" />
-											{["n"].map((pkg: string) => (
+											{["pnpm", "n"].map((pkg: string) => (
 												<CodeCatalystStepX run={`npm install --g ${pkg}`} />
 											))}
 											<CodeCatalystStepX run="npm exec n 22" />

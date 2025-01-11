@@ -2,7 +2,7 @@
   "name": "@levicape/protobuf-spork-stands",
   "config": {
     "packagemanager": "pnpm",
-    "packageexecutor": "pnpm exec",
+    "packageexecutor": "corepack pnpm exec",
     "outpaths": "./gen"
   },
   "dependencies": {

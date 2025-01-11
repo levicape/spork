@@ -2,7 +2,7 @@
   "name": "iac_stacks",
   "config": {
     "packagemanager": "pnpm",
-    "packageexecutor": "pnpm exec",
+    "packageexecutor": "corepack pnpm exec",
     "lintpaths": "./src ./canary ./iac"
   },
   "dependencies": {

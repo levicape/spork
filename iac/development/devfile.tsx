@@ -61,8 +61,8 @@ let data = (
 					component: "source",
 					commandLine: [
 						[
-							"curl -sL https://github.com/aws/codecatalyst-runner-cli/releases/latest/download/ccr_Linux_arm64.tar.gz -o -",
-							"tar -zx ccr",
+							"sudo curl -sL https://github.com/aws/codecatalyst-runner-cli/releases/latest/download/ccr_Linux_x86_64.tar.gz -o -",
+							"sudo tar -zx ccr",
 						].join(" | "),
 						"sudo mv ccr /usr/local/bin/ccr",
 					].join(" && "),
@@ -72,5 +72,14 @@ let data = (
 	</DevfileX>
 );
 
-import { dump } from "js-yaml";
-console.log(dump(data.build()));
+import { stringify } from "yaml";
+
+console.log(
+	stringify(data.build(), {
+		collectionStyle: "block",
+		aliasDuplicateObjects: false,
+		doubleQuotedAsJSON: true,
+		minContentWidth: 0,
+		lineWidth: 0,
+	}),
+);

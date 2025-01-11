@@ -3,7 +3,7 @@
   "config": {
     "packagebin": "corepack pnpm",
     "packagemanager": "pnpm",
-    "packageexecutor": "pnpm exec",
+    "packageexecutor": "corepack pnpm exec",
     "lintpaths": "./src",
     "outpaths": "./module"
   },

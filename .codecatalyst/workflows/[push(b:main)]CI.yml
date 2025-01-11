@@ -68,6 +68,7 @@ Actions:
             - Run: npm config set //$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN --location project
             - Run: npm config set prefix=/tmp/npm-global
             - Run: npm root -g
+            - Run: npm install --g pnpm
             - Run: npm install --g n
             - Run: npm exec n 22
             - Run: corepack install
@@ -362,7 +363,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"ec372490cb75a2c4421d8112ebb9f1be393a98e907011c4ef103512a0561d02e"}
-#**:_$~- {"$$":"footer","started":"2025-01-11T06:46:43.239Z","now":"2025-01-11T06:46:43.247Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"8ef52427836fdf14cde161813a8b0cddb49d116427fd2232febb1d2e8bc3136b"}
+#**:_$~- {"$$":"footer","started":"2025-01-11T08:38:32.607Z","now":"2025-01-11T08:38:32.615Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 

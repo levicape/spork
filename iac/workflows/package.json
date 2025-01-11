@@ -2,7 +2,7 @@
   "name": "iac-workflows",
   "config": {
     "packagemanager": "pnpm",
-    "packageexecutor": "pnpm --workspace-root exec",
+    "packageexecutor": "corepack pnpm --workspace-root exec",
     "binpath": "fourtwo",
     "ccpath": "./iac/workflows/codecatalyst",
     "ghapath": "./iac/workflows/github"

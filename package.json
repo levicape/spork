@@ -9,7 +9,7 @@
   "config": {
     "packagemanager": "pnpm",
     "packagebin": "corepack pnpm",
-    "packageexecutor": "pnpm exec",
+    "packageexecutor": "corepack pnpm exec",
     "binpath": "./src/cli/bin.mts",
     "outpaths": "./module",
     "clipath": "./module/cli/bin.mjs",
