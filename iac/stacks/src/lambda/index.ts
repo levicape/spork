@@ -1,7 +1,10 @@
 import { error } from "node:console";
 import { Context } from "@levicape/fourtwo-pulumi";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
+import { ManagedPolicy } from "@pulumi/aws/iam";
 import { getRole } from "@pulumi/aws/iam/getRole";
+import { RolePolicy } from "@pulumi/aws/iam/rolePolicy";
+import { RolePolicyAttachment } from "@pulumi/aws/iam/rolePolicyAttachment";
 import {
 	Bucket,
 	BucketServerSideEncryptionConfigurationV2,
@@ -9,7 +12,9 @@ import {
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { StackReference, all, getStack } from "@pulumi/pulumi";
-import { z } from "zod";
+import type { z } from "zod";
+import { SporkCodeStackExportsZod } from "../code/exports";
+import { DatalayerStackExportsZod } from "../datalayer/exports";
 
 class JsonParseException extends Error {
 	name: string;
@@ -23,6 +28,9 @@ class JsonParseException extends Error {
 		error(`Failed to parse JSON: ${JSON.stringify(json)}`);
 	}
 }
+
+// Import CodeStackExports
+// Import DataStackExports
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -40,7 +48,7 @@ export = async () => {
 	const _ = (name: string) => `${context.prefix}-${name}`;
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
-	// Stack reference: code/ecr/repository
+	// Stack references
 	const code = await (async () => {
 		const code = new StackReference(
 			`organization/spork-code/spork-code.${getStack().split(".").pop()}`,
@@ -48,56 +56,38 @@ export = async () => {
 		return {
 			codedeploy: $(
 				(await code.getOutputDetails("codedeploy")).value,
-				z.object({
-					application: z.object({
-						arn: z.string(),
-					}),
-					deploymentConfig: z.object({
-						arn: z.string(),
-					}),
-					deploymentGroup: z.object({
-						arn: z.string(),
-					}),
-				}),
+				SporkCodeStackExportsZod.shape.codedeploy,
 			),
 			ecr: $(
 				(await code.getOutputDetails("ecr")).value,
-				z.object({
-					repository: z.object({
-						arn: z.string(),
-						url: z.string(),
-					}),
-				}),
+				SporkCodeStackExportsZod.shape.ecr,
 			),
 		};
 	})();
-	// -> Stack reference: code/props/pipeline
-	// new StackReference(_code("props/pipeline"));
-	// Stack reference: spork-data/props
-	const data = await (async () => {
+
+	const datalayer = await (async () => {
 		const data = new StackReference(
 			`organization/spork-datalayer/spork-datalayer.${getStack().split(".").pop()}`,
 		);
 		return {
 			props: $(
 				(await data.getOutputDetails("props")).value,
-				z.object({
-					lambda: z.object({
-						role: z.string(),
-						fileSystemConfig: z.object({
-							arn: z.string(),
-							localMountPath: z.string(),
-						}),
-						vpcConfig: z.object({
-							securityGroupIds: z.array(z.string()),
-							subnetIds: z.array(z.string()),
-						}),
-					}),
-				}),
+				DatalayerStackExportsZod.shape.props,
 			),
+			ec2: $(
+				(await data.getOutputDetails("ec2")).value,
+				DatalayerStackExportsZod.shape.ec2,
+			),
+			efs: $(
+				(await data.getOutputDetails("efs")).value,
+				DatalayerStackExportsZod.shape.efs,
+			),
+			// Import cloudmap namespace
 		};
 	})();
+	//
 
+	// Resources
 	const s3 = await (async () => {
 		const artifactStore = new Bucket(_("artifact-store"), {
 			acl: "private",
@@ -149,35 +139,220 @@ export = async () => {
 		};
 	})();
 
-	const lambda = (() => {
-		// new RolePolicy(
-		// 	`${name}-lambda-policy`,
-		// 	{
-		// 	  role: role.name,
-		// 	  policy: JSON.stringify(lambdaPolicyDocument),
-		// 	},
-		// 	{ parent: this },
-		//   );
+	const manifest = (() => {
+		return {};
+	})();
 
-		//   [
-		// 	["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
-		// 	["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
-		// 	["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess]
-		//   ].forEach(([policy, policyArn]) => {
-		// 	new RolePolicyAttachment(
-		// 	  `${name}-lambda-policy-${policy}`,
-		// 	  {
-		// 		role: role.name,
-		// 		policyArn,
-		// 	  },
-		// 	  { parent: this },
+	const handler = (({ code, datalayer }, cloudwatch) => {
+		// const table = data.
+		const role = datalayer.props.lambda.role;
+		const loggroup = cloudwatch.loggroup;
+
+		const lambdaPolicyDocument = {
+			Version: "2012-10-17",
+			Statement: [
+				//   {
+				// 	Effect: "Allow",
+				// 	Action: [
+				// 	  "dynamodb:DescribeStream",
+				// 	  "dynamodb:GetRecords",
+				// 	  "dynamodb:GetShardIterator",
+				// 	  "dynamodb:ListStreams",
+				// 	],
+				// 	Resource: "*",
+				//   },
+				{
+					Effect: "Allow",
+					Action: [
+						"ec2:CreateNetworkInterface",
+						"ec2:DescribeNetworkInterfaces",
+						"ec2:DeleteNetworkInterface",
+					],
+					Resource: "*",
+				},
+				{
+					Effect: "Allow",
+					Action: [
+						"logs:CreateLogGroup",
+						"logs:CreateLogStream",
+						"logs:PutLogEvents",
+					],
+					Resource: loggroup.arn,
+				},
+			],
+		};
+
+		new RolePolicy(_("lambda-policy"), {
+			role,
+			policy: JSON.stringify(lambdaPolicyDocument),
+		});
+
+		[
+			["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
+			["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
+			["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess],
+		].forEach(([policy, policyArn]) => {
+			new RolePolicyAttachment(_(`lambda-policy-${policy}`), {
+				role,
+				policyArn,
+			});
+		});
+
+		//   const lambda = new Function(
+		// 	`${name}-Bun-js-lambda`,
+		// 	{
+		// 		architectures: ["arm64"],
+		// 		runtime: Runtime.NodeJS20dX,
+		// 		memorySize: Number.parseInt(memorySize),
+		// 		handler: `${handler}.${callback}`,
+		// 		role: role.arn,
+		// 		s3Bucket: bucket.bucket,
+		// 		s3Key: zip.key,
+		// 		timeout,
+		// 		environment: all([envs, manifestContent]).apply(
+		// 			([env, manifestContent]) => {
+		// 				const variables = {
+		// 					LOG_LEVEL: "DEBUG",
+		// 					...env,
+		// 				};
+
+		// 				if (manifestContent) {
+		// 					Object.assign(variables, {
+		// 						LEAF_MANIFEST: Buffer.from(
+		// 							JSON.stringify(manifestContent),
+		// 						).toString("base64"),
+		// 					});
+		// 				}
+
+		// 				console.debug({
+		// 					BunComponentAwsNode: { build: artifact, variables },
+		// 				});
+		// 				return {
+		// 					variables,
+		// 				} as { variables: Record<string, string> };
+		// 			},
+		// 		),
+		// 		loggingConfig: {
+		// 			logFormat: "JSON",
+		// 			logGroup: logGroup.name,
+		// 		},
+		// 	},
+		// 	{
+		// 		parent: this,
+		// 		dependsOn: [image],
+		// 	},
+		// );
+
+		// 	const hosts: string[] = [];
+		// 	const hostnames: string[] =
+		// 		context?.frontend?.dns?.hostnames
+		// 			?.map((host) => [`https://${host}`, `https://www.${host}`])
+		// 			.reduce((acc, current) => [...acc, ...current], []) ?? [];
+
+		// 	url = new FunctionUrl(
+		// 		`${name}-Bun-js-http-url--lambda-url`,
+		// 		{
+		// 			functionName: lambda.name,
+		// 			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
+		// 			cors: {
+		// 				allowMethods: ["*"],
+		// 				allowOrigins: hostnames,
+		// 				maxAge: 86400,
+		// 			},
+		// 		},
+		// 		{
+		// 			parent: this,
+		// 			transforms: [
+		// 				async ({ props, opts }) => {
+		// 					const functionCors = (props as FunctionUrlArgs).cors;
+		// 					const allowOrigins =
+		// 						(functionCors as unknown as { allowOrigins: [] })
+		// 							?.allowOrigins ?? [];
+
+		// 					await Promise.any([
+		// 						new Promise((resolve) => setTimeout(resolve, 4000)),
+		// 					]);
+		// 					// cors.promise = Promise.withResolvers();
+
+		// 					console.debug({
+		// 						BunComponentAwsNode: {
+		// 							build: artifact,
+		// 							transform: {
+		// 								hosts: JSON.stringify(hosts),
+		// 								allowOrigins: JSON.stringify(allowOrigins),
+		// 							},
+		// 						},
+		// 					});
+		// 					return {
+		// 						props: {
+		// 							...props,
+		// 							cors: {
+		// 								...functionCors,
+		// 								allowOrigins: [...allowOrigins, ...hosts],
+		// 							},
+		// 						},
+		// 						opts,
+		// 					};
+		// 				},
+		// 			],
+		// 		},
 		// 	);
-		//   })
+		// }
 
 		return {
-			role: data.props.lambda.role,
+			role: datalayer.props.lambda.role,
+			http: {
+				arn: "",
+				url: "",
+				routes: {},
+			},
 		};
-	})();
+	})({ code, datalayer }, cloudwatch);
+
+	const cloudmap = (({ datalayer }) => {
+		// const vpc = data.ec2.vpc;
+		// const cloudMapPrivateDnsNamespace = new PrivateDnsNamespace(
+		// 	_(`cloudmap-namespace`),
+		// 	{
+		// 		description: "Bun namespace",
+		// 		vpc: vpc.id,
+		// 	},
+		// );
+		// const cloudMapService = new Service(
+		// 	`${name}-Bun--cloudmap-service`,
+		// 	{
+		// 		name: name,
+		// 		description: "Bun service",
+		// 		dnsConfig: {
+		// 			namespaceId: cloudMapPrivateDnsNamespace.id,
+		// 			routingPolicy: "MULTIVALUE",
+		// 			dnsRecords: [
+		// 				{
+		// 					type: "A",
+		// 					ttl: 300,
+		// 				},
+		// 			],
+		// 		},
+		// 	}
+		// );
+		// const cloudMapInstance = new Instance(
+		// 	`${name}-Bun--cloudmap-instance`,
+		// 	{
+		// 		instanceId: `${name}-Bun--greebo`,
+		// 		attributes: {
+		// 			"aws:lambda:service-name": "bun",
+		// 			"aws:lambda:function-name": lambda.name,
+		// 			"aws:lambda:url": url?.functionUrl ?? "",
+		// 		},
+		// 		serviceId: cloudMapService.id,
+		// 	}
+		// );
+		// return {
+		// 	namespace: cloudMapPrivateDnsNamespace,
+		// 	service: cloudMapService,
+		// 	instance: cloudMapInstance,
+		// };
+	})({ datalayer });
 
 	const pipeline = (() => {
 		return {
@@ -187,29 +362,56 @@ export = async () => {
 
 	return all([
 		cloudwatch.loggroup.arn,
-		lambda.role,
+		handler.role,
 		pipeline.role.arn,
 		s3.artifactStore.bucket,
-	]).apply(([cloudwatch, lambdaRole, pipeline, s3]) => {
+	]).apply(([cloudwatch, functionRole, pipeline, s3]) => {
 		return {
 			_SPORK_LAMBDA_IMPORTS: {
 				spork: {
 					code,
-					data,
+					datalayer,
 				},
 			},
-			cloudwatch: {
-				loggroup: cloudwatch,
+			spork_lambda_cloudwatch: {
+				loggroup: {
+					arn: cloudwatch,
+				},
 			},
-			lambda: {
-				// arn: functionArn,
-				role: lambdaRole,
+			spork_lambda_manifest: {
+				routes: {
+					// http: lambdaRoutes
+				},
 			},
-			pipeline: {
-				role: pipeline,
+			spork_lambda_handler: {
+				role: {
+					arn: functionRole,
+				},
+				http: {
+					// arn: functionArn,
+					// url: functionUrl,
+				},
 			},
-			s3: {
-				artifactStore: s3,
+			spork_lambda_cloudmap: {
+				namespace: {
+					// arn: cloudmap.namespace.arn,
+				},
+				service: {
+					// arn: cloudmap.service.arn,
+				},
+				instance: {
+					// arn: cloudmap.instance.arn,
+				},
+			},
+			spork_lambda_s3: {
+				artifactStore: {
+					bucket: s3,
+				},
+			},
+			spork_lambda_pipeline: {
+				role: {
+					arn: pipeline,
+				},
 			},
 		};
 	});

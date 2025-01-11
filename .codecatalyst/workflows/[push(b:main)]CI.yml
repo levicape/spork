@@ -212,16 +212,18 @@ Actions:
           Sources:
             - WorkflowSource
           Variables:
-            - Name: APPLICATION_IMAGE_NAME
-              Value: spork
             - Name: BRANCH_NAME
               Value: ${BranchName}
             - Name: COMMIT_ID
               Value: ${CommitId}
+            - Name: APPLICATION_IMAGE_NAME
+              Value: spork
             - Name: CI_ENVIRONMENT
               Value: current
             - Name: AWS_REGION
               Value: us-west-2
+            - Name: FRONTEND_HOSTNAME
+              Value: levicape.cloud
             - Name: PULUMI_HOME
               Value: /tmp/pulumi
             - Name: PULUMI_CONFIG_PASSPHRASE
@@ -252,7 +254,7 @@ Actions:
             - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/code
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/code
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/code
-            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/code
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/code
             - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/code
             - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/code  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
             - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/code --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
@@ -265,7 +267,7 @@ Actions:
             - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/datalayer
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/datalayer
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/datalayer
-            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/datalayer
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/datalayer
             - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/datalayer
             - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/datalayer  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
             - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/datalayer --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
@@ -278,7 +280,7 @@ Actions:
             - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/lambda
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/lambda
             - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/lambda
-            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/lambda
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/lambda
             - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/lambda
             - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/lambda  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
             - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/lambda --yes --suppress-progress --non-interactive --diff --message "$BRANCH_NAME-$COMMIT_ID"
@@ -314,12 +316,14 @@ Actions:
           Sources:
             - WorkflowSource
           Variables:
+            - Name: BRANCH_NAME
+              Value: ${BranchName}
+            - Name: COMMIT_ID
+              Value: ${CommitId}
             - Name: APPLICATION_IMAGE_NAME
               Value: spork
             - Name: APPLICATION_IMAGE_TAG
               Value: levicape/spork
-            - Name: CC_ENVIRONMENT
-              Value: current
             - Name: AWS_REGION
               Value: us-west-2
             - Name: PULUMI_HOME
@@ -356,14 +360,16 @@ Actions:
             - Run: source .ci-env
             - Run: export _AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
             - Run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_SPORK_CODE_REPOSITORY_URL
-            - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:$CC_ENVIRONMENT
-            - Run: docker images
+            - Run: echo $APPLICATION_IMAGE_NAME
+            - Run: echo $COMMIT_ID
+            - Run: echo "Tagging $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:$COMMIT_ID"
+            - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:$COMMIT_ID
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"a48cee7228f3fa824af2f04055b7e7d5db35699388448ec957371419ed45c487"}
-#**:_$~- {"$$":"footer","started":"2025-01-11T19:16:21.120Z","now":"2025-01-11T19:16:21.127Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"6debbd718dc9d8ca39bc0d820a579e4bb0908f13e51f286515f08b440181720f"}
+#**:_$~- {"$$":"footer","started":"2025-01-11T22:01:16.030Z","now":"2025-01-11T22:01:16.038Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 

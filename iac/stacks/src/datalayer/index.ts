@@ -153,6 +153,14 @@ export = async () => {
 		};
 	})();
 
+	const dynamodb = (() => {
+		// AwsDynamoDbTable.environmentVariables(
+		// 	"QUREAU_DATABASE",
+		// 	"us-east-1",
+		// 	accountsTable,
+		//   );
+	})();
+
 	const props = (({ vpc, securitygroup }, { accesspoint }, { roles }) =>
 		all([
 			accesspoint.arn,

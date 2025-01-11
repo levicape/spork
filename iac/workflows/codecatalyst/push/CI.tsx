@@ -305,11 +305,12 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
-											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("BRANCH_NAME", _$_("BranchName")),
 											register("COMMIT_ID", _$_("CommitId")),
+											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("CI_ENVIRONMENT", "current"),
 											register("AWS_REGION", "us-west-2"),
+											register("FRONTEND_HOSTNAME", "levicape.cloud"),
 											register("PULUMI_HOME", PULUMI_CACHE),
 											register(
 												"PULUMI_CONFIG_PASSPHRASE",
@@ -371,7 +372,7 @@ export default async () => {
 														run={`${PULUMI_CACHE}/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$HOSTNAME" -C $(pwd)/iac/stacks/src/${stack}`}
+														run={`${PULUMI_CACHE}/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
 														run={`${PULUMI_CACHE}/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/${stack}`}
@@ -416,12 +417,13 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("BRANCH_NAME", _$_("BranchName")),
+											register("COMMIT_ID", _$_("CommitId")),
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register(
 												"APPLICATION_IMAGE_TAG",
 												`levicape/${APPLICATION}`,
 											),
-											register("CC_ENVIRONMENT", `current`),
 											register("AWS_REGION", "us-west-2"),
 											register("PULUMI_HOME", PULUMI_CACHE),
 											register(
@@ -505,12 +507,16 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL`}
 											/>
-											{...["$CC_ENVIRONMENT"].map((tag) => (
+											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_NAME`} />
+											{...["$COMMIT_ID"].map((tag) => (
 												<>
+													<CodeCatalystStepX run={`echo ${tag}`} />
+													<CodeCatalystStepX
+														run={`echo "Tagging $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}"`}
+													/>
 													<CodeCatalystStepX
 														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}
 													/>
-													<CodeCatalystStepX run={"docker images"} />
 													{/* <CodeCatalystStepX
 														run={`docker push $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}
 													/> */}
