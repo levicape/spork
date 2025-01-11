@@ -67,7 +67,7 @@ export = async () => {
 	// Stack reference: spork-data/props
 	const data = await (async () => {
 		const data = new StackReference(
-			`organization/spork-data/spork-data.${getStack().split(".").pop()}`,
+			`organization/spork-datalayer/spork-datalayer.${getStack().split(".").pop()}`,
 		);
 		return {
 			props: $(

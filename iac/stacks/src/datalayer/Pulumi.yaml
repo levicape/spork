@@ -1,4 +1,4 @@
-name: spork-data
+name: spork-datalayer
 description: | 
   Data layer: DynamoDB, SQS and EFS
 runtime:

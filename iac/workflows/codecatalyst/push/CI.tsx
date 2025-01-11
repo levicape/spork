@@ -81,7 +81,7 @@ export const OUTPUT_IMAGES = [
 export const PULUMI_STACKS = [
 	// "account",
 	"code",
-	"data",
+	"datalayer",
 	"lambda",
 	// "environment",
 	// "platform",
@@ -417,6 +417,11 @@ export default async () => {
 										Sources: ["WorkflowSource"],
 										Variables: [
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
+											register(
+												"APPLICATION_IMAGE_TAG",
+												`levicape/${APPLICATION}`,
+											),
+											register("CC_ENVIRONMENT", `current`),
 											register("AWS_REGION", "us-west-2"),
 											register("PULUMI_HOME", PULUMI_CACHE),
 											register(
@@ -466,24 +471,48 @@ export default async () => {
 												run={`node -e '(${
 													// biome-ignore lint/complexity/useArrowFunction:
 													function () {
-														let imports =
+														let imports = JSON.parse(
 															process.env[
 																"_<APPLICATION_IMAGE_NAME>_LAMBDA_IMPORTS"
-															];
-
-														console.dir({ imports }, { depth: null });
-														console.dir(
-															{ imports: JSON.parse(imports ?? "") },
-															{ depth: null },
+															] ?? "",
 														);
+
+														let envs = {
+															"_<APPLICATION_IMAGE_NAME>_CODE_REPOSITORY":
+																imports.spork.code.ecr.repository,
+														};
+
+														Object.entries(envs).forEach(([key, value]) => {
+															process.stdout.write(`export ${key}=${value}\n`);
+														});
 													}
 														.toString()
 														.replaceAll(
 															"<APPLICATION_IMAGE_NAME>",
 															APPLICATION.toUpperCase(),
 														)
-												})()'`}
+												})()' > .ci-env`}
 											/>
+											<CodeCatalystStepX run={"cat .ci-env"} />
+											<CodeCatalystStepX run={"source .ci-env"} />
+											<CodeCatalystStepX
+												run={
+													"export _AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)"
+												}
+											/>
+											<CodeCatalystStepX
+												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`}
+											/>
+											{...["$CC_ENVIRONMENT"].map((tag) => (
+												<>
+													<CodeCatalystStepX
+														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_IMAGE_TAG:${tag}`}
+													/>
+													{/* <CodeCatalystStepX
+														run={`docker push $_AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$APPLICATION_IMAGE_TAG:${tag}`}
+													/> */}
+												</>
+											))}
 										</>
 									}
 								/>
