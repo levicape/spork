@@ -94,7 +94,7 @@
           "nx:test",
           "@levicape/spork-examples-basic:dx:precommit",
           "@levicape/spork-canary:dx:precommit",
-          "iac_stacks:dx:precommit"
+          "@levicape/spork-iac-stacks:dx:precommit"
         ]
       },
       "dx:prepublish": {

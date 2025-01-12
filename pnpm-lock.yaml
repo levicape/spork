@@ -111,6 +111,9 @@ catalogs:
     '@pulumi/awsx':
       specifier: ^2.19.0
       version: 2.19.0
+    '@pulumi/docker-build':
+      specifier: ^0.0.7
+      version: 0.0.7
     '@pulumi/pulumi':
       specifier: ^3.142.0
       version: 3.145.0
@@ -305,6 +308,9 @@ importers:
       '@pulumi/awsx':
         specifier: catalog:pulumi
         version: 2.19.0(typescript@5.7.2)
+      '@pulumi/docker-build':
+        specifier: catalog:pulumi
+        version: 0.0.7(typescript@5.7.2)
       '@pulumi/pulumi':
         specifier: catalog:pulumi
         version: 3.145.0(typescript@5.7.2)

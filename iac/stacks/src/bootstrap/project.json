@@ -8,7 +8,7 @@
 	"nx": {
 		"targets": {
 			"nx:compile": {
-				"dependsOn": ["iac_stacks:nx:compile"]
+				"dependsOn": ["@levicape/spork-iac-stacks:nx:compile"]
 			},
 			"dx:precommit": {
 				"dependsOn": []

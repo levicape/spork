@@ -1,10 +1,14 @@
 import { error } from "node:console";
 import { Context } from "@levicape/fourtwo-pulumi";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
+import { getAuthorizationToken } from "@pulumi/aws/ecr/getAuthorizationToken";
+import { getCredentials } from "@pulumi/aws/ecr/getCredentials";
 import { ManagedPolicy } from "@pulumi/aws/iam";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import { RolePolicy } from "@pulumi/aws/iam/rolePolicy";
 import { RolePolicyAttachment } from "@pulumi/aws/iam/rolePolicyAttachment";
+import { Function as LambdaFn } from "@pulumi/aws/lambda";
+import { FunctionUrl } from "@pulumi/aws/lambda/functionUrl";
 import {
 	Bucket,
 	BucketServerSideEncryptionConfigurationV2,
@@ -13,6 +17,7 @@ import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock"
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { Instance } from "@pulumi/aws/servicediscovery/instance";
 import { Service } from "@pulumi/aws/servicediscovery/service";
+import { Image } from "@pulumi/docker-build";
 import { StackReference, all, getStack } from "@pulumi/pulumi";
 import type { z } from "zod";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
@@ -95,14 +100,13 @@ export = async () => {
 
 	// Resources
 	const s3 = (() => {
-		const artifactStore = new Bucket(_("artifact-store"), {
-			acl: "private",
-		});
+		const bucket = (name: string) => {
+			const bucket = new Bucket(_(name), {
+				acl: "private",
+			});
 
-		new BucketServerSideEncryptionConfigurationV2(
-			_("artifact-store-encryption"),
-			{
-				bucket: artifactStore.bucket,
+			new BucketServerSideEncryptionConfigurationV2(_(`${name}-encryption`), {
+				bucket: bucket.bucket,
 				rules: [
 					{
 						applyServerSideEncryptionByDefault: {
@@ -110,29 +114,31 @@ export = async () => {
 						},
 					},
 				],
-			},
-		);
-		new BucketVersioningV2(
-			_("artifact-store-versioning"),
+			});
+			new BucketVersioningV2(
+				_(`${name}-versioning`),
 
-			{
-				bucket: artifactStore.bucket,
-				versioningConfiguration: {
-					status: "Enabled",
+				{
+					bucket: bucket.bucket,
+					versioningConfiguration: {
+						status: "Enabled",
+					},
 				},
-			},
-			{ parent: this },
-		);
-		new BucketPublicAccessBlock(_("artifact-store-public-access-block"), {
-			bucket: artifactStore.bucket,
-			blockPublicAcls: true,
-			blockPublicPolicy: true,
-			ignorePublicAcls: true,
-			restrictPublicBuckets: true,
-		});
+				{ parent: this },
+			);
+			new BucketPublicAccessBlock(_(`${name}-public-access-block`), {
+				bucket: bucket.bucket,
+				blockPublicAcls: true,
+				blockPublicPolicy: true,
+				ignorePublicAcls: true,
+				restrictPublicBuckets: true,
+			});
 
+			return bucket;
+		};
 		return {
-			artifactStore,
+			artifactStore: bucket("artifact-store"),
+			assets: bucket("assets"),
 		};
 	})();
 
@@ -150,10 +156,29 @@ export = async () => {
 		return {};
 	})();
 
-	const handler = (({ datalayer }, cloudwatch) => {
+	const handler = await (async ({ datalayer, codestar }, cloudwatch) => {
 		// const table = data.
 		const role = datalayer.iam.roles.lambda.name;
+		const roleArn = datalayer.iam.roles.lambda.arn;
 		const loggroup = cloudwatch.loggroup;
+
+		const ecrCredentials = await getAuthorizationToken({});
+
+		const image = new Image(_("lambda-kickstart-image"), {
+			tags: [`${codestar.ecr.repository.url}:latest`],
+			push: true,
+			pull: true,
+			registries: [
+				{
+					address: ecrCredentials.proxyEndpoint,
+					username: ecrCredentials.userName,
+					password: ecrCredentials.password,
+				},
+			],
+			dockerfile: {
+				inline: `FROM busybox:latest`,
+			},
+		});
 
 		const lambdaPolicyDocument = all([loggroup.arn]).apply(([loggroupArn]) => {
 			return {
@@ -200,6 +225,7 @@ export = async () => {
 			["basic", ManagedPolicy.AWSLambdaBasicExecutionRole],
 			["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
 			["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess],
+			["cloudmap", ManagedPolicy.AWSCloudMapDiscoverInstanceAccess],
 		].forEach(([policy, policyArn]) => {
 			new RolePolicyAttachment(_(`lambda-policy-${policy}`), {
 				role,
@@ -207,148 +233,109 @@ export = async () => {
 			});
 		});
 
-		//   const lambda = new Function(
-		// 	`${name}-Bun-js-lambda`,
-		// 	{
-		// 		architectures: ["arm64"],
-		// 		runtime: Runtime.NodeJS20dX,
-		// 		memorySize: Number.parseInt(memorySize),
-		// 		handler: `${handler}.${callback}`,
-		// 		role: role.arn,
-		// 		s3Bucket: bucket.bucket,
-		// 		s3Key: zip.key,
-		// 		timeout,
-		// 		environment: all([envs, manifestContent]).apply(
-		// 			([env, manifestContent]) => {
-		// 				const variables = {
-		// 					LOG_LEVEL: "DEBUG",
-		// 					...env,
-		// 				};
+		const lambda = new LambdaFn(
+			_("lambda-handler-http"),
+			{
+				role: roleArn,
+				architectures: ["arm64"],
+				memorySize: Number.parseInt("512"),
+				timeout: 18,
+				packageType: "Image",
+				imageUri: `${codestar.ecr.repository.url}:latest`,
+				vpcConfig: {
+					securityGroupIds: datalayer.props.lambda.vpcConfig.securityGroupIds,
+					subnetIds: datalayer.props.lambda.vpcConfig.subnetIds,
+				},
+				fileSystemConfig: {
+					localMountPath:
+						datalayer.props.lambda.fileSystemConfig.localMountPath,
+					arn: datalayer.props.lambda.fileSystemConfig.arn,
+				},
+				loggingConfig: {
+					logFormat: "JSON",
+					logGroup: cloudwatch.loggroup.name,
+					applicationLogLevel: "DEBUG",
+				},
+				// environment: all([envs, manifestContent]).apply(
+				// 	([env, manifestContent]) => {
+				// 		const variables = {
+				// 			LOG_LEVEL: "DEBUG",
+				// 			...env,
+				// 		};
 
-		// 				if (manifestContent) {
-		// 					Object.assign(variables, {
-		// 						LEAF_MANIFEST: Buffer.from(
-		// 							JSON.stringify(manifestContent),
-		// 						).toString("base64"),
-		// 					});
-		// 				}
+				// 		if (manifestContent) {
+				// 			Object.assign(variables, {
+				// 				LEAF_MANIFEST: Buffer.from(
+				// 					JSON.stringify(manifestContent),
+				// 				).toString("base64"),
+				// 			});
+				// 		}
 
-		// 				console.debug({
-		// 					BunComponentAwsNode: { build: artifact, variables },
-		// 				});
-		// 				return {
-		// 					variables,
-		// 				} as { variables: Record<string, string> };
-		// 			},
-		// 		),
-		// 		loggingConfig: {
-		// 			logFormat: "JSON",
-		// 			logGroup: logGroup.name,
-		// 		},
-		// 	},
-		// 	{
-		// 		parent: this,
-		// 		dependsOn: [image],
-		// 	},
-		// );
+				// 		return {
+				// 			variables,
+				// 		} as { variables: Record<string, string> };
+				// 	},
+				// ),
+			},
+			{
+				ignoreChanges: ["imageUri"],
+			},
+		);
 
-		// 	const hosts: string[] = [];
-		// 	const hostnames: string[] =
-		// 		context?.frontend?.dns?.hostnames
-		// 			?.map((host) => [`https://${host}`, `https://www.${host}`])
-		// 			.reduce((acc, current) => [...acc, ...current], []) ?? [];
+		const hostnames: string[] =
+			context?.frontend?.dns?.hostnames
+				?.map((host) => [`https://${host}`, `https://www.${host}`])
+				.reduce((acc, current) => [...acc, ...current], []) ?? [];
 
-		// 	url = new FunctionUrl(
-		// 		`${name}-Bun-js-http-url--lambda-url`,
-		// 		{
-		// 			functionName: lambda.name,
-		// 			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
-		// 			cors: {
-		// 				allowMethods: ["*"],
-		// 				allowOrigins: hostnames,
-		// 				maxAge: 86400,
-		// 			},
-		// 		},
-		// 		{
-		// 			parent: this,
-		// 			transforms: [
-		// 				async ({ props, opts }) => {
-		// 					const functionCors = (props as FunctionUrlArgs).cors;
-		// 					const allowOrigins =
-		// 						(functionCors as unknown as { allowOrigins: [] })
-		// 							?.allowOrigins ?? [];
-
-		// 					await Promise.any([
-		// 						new Promise((resolve) => setTimeout(resolve, 4000)),
-		// 					]);
-		// 					// cors.promise = Promise.withResolvers();
-
-		// 					console.debug({
-		// 						BunComponentAwsNode: {
-		// 							build: artifact,
-		// 							transform: {
-		// 								hosts: JSON.stringify(hosts),
-		// 								allowOrigins: JSON.stringify(allowOrigins),
-		// 							},
-		// 						},
-		// 					});
-		// 					return {
-		// 						props: {
-		// 							...props,
-		// 							cors: {
-		// 								...functionCors,
-		// 								allowOrigins: [...allowOrigins, ...hosts],
-		// 							},
-		// 						},
-		// 						opts,
-		// 					};
-		// 				},
-		// 			],
-		// 		},
-		// 	);
-		// }
+		const url = new FunctionUrl(_("lambda-handler-http-url"), {
+			functionName: lambda.name,
+			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
+			cors: {
+				allowMethods: ["*"],
+				allowOrigins: hostnames,
+				maxAge: 86400,
+			},
+		});
 
 		return {
 			role: datalayer.props.lambda.role,
 			http: {
-				arn: "",
-				name: "",
-				url: "",
-				routes: {},
+				arn: lambda.arn,
+				name: lambda.name,
+				url: url.functionUrl,
+				qualifier: url.qualifier,
 			},
 		};
 	})({ codestar, datalayer }, cloudwatch);
 
-	const cloudmap = (({ datalayer: { ec2, cloudmap } }) => {
-		const { vpc } = ec2;
+	const cloudmap = (({ datalayer: { cloudmap } }) => {
 		const { namespace } = cloudmap;
 		const cloudMapService = new Service(_("cloudmap-service"), {
+			name: _("cloudmap-service"),
 			description: `(${getStack()}) Service mesh service`,
 			dnsConfig: {
 				namespaceId: namespace.id,
-				routingPolicy: "MULTIVALUE",
+				routingPolicy: "WEIGHTED",
 				dnsRecords: [
 					{
-						type: "A",
+						type: "CNAME",
 						ttl: 55,
 					},
 				],
 			},
 		});
 
-		// const cloudMapInstance = new Instance(_("cloudmap-instance"), {
-		// 	serviceId: cloudMapService.id,
-		// 	instanceId: _("cloudmap-instance"),
-		// 	attributes: {
-		// 		"aws:lambda:service-name": "bun",
-		// 		"aws:lambda:function-name": handler.http.name,
-		// 		"aws:lambda:url": handler.http.url,
-		// 	},
-		// });
+		const cloudMapInstance = new Instance(_("cloudmap-instance"), {
+			serviceId: cloudMapService.id,
+			instanceId: _("cloudmap-instance"),
+			attributes: {
+				AWS_INSTANCE_CNAME: handler.http.url,
+			},
+		});
 
 		return {
 			service: cloudMapService,
-			// instance: cloudMapInstance,
+			instance: cloudMapInstance,
 		};
 	})({ datalayer });
 
@@ -362,19 +349,23 @@ export = async () => {
 		cloudwatch.loggroup.arn,
 		handler.role.arn,
 		handler.role.name,
+		handler.http.arn,
+		handler.http.url,
 		pipeline.role.arn,
 		s3.artifactStore.bucket,
 		cloudmap.service.arn,
-		// cloudmap.instance.instanceId,
+		cloudmap.instance.instanceId,
 	]).apply(
 		([
 			cloudwatch,
 			functionRoleArn,
 			functionRoleName,
+			functionHttpArn,
+			functionHttpUrl,
 			pipeline,
 			artifactStoreBucket,
 			cloudmapService,
-			// cloudmapInstance,
+			cloudmapInstance,
 		]) => {
 			return {
 				_SPORK_LAMBDA_IMPORTS: {
@@ -399,17 +390,17 @@ export = async () => {
 						name: functionRoleName,
 					},
 					http: {
-						// arn: functionArn,
-						// url: functionUrl,
+						arn: functionHttpArn,
+						url: functionHttpUrl,
 					},
 				},
 				spork_lambda_cloudmap: {
 					service: {
 						arn: cloudmapService,
 					},
-					// instance: {
-					// 	id: cloudmapInstance,
-					// },
+					instance: {
+						id: cloudmapInstance,
+					},
 				},
 				spork_lambda_s3: {
 					artifactStore: {

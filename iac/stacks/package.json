@@ -1,5 +1,5 @@
 {
-  "name": "iac_stacks",
+  "name": "@levicape/spork-iac-stacks",
   "config": {
     "packagemanager": "pnpm",
     "packageexecutor": "corepack pnpm exec",
@@ -10,6 +10,7 @@
     "@levicape/fourtwo-pulumi": "catalog:",
     "@pulumi/aws": "catalog:pulumi",
     "@pulumi/awsx": "catalog:pulumi",
+    "@pulumi/docker-build": "catalog:pulumi",
     "@pulumi/pulumi": "catalog:pulumi",
     "zod": "catalog:core"
   },

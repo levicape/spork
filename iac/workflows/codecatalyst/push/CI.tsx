@@ -71,7 +71,7 @@ export const DOCKER_IMAGES = [
 	["launcher.tar.gz", "$PAKETO_LAUNCHER_IMAGE"],
 ] as const;
 
-export const OUTPUT_IMAGE_PATH = "_images" as const;
+export const OUTPUT_IMAGES_PATH = "_images" as const;
 export const OUTPUT_PULUMI_PATH = "_pulumi" as const;
 
 export const OUTPUT_IMAGES = [
@@ -248,7 +248,7 @@ export default async () => {
 									}}
 									outputs={{
 										Artifacts: [
-											{ Name: "images", Files: [`${OUTPUT_IMAGE_PATH}/**/*`] },
+											{ Name: "images", Files: [`${OUTPUT_IMAGES_PATH}/**/*`] },
 										],
 									}}
 									steps={
@@ -265,7 +265,7 @@ export default async () => {
 												},
 											)}
 											<CodeCatalystStepX
-												run={`mkdir -p ${OUTPUT_IMAGE_PATH}`}
+												run={`mkdir -p ${OUTPUT_IMAGES_PATH}`}
 											/>
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
@@ -284,15 +284,15 @@ export default async () => {
 												return (
 													<>
 														<CodeCatalystStepX
-															run={`docker save ${image} | gzip > ${OUTPUT_IMAGE_PATH}/${file}`}
+															run={`docker save ${image} | gzip > ${OUTPUT_IMAGES_PATH}/${file}`}
 														/>
 														<CodeCatalystStepX
-															run={`du -sh ${OUTPUT_IMAGE_PATH}/${file}`}
+															run={`du -sh ${OUTPUT_IMAGES_PATH}/${file}`}
 														/>
 													</>
 												);
 											})}
-											<CodeCatalystStepX run={`ls -la ${OUTPUT_IMAGE_PATH}`} />
+											<CodeCatalystStepX run={`ls -la ${OUTPUT_IMAGES_PATH}`} />
 										</>
 									}
 								/>
@@ -417,16 +417,7 @@ export default async () => {
 										Sources: ["WorkflowSource"],
 										Variables: [
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
-											register(
-												"APPLICATION_IMAGE_TAG",
-												`levicape/${APPLICATION}`,
-											),
 											register("AWS_REGION", "us-west-2"),
-											register("PULUMI_HOME", PULUMI_CACHE),
-											register(
-												"PULUMI_CONFIG_PASSPHRASE",
-												secret("PULUMI_CONFIG_PASSPHRASE"),
-											),
 										],
 										Artifacts: ["images", "pulumi"],
 									}}
@@ -444,11 +435,11 @@ export default async () => {
 											<CodeCatalystStepX run="npm exec n 22" />
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
 											<CodeCatalystStepX
-												run={`ls -la ${input(OUTPUT_IMAGE_PATH)}`}
+												run={`ls -la ${input(OUTPUT_IMAGES_PATH)}`}
 											/>
 											{...OUTPUT_IMAGES.map(([file]) => (
 												<CodeCatalystStepX
-													run={`docker load --input ${input(OUTPUT_IMAGE_PATH)}/${file}`}
+													run={`docker load --input ${input(OUTPUT_IMAGES_PATH)}/${file}`}
 												/>
 											))}
 											<CodeCatalystStepX run={"docker images"} />
@@ -505,15 +496,14 @@ export default async () => {
 												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL`}
 											/>
 											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_NAME`} />
-											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_TAG`} />
 											{...[_$_("WorkflowSource.CommitId")].map((tag) => (
 												<>
 													<CodeCatalystStepX run={`echo ${tag}`} />
 													<CodeCatalystStepX
-														run={`echo "Tagging $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}"`}
+														run={`echo "Tagging $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL:${tag}"`}
 													/>
 													<CodeCatalystStepX
-														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}
+														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL:${tag}`}
 													/>
 													{/* <CodeCatalystStepX
 														run={`docker push $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}

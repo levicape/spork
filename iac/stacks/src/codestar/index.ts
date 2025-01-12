@@ -3,6 +3,7 @@ import { Application } from "@pulumi/aws/codedeploy";
 import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
 import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
 import { Repository as ECRRepository } from "@pulumi/aws/ecr";
+import { RepositoryPolicy } from "@pulumi/aws/ecr/repositoryPolicy";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import { all } from "@pulumi/pulumi/output";
 
@@ -14,7 +15,32 @@ export = async () => {
 
 	const ecr = await (async () => {
 		const repository = new ECRRepository(_("binaries"));
-
+		new RepositoryPolicy(_("binaries-policy"), {
+			repository: repository.name,
+			policy: repository.repositoryUrl.apply((url) =>
+				JSON.stringify({
+					Version: "2008-10-17",
+					Statement: [
+						{
+							Effect: "Allow",
+							Principal: {
+								Service: [
+									"codebuild.amazonaws.com",
+									"codedeploy.amazonaws.com",
+									"codepipeline.amazonaws.com",
+									"lambda.amazonaws.com",
+								],
+							},
+							Action: [
+								"ecr:GetDownloadUrlForLayer",
+								"ecr:BatchGetImage",
+								"ecr:BatchCheckLayerAvailability",
+							],
+						},
+					],
+				}),
+			),
+		});
 		return {
 			repository,
 		};
