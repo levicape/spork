@@ -46,4 +46,11 @@ export const SporkDatalayerStackExportsZod = z.object({
 			}),
 		}),
 	}),
+	spork_datalayer_cloudmap: z.object({
+		namespace: z.object({
+			arn: z.string(),
+			id: z.string(),
+			hostedZone: z.string(),
+		}),
+	}),
 });

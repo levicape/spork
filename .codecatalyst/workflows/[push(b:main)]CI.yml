@@ -353,6 +353,7 @@ Actions:
             - Run: export _AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
             - Run: aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_SPORK_CODE_REPOSITORY_URL
             - Run: echo $APPLICATION_IMAGE_NAME
+            - Run: echo $APPLICATION_IMAGE_TAG
             - Run: echo ${WorkflowSource.CommitId}
             - Run: echo "Tagging $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${WorkflowSource.CommitId}"
             - Run: docker tag $APPLICATION_IMAGE_NAME:latest $_SPORK_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${WorkflowSource.CommitId}
@@ -361,7 +362,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"a505f91c6adcda460e58452918a7407321423728cf3d723aad335f2e5b5e9cce"}
-#**:_$~- {"$$":"footer","started":"2025-01-12T00:48:51.850Z","now":"2025-01-12T00:48:51.858Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"b872726ef519cc9f9066affb770d33361dfbc3d95b6747f25bc1348888c542b6"}
+#**:_$~- {"$$":"footer","started":"2025-01-12T01:19:00.846Z","now":"2025-01-12T01:19:00.854Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 

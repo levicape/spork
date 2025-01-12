@@ -11,6 +11,8 @@ import {
 } from "@pulumi/aws/s3";
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
+import { Instance } from "@pulumi/aws/servicediscovery/instance";
+import { Service } from "@pulumi/aws/servicediscovery/service";
 import { StackReference, all, getStack } from "@pulumi/pulumi";
 import type { z } from "zod";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
@@ -28,9 +30,6 @@ class JsonParseException extends Error {
 		error(`Failed to parse JSON: ${JSON.stringify(json)}`);
 	}
 }
-
-// Import CodeStackExports
-// Import DataStackExports
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -86,7 +85,10 @@ export = async () => {
 				(await data.getOutputDetails("spork_datalayer_iam")).value,
 				SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
 			),
-			// Import cloudmap namespace
+			cloudmap: $(
+				(await data.getOutputDetails("spork_datalayer_cloudmap")).value,
+				SporkDatalayerStackExportsZod.shape.spork_datalayer_cloudmap,
+			),
 		};
 	})();
 	//
@@ -310,55 +312,44 @@ export = async () => {
 			role: datalayer.props.lambda.role,
 			http: {
 				arn: "",
+				name: "",
 				url: "",
 				routes: {},
 			},
 		};
 	})({ codestar, datalayer }, cloudwatch);
 
-	const cloudmap = (({ datalayer }) => {
-		// const vpc = data.ec2.vpc;
-		// const cloudMapPrivateDnsNamespace = new PrivateDnsNamespace(
-		// 	_(`cloudmap-namespace`),
-		// 	{
-		// 		description: "Bun namespace",
-		// 		vpc: vpc.id,
+	const cloudmap = (({ datalayer: { ec2, cloudmap } }) => {
+		const { vpc } = ec2;
+		const { namespace } = cloudmap;
+		const cloudMapService = new Service(_("cloudmap-service"), {
+			description: `(${getStack()}) Service mesh service`,
+			dnsConfig: {
+				namespaceId: namespace.id,
+				routingPolicy: "MULTIVALUE",
+				dnsRecords: [
+					{
+						type: "A",
+						ttl: 55,
+					},
+				],
+			},
+		});
+
+		// const cloudMapInstance = new Instance(_("cloudmap-instance"), {
+		// 	serviceId: cloudMapService.id,
+		// 	instanceId: _("cloudmap-instance"),
+		// 	attributes: {
+		// 		"aws:lambda:service-name": "bun",
+		// 		"aws:lambda:function-name": handler.http.name,
+		// 		"aws:lambda:url": handler.http.url,
 		// 	},
-		// );
-		// const cloudMapService = new Service(
-		// 	`${name}-Bun--cloudmap-service`,
-		// 	{
-		// 		name: name,
-		// 		description: "Bun service",
-		// 		dnsConfig: {
-		// 			namespaceId: cloudMapPrivateDnsNamespace.id,
-		// 			routingPolicy: "MULTIVALUE",
-		// 			dnsRecords: [
-		// 				{
-		// 					type: "A",
-		// 					ttl: 55,
-		// 				},
-		// 			],
-		// 		},
-		// 	}
-		// );
-		// const cloudMapInstance = new Instance(
-		// 	`${name}-Bun--cloudmap-instance`,
-		// 	{
-		// 		instanceId: `${name}-Bun--greebo`,
-		// 		attributes: {
-		// 			"aws:lambda:service-name": "bun",
-		// 			"aws:lambda:function-name": lambda.name,
-		// 			"aws:lambda:url": url?.functionUrl ?? "",
-		// 		},
-		// 		serviceId: cloudMapService.id,
-		// 	}
-		// );
-		// return {
-		// 	namespace: cloudMapPrivateDnsNamespace,
-		// 	service: cloudMapService,
-		// 	instance: cloudMapInstance,
-		// };
+		// });
+
+		return {
+			service: cloudMapService,
+			// instance: cloudMapInstance,
+		};
 	})({ datalayer });
 
 	const pipeline = (() => {
@@ -373,55 +364,64 @@ export = async () => {
 		handler.role.name,
 		pipeline.role.arn,
 		s3.artifactStore.bucket,
-	]).apply(([cloudwatch, functionRoleArn, functionRoleName, pipeline, s3]) => {
-		return {
-			_SPORK_LAMBDA_IMPORTS: {
-				spork: {
-					codestar,
-					datalayer,
+		cloudmap.service.arn,
+		// cloudmap.instance.instanceId,
+	]).apply(
+		([
+			cloudwatch,
+			functionRoleArn,
+			functionRoleName,
+			pipeline,
+			artifactStoreBucket,
+			cloudmapService,
+			// cloudmapInstance,
+		]) => {
+			return {
+				_SPORK_LAMBDA_IMPORTS: {
+					spork: {
+						codestar,
+						datalayer,
+					},
 				},
-			},
-			spork_lambda_cloudwatch: {
-				loggroup: {
-					arn: cloudwatch,
+				spork_lambda_cloudwatch: {
+					loggroup: {
+						arn: cloudwatch,
+					},
 				},
-			},
-			spork_lambda_manifest: {
-				routes: {
-					// http: lambdaRoutes
+				spork_lambda_manifest: {
+					routes: {
+						// http: lambdaRoutes
+					},
 				},
-			},
-			spork_lambda_handler: {
-				role: {
-					arn: functionRoleArn,
-					name: functionRoleName,
+				spork_lambda_handler: {
+					role: {
+						arn: functionRoleArn,
+						name: functionRoleName,
+					},
+					http: {
+						// arn: functionArn,
+						// url: functionUrl,
+					},
 				},
-				http: {
-					// arn: functionArn,
-					// url: functionUrl,
+				spork_lambda_cloudmap: {
+					service: {
+						arn: cloudmapService,
+					},
+					// instance: {
+					// 	id: cloudmapInstance,
+					// },
 				},
-			},
-			spork_lambda_cloudmap: {
-				namespace: {
-					// arn: cloudmap.namespace.arn,
+				spork_lambda_s3: {
+					artifactStore: {
+						bucket: artifactStoreBucket,
+					},
 				},
-				service: {
-					// arn: cloudmap.service.arn,
+				spork_lambda_pipeline: {
+					role: {
+						arn: pipeline,
+					},
 				},
-				instance: {
-					// arn: cloudmap.instance.arn,
-				},
-			},
-			spork_lambda_s3: {
-				artifactStore: {
-					bucket: s3,
-				},
-			},
-			spork_lambda_pipeline: {
-				role: {
-					arn: pipeline,
-				},
-			},
-		};
-	});
+			};
+		},
+	);
 };

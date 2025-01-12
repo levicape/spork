@@ -505,6 +505,7 @@ export default async () => {
 												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL`}
 											/>
 											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_NAME`} />
+											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_TAG`} />
 											{...[_$_("WorkflowSource.CommitId")].map((tag) => (
 												<>
 													<CodeCatalystStepX run={`echo ${tag}`} />

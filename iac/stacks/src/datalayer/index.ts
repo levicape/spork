@@ -4,8 +4,9 @@ import { AccessPoint } from "@pulumi/aws/efs/accessPoint";
 import { FileSystem } from "@pulumi/aws/efs/fileSystem";
 import { MountTarget } from "@pulumi/aws/efs/mountTarget";
 import { Role } from "@pulumi/aws/iam/role";
+import { PrivateDnsNamespace } from "@pulumi/aws/servicediscovery/privateDnsNamespace";
 import { Vpc } from "@pulumi/awsx/ec2/vpc";
-import { all } from "@pulumi/pulumi";
+import { all, getStack } from "@pulumi/pulumi";
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -161,6 +162,21 @@ export = async () => {
 		//   );
 	})();
 
+	const cloudmap = (({ vpc }) => {
+		const cloudMapPrivateDnsNamespace = new PrivateDnsNamespace(
+			_(`cloudmap-namespace`),
+			{
+				name: _("cloudmap-namespace"),
+				description: `(${getStack()}) Service mesh DNS namespace`,
+				vpc: vpc.vpcId,
+			},
+		);
+
+		return {
+			namespace: cloudMapPrivateDnsNamespace,
+		};
+	})(ec2);
+
 	const props = (({ vpc, securitygroup }, { accesspoint }, { roles }) =>
 		all([
 			accesspoint.arn,
@@ -214,6 +230,9 @@ export = async () => {
 		),
 		efs.accesspoint.arn,
 		efs.accesspoint.rootDirectory.path,
+		cloudmap.namespace.arn,
+		cloudmap.namespace.id,
+		cloudmap.namespace.hostedZone,
 	]).apply(
 		([
 			jsonProps,
@@ -228,6 +247,9 @@ export = async () => {
 			efsFilesystemSizeInBytes,
 			efsAccessPointArn,
 			efsAccessPointRootDirectory,
+			cloudmapNamespaceArn,
+			cloudmapNamespaceId,
+			cloudmapNamespaceHostedZone,
 		]) => {
 			return {
 				_SPORK_DATALAYER_PROPS: jsonProps,
@@ -258,6 +280,13 @@ export = async () => {
 					accesspoint: {
 						arn: efsAccessPointArn,
 						rootDirectory: efsAccessPointRootDirectory,
+					},
+				},
+				spork_datalayer_cloudmap: {
+					namespace: {
+						arn: cloudmapNamespaceArn,
+						id: cloudmapNamespaceId,
+						hostedZone: cloudmapNamespaceHostedZone,
 					},
 				},
 				// sqs
