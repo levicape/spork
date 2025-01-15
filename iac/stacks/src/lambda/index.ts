@@ -1,8 +1,6 @@
-import { error } from "node:console";
 import { Context } from "@levicape/fourtwo-pulumi";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { getAuthorizationToken } from "@pulumi/aws/ecr/getAuthorizationToken";
-import { getCredentials } from "@pulumi/aws/ecr/getCredentials";
 import { ManagedPolicy } from "@pulumi/aws/iam";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import { RolePolicy } from "@pulumi/aws/iam/rolePolicy";
@@ -18,51 +16,25 @@ import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { Instance } from "@pulumi/aws/servicediscovery/instance";
 import { Service } from "@pulumi/aws/servicediscovery/service";
 import { Image } from "@pulumi/docker-build";
-import { StackReference, all, getStack } from "@pulumi/pulumi";
-import type { z } from "zod";
+import { all, getStack } from "@pulumi/pulumi";
+import { $ref, $val } from "../Stack";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
 
-class JsonParseException extends Error {
-	name: string;
-
-	constructor(
-		readonly cause: unknown,
-		readonly json: string,
-	) {
-		super((cause as { message: string })?.message ?? "Unknown error");
-		this.name = "JsonParseException";
-		error(`Failed to parse JSON: ${JSON.stringify(json)}`);
-	}
-}
-
 export = async () => {
 	const context = await Context.fromConfig();
-	const $ = <Z extends z.AnyZodObject>(json: string, schema: Z): z.infer<Z> => {
-		try {
-			if (typeof json !== "string") {
-				return schema.parse(json);
-			}
-
-			return schema.parse(JSON.parse(json));
-		} catch (e) {
-			throw new JsonParseException(e, json);
-		}
-	};
 	const _ = (name: string) => `${context.prefix}-${name}`;
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
 	// Stack references
 	const codestar = await (async () => {
-		const code = new StackReference(
-			`organization/spork-codestar/spork-codestar.${getStack().split(".").pop()}`,
-		);
+		const code = $ref("spork-codestar");
 		return {
-			codedeploy: $(
+			codedeploy: $val(
 				(await code.getOutputDetails("spork_codestar_codedeploy")).value,
 				SporkCodestarStackExportsZod.shape.spork_codestar_codedeploy,
 			),
-			ecr: $(
+			ecr: $val(
 				(await code.getOutputDetails("spork_codestar_ecr")).value,
 				SporkCodestarStackExportsZod.shape.spork_codestar_ecr,
 			),
@@ -70,27 +42,25 @@ export = async () => {
 	})();
 
 	const datalayer = await (async () => {
-		const data = new StackReference(
-			`organization/spork-datalayer/spork-datalayer.${getStack().split(".").pop()}`,
-		);
+		const data = $ref("spork-datalayer");
 		return {
-			props: $(
+			props: $val(
 				(await data.getOutputDetails("_SPORK_DATALAYER_PROPS")).value,
 				SporkDatalayerStackExportsZod.shape._SPORK_DATALAYER_PROPS,
 			),
-			ec2: $(
+			ec2: $val(
 				(await data.getOutputDetails("spork_datalayer_ec2")).value,
 				SporkDatalayerStackExportsZod.shape.spork_datalayer_ec2,
 			),
-			efs: $(
+			efs: $val(
 				(await data.getOutputDetails("spork_datalayer_efs")).value,
 				SporkDatalayerStackExportsZod.shape.spork_datalayer_efs,
 			),
-			iam: $(
+			iam: $val(
 				(await data.getOutputDetails("spork_datalayer_iam")).value,
 				SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
 			),
-			cloudmap: $(
+			cloudmap: $val(
 				(await data.getOutputDetails("spork_datalayer_cloudmap")).value,
 				SporkDatalayerStackExportsZod.shape.spork_datalayer_cloudmap,
 			),
@@ -142,6 +112,7 @@ export = async () => {
 		};
 	})();
 
+	// Logging
 	const cloudwatch = (() => {
 		const loggroup = new LogGroup(_("loggroup"), {
 			retentionInDays: 365,
@@ -152,19 +123,15 @@ export = async () => {
 		};
 	})();
 
-	const manifest = (() => {
-		return {};
-	})();
-
+	// Compute
 	const handler = await (async ({ datalayer, codestar }, cloudwatch) => {
-		// const table = data.
 		const role = datalayer.iam.roles.lambda.name;
 		const roleArn = datalayer.iam.roles.lambda.arn;
 		const loggroup = cloudwatch.loggroup;
 
+		// Bootstrap container lambda with empty image.
 		const ecrCredentials = await getAuthorizationToken({});
-
-		const image = new Image(_("lambda-kickstart-image"), {
+		new Image(_("lambda-kickstart-image"), {
 			tags: [`${codestar.ecr.repository.url}:latest`],
 			push: true,
 			pull: true,
@@ -226,12 +193,20 @@ export = async () => {
 			["vpc", ManagedPolicy.AWSLambdaVPCAccessExecutionRole],
 			["efs", ManagedPolicy.AmazonElasticFileSystemClientReadWriteAccess],
 			["cloudmap", ManagedPolicy.AWSCloudMapDiscoverInstanceAccess],
+			["s3", ManagedPolicy.AmazonS3ReadOnlyAccess],
+			["ssm", ManagedPolicy.AmazonSSMReadOnlyAccess],
+			["xray", ManagedPolicy.AWSXrayWriteOnlyAccess],
 		].forEach(([policy, policyArn]) => {
 			new RolePolicyAttachment(_(`lambda-policy-${policy}`), {
 				role,
 				policyArn,
 			});
 		});
+
+		const cloudmapEnvironment = {
+			AWS_CLOUDMAP_NAMESPACE_ID: datalayer.cloudmap.namespace.id,
+			AWS_CLOUDMAP_NAMESPACE_NAME: datalayer.cloudmap.namespace.name,
+		};
 
 		const lambda = new LambdaFn(
 			_("lambda-handler-http"),
@@ -256,26 +231,13 @@ export = async () => {
 					logGroup: cloudwatch.loggroup.name,
 					applicationLogLevel: "DEBUG",
 				},
-				// environment: all([envs, manifestContent]).apply(
-				// 	([env, manifestContent]) => {
-				// 		const variables = {
-				// 			LOG_LEVEL: "DEBUG",
-				// 			...env,
-				// 		};
-
-				// 		if (manifestContent) {
-				// 			Object.assign(variables, {
-				// 				LEAF_MANIFEST: Buffer.from(
-				// 					JSON.stringify(manifestContent),
-				// 				).toString("base64"),
-				// 			});
-				// 		}
-
-				// 		return {
-				// 			variables,
-				// 		} as { variables: Record<string, string> };
-				// 	},
-				// ),
+				environment: all([cloudmapEnvironment]).apply(([cloudmapEnv]) => {
+					return {
+						variables: {
+							...cloudmapEnv,
+						},
+					};
+				}),
 			},
 			{
 				ignoreChanges: ["imageUri"],
@@ -330,6 +292,8 @@ export = async () => {
 			instanceId: _("cloudmap-instance"),
 			attributes: {
 				AWS_INSTANCE_CNAME: handler.http.url,
+				LAMBDA_FUNCTION_ARN: handler.http.arn,
+				STACK_NAME: _(""),
 			},
 		});
 
@@ -339,11 +303,64 @@ export = async () => {
 		};
 	})({ datalayer });
 
-	const pipeline = (() => {
-		return {
-			role: farRole,
-		};
-	})();
+	// const codepipeline = (() => {
+	// 	const pipeline = new Pipeline(
+	// 		_("codepipeline"),
+	// 		{
+	// 		name: "tf-test-pipeline",
+	// 		roleArn: farRole.arn,
+	// 		artifactStores: [{
+	// 			location: s3.artifactStore.bucket,
+	// 			type: "S3"
+	// 		}],
+	// 		pipelineType: "V2",
+	// 		// triggers: [new CodePipelineTriggerBuilder().build()],
+	// 		stages: [
+	// 			{
+	// 				name: "Build",
+	// 				actions: [{
+	// 					name: "Build",
+	// 					category: "Build",
+	// 					owner: "AWS",
+	// 					provider: "CodeBuild",
+	// 					inputArtifacts: ["source_output"],
+	// 					outputArtifacts: ["build_output"],
+	// 					version: "1",
+	// 					configuration: {
+	// 						ProjectName: "test",
+	// 					},
+	// 				}],
+	// 			},
+	// 			{
+	// 				name: "Deploy",
+	// 				actions: [{
+	// 					name: "Deploy",
+	// 					category: "Deploy",
+	// 					owner: "AWS",
+	// 					provider: "CloudFormation",
+	// 					inputArtifacts: ["build_output"],
+	// 					version: "1",
+	// 					configuration: {
+	// 						ActionMode: "REPLACE_ON_FAILURE",
+	// 						Capabilities: "CAPABILITY_AUTO_EXPAND,CAPABILITY_IAM",
+	// 						OutputFileName: "CreateStackOutput.json",
+	// 						StackName: "MyStack",
+	// 						TemplatePath: "build_output::sam-templated.yaml",
+	// 					},
+	// 				}],
+	// 			},
+	// 		],
+	// 	});
+
+	// 	new RolePolicyAttachment(_("codepipeline-rolepolicy"), {
+	// 		policyArn: ManagedPolicy.CodePipeline_FullAccess,
+	// 		role: farRole.name,
+	// 	});
+
+	// 	return {
+	// 		pipeline
+	// 	};
+	// })();
 
 	return all([
 		cloudwatch.loggroup.arn,
@@ -351,7 +368,7 @@ export = async () => {
 		handler.role.name,
 		handler.http.arn,
 		handler.http.url,
-		pipeline.role.arn,
+		// codepipeline.role.arn,
 		s3.artifactStore.bucket,
 		cloudmap.service.arn,
 		cloudmap.instance.instanceId,
@@ -362,7 +379,7 @@ export = async () => {
 			functionRoleName,
 			functionHttpArn,
 			functionHttpUrl,
-			pipeline,
+			// pipeline,
 			artifactStoreBucket,
 			cloudmapService,
 			cloudmapInstance,
@@ -377,11 +394,6 @@ export = async () => {
 				spork_lambda_cloudwatch: {
 					loggroup: {
 						arn: cloudwatch,
-					},
-				},
-				spork_lambda_manifest: {
-					routes: {
-						// http: lambdaRoutes
 					},
 				},
 				spork_lambda_handler: {
@@ -407,11 +419,11 @@ export = async () => {
 						bucket: artifactStoreBucket,
 					},
 				},
-				spork_lambda_pipeline: {
-					role: {
-						arn: pipeline,
-					},
-				},
+				// spork_lambda_pipeline: {
+				// 	role: {
+				// 		arn: pipeline,
+				// 	},
+				// },
 			};
 		},
 	);

@@ -118,25 +118,35 @@ export = async () => {
 		};
 	})(ec2);
 
+	const dynamodb = (() => {
+		// AwsDynamoDbTable.environmentVariables(
+		// 	"QUREAU_DATABASE",
+		// 	"us-east-1",
+		// 	accountsTable,
+		//   );
+	})();
+
 	const iam = (() => {
-		const lambda = new Role(
-			_("lambda-role"),
-			{
-				assumeRolePolicy: JSON.stringify({
-					Version: "2012-10-17",
-					Statement: [
-						{
-							Effect: "Allow",
-							Principal: {
-								Service: "lambda.amazonaws.com",
+		const lambda = (() => {
+			return new Role(
+				_("lambda-role"),
+				{
+					assumeRolePolicy: JSON.stringify({
+						Version: "2012-10-17",
+						Statement: [
+							{
+								Effect: "Allow",
+								Principal: {
+									Service: "lambda.amazonaws.com",
+								},
+								Action: "sts:AssumeRole",
 							},
-							Action: "sts:AssumeRole",
-						},
-					],
-				}),
-			},
-			{ parent: this },
-		);
+						],
+					}),
+				},
+				{ parent: this },
+			);
+		})();
 
 		//   AwsDynamoDbTable.resourcePolicy(
 		// 	this,
@@ -152,14 +162,6 @@ export = async () => {
 				lambda,
 			},
 		};
-	})();
-
-	const dynamodb = (() => {
-		// AwsDynamoDbTable.environmentVariables(
-		// 	"QUREAU_DATABASE",
-		// 	"us-east-1",
-		// 	accountsTable,
-		//   );
 	})();
 
 	const cloudmap = (({ vpc }) => {
@@ -230,6 +232,7 @@ export = async () => {
 		),
 		efs.accesspoint.arn,
 		efs.accesspoint.rootDirectory.path,
+		cloudmap.namespace.name,
 		cloudmap.namespace.arn,
 		cloudmap.namespace.id,
 		cloudmap.namespace.hostedZone,
@@ -247,6 +250,7 @@ export = async () => {
 			efsFilesystemSizeInBytes,
 			efsAccessPointArn,
 			efsAccessPointRootDirectory,
+			cloudmapNamespaceName,
 			cloudmapNamespaceArn,
 			cloudmapNamespaceId,
 			cloudmapNamespaceHostedZone,
@@ -284,6 +288,7 @@ export = async () => {
 				},
 				spork_datalayer_cloudmap: {
 					namespace: {
+						name: cloudmapNamespaceName,
 						arn: cloudmapNamespaceArn,
 						id: cloudmapNamespaceId,
 						hostedZone: cloudmapNamespaceHostedZone,

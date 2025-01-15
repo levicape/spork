@@ -17,7 +17,7 @@ export = async () => {
 		const repository = new ECRRepository(_("binaries"));
 		new RepositoryPolicy(_("binaries-policy"), {
 			repository: repository.name,
-			policy: repository.repositoryUrl.apply((url) =>
+			policy: repository.repositoryUrl.apply(() =>
 				JSON.stringify({
 					Version: "2008-10-17",
 					Statement: [
