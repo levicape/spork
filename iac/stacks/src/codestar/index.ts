@@ -83,33 +83,45 @@ export = async () => {
 	return all([
 		ecr.repository.arn,
 		ecr.repository.repositoryUrl,
+		ecr.repository.name,
 		codedeploy.application.arn,
+		codedeploy.application.name,
 		codedeploy.deploymentConfig.arn,
+		codedeploy.deploymentConfig.deploymentConfigName,
 		codedeploy.deploymentGroup.arn,
+		codedeploy.deploymentGroup.deploymentGroupName,
 	]).apply(
 		([
 			ecrRepositoryArn,
 			ecrRepositoryUrl,
+			ecrRepositoryName,
 			codedeployApplicationArn,
+			codedeployApplicationName,
 			codedeployDeploymentConfigArn,
+			codedeployDeploymentConfigName,
 			codedeployDeploymentGroupArn,
+			codedeployDeploymentGroupName,
 		]) => {
 			return {
 				spork_codestar_ecr: {
 					repository: {
 						arn: ecrRepositoryArn,
 						url: ecrRepositoryUrl,
+						name: ecrRepositoryName,
 					},
 				},
 				spork_codestar_codedeploy: {
 					application: {
 						arn: codedeployApplicationArn,
+						name: codedeployApplicationName,
 					},
 					deploymentConfig: {
 						arn: codedeployDeploymentConfigArn,
+						name: codedeployDeploymentConfigName,
 					},
 					deploymentGroup: {
 						arn: codedeployDeploymentGroupArn,
+						name: codedeployDeploymentGroupName,
 					},
 				},
 			};

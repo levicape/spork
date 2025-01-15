@@ -314,6 +314,9 @@ importers:
       '@pulumi/pulumi':
         specifier: catalog:pulumi
         version: 3.145.0(typescript@5.7.2)
+      yaml:
+        specifier: catalog:core
+        version: 2.7.0
       zod:
         specifier: catalog:core
         version: 3.24.1

@@ -1,22 +1,26 @@
 import { Context } from "@levicape/fourtwo-pulumi";
+import { EventRule, EventTarget } from "@pulumi/aws/cloudwatch";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
+import { Pipeline } from "@pulumi/aws/codepipeline";
 import { getAuthorizationToken } from "@pulumi/aws/ecr/getAuthorizationToken";
 import { ManagedPolicy } from "@pulumi/aws/iam";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import { RolePolicy } from "@pulumi/aws/iam/rolePolicy";
 import { RolePolicyAttachment } from "@pulumi/aws/iam/rolePolicyAttachment";
-import { Function as LambdaFn } from "@pulumi/aws/lambda";
+import { Alias, Function as LambdaFn } from "@pulumi/aws/lambda";
 import { FunctionUrl } from "@pulumi/aws/lambda/functionUrl";
 import {
 	Bucket,
 	BucketServerSideEncryptionConfigurationV2,
 } from "@pulumi/aws/s3";
+import { BucketObjectv2 } from "@pulumi/aws/s3/bucketObjectv2";
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { Instance } from "@pulumi/aws/servicediscovery/instance";
 import { Service } from "@pulumi/aws/servicediscovery/service";
 import { Image } from "@pulumi/docker-build";
 import { all, getStack } from "@pulumi/pulumi";
+import { stringify } from "yaml";
 import { $ref, $val } from "../Stack";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
@@ -107,6 +111,7 @@ export = async () => {
 			return bucket;
 		};
 		return {
+			deploy: bucket("deploy"),
 			artifactStore: bucket("artifact-store"),
 			assets: bucket("assets"),
 		};
@@ -132,7 +137,7 @@ export = async () => {
 		// Bootstrap container lambda with empty image.
 		const ecrCredentials = await getAuthorizationToken({});
 		new Image(_("lambda-kickstart-image"), {
-			tags: [`${codestar.ecr.repository.url}:latest`],
+			tags: [`${codestar.ecr.repository.url}:kickstart`],
 			push: true,
 			pull: true,
 			registries: [
@@ -216,7 +221,7 @@ export = async () => {
 				memorySize: Number.parseInt("512"),
 				timeout: 18,
 				packageType: "Image",
-				imageUri: `${codestar.ecr.repository.url}:latest`,
+				imageUri: `${codestar.ecr.repository.url}:kickstart`,
 				vpcConfig: {
 					securityGroupIds: datalayer.props.lambda.vpcConfig.securityGroupIds,
 					subnetIds: datalayer.props.lambda.vpcConfig.subnetIds,
@@ -259,6 +264,18 @@ export = async () => {
 			},
 		});
 
+		const alias = new Alias(
+			_("lambda-handler-http-alias"),
+			{
+				functionName: lambda.name,
+				functionVersion: "$LATEST",
+				name: "current",
+			},
+			{
+				ignoreChanges: ["functionVersion"],
+			},
+		);
+
 		return {
 			role: datalayer.props.lambda.role,
 			http: {
@@ -266,6 +283,7 @@ export = async () => {
 				name: lambda.name,
 				url: url.functionUrl,
 				qualifier: url.qualifier,
+				alias,
 			},
 		};
 	})({ codestar, datalayer }, cloudwatch);
@@ -303,86 +321,192 @@ export = async () => {
 		};
 	})({ datalayer });
 
-	// const codepipeline = (() => {
-	// 	const pipeline = new Pipeline(
-	// 		_("codepipeline"),
-	// 		{
-	// 		name: "tf-test-pipeline",
-	// 		roleArn: farRole.arn,
-	// 		artifactStores: [{
-	// 			location: s3.artifactStore.bucket,
-	// 			type: "S3"
-	// 		}],
-	// 		pipelineType: "V2",
-	// 		// triggers: [new CodePipelineTriggerBuilder().build()],
-	// 		stages: [
-	// 			{
-	// 				name: "Build",
-	// 				actions: [{
-	// 					name: "Build",
-	// 					category: "Build",
-	// 					owner: "AWS",
-	// 					provider: "CodeBuild",
-	// 					inputArtifacts: ["source_output"],
-	// 					outputArtifacts: ["build_output"],
-	// 					version: "1",
-	// 					configuration: {
-	// 						ProjectName: "test",
-	// 					},
-	// 				}],
-	// 			},
-	// 			{
-	// 				name: "Deploy",
-	// 				actions: [{
-	// 					name: "Deploy",
-	// 					category: "Deploy",
-	// 					owner: "AWS",
-	// 					provider: "CloudFormation",
-	// 					inputArtifacts: ["build_output"],
-	// 					version: "1",
-	// 					configuration: {
-	// 						ActionMode: "REPLACE_ON_FAILURE",
-	// 						Capabilities: "CAPABILITY_AUTO_EXPAND,CAPABILITY_IAM",
-	// 						OutputFileName: "CreateStackOutput.json",
-	// 						StackName: "MyStack",
-	// 						TemplatePath: "build_output::sam-templated.yaml",
-	// 					},
-	// 				}],
-	// 			},
-	// 		],
-	// 	});
+	const codepipeline = (() => {
+		const buildspec = (() => {
+			const content = stringify(
+				// CodeBuild
+				/*
+				Read SHA of tagged image
+				Create function version
+				*/
+				{},
+			);
 
-	// 	new RolePolicyAttachment(_("codepipeline-rolepolicy"), {
-	// 		policyArn: ManagedPolicy.CodePipeline_FullAccess,
-	// 		role: farRole.name,
-	// 	});
+			const upload = new BucketObjectv2(_("buildspec-upload"), {
+				bucket: s3.deploy.bucket,
+				content,
+				key: "buildspec.yml",
+			});
 
-	// 	return {
-	// 		pipeline
-	// 	};
-	// })();
+			return {
+				content,
+				upload,
+			};
+		})();
+
+		const appspec = (() => {
+			const content = stringify(
+				// Resources
+				/*
+				Type: AWS::Lambda::Function
+				Properties:
+					Name: "myLambdaFunction"
+					Alias: "myLambdaFunctionAlias"
+					CurrentVersion: "1"
+					TargetVersion: "2"			
+			*/
+				{},
+			);
+
+			const upload = new BucketObjectv2(_("appspec-upload"), {
+				bucket: s3.deploy.bucket,
+				content,
+				key: "appspec.yml",
+			});
+
+			return {
+				content,
+				upload,
+			};
+		})();
+		const pipeline = new Pipeline(_("http-handler-pipeline"), {
+			roleArn: farRole.arn,
+			artifactStores: [
+				{
+					location: s3.artifactStore.bucket,
+					type: "S3",
+				},
+			],
+			pipelineType: "V2",
+			stages: [
+				{
+					name: "Source",
+					actions: [
+						{
+							name: "Appspec",
+							category: "Source",
+							owner: "AWS",
+							provider: "S3",
+							outputArtifacts: ["s3_appspec_output"],
+							version: "1",
+							configuration: {
+								S3Bucket: s3.deploy.bucket,
+								S3ObjectKey: appspec.upload.key,
+								AllowOverrideForS3ObjectKey: "false",
+								PollForSourceChanges: "false",
+							},
+						},
+					],
+				},
+				{
+					name: "Deploy",
+					actions: [
+						// Codebuild
+						// Update appspec with codebuild output
+						{
+							name: "CodeDeploy_HTTP_Handler",
+							category: "Deploy",
+							owner: "AWS",
+							provider: "CodeDeploy",
+							inputArtifacts: ["s3_appspec_output"],
+							version: "1",
+							configuration: {
+								ApplicationName: codestar.codedeploy.application.name,
+								DeploymentGroupName: codestar.codedeploy.deploymentGroup.name,
+							},
+						},
+					],
+				},
+			],
+		});
+
+		new RolePolicyAttachment(_("codepipeline-rolepolicy"), {
+			policyArn: ManagedPolicy.CodePipeline_FullAccess,
+			role: farRole.name,
+		});
+
+		return {
+			pipeline,
+			buildspec,
+			appspec,
+		};
+	})();
+
+	// Eventbridge will trigger on ecr push
+	const eventbridge = (() => {
+		const { name } = codestar.ecr.repository;
+
+		const rule = new EventRule(_("event-rule-ecr-push"), {
+			description: `(${getStack()}) ECR push event rule`,
+			state: "ENABLED",
+			eventPattern: JSON.stringify({
+				source: ["aws.ecr"],
+				"detail-type": ["ECR Image Action"],
+				detail: {
+					"repository-name": [name],
+					"action-type": ["PUSH"],
+					result: ["SUCCESS"],
+					"image-tag": ["current"],
+				},
+			}),
+		});
+		const pipeline = new EventTarget(_("event-target-http-pipeline"), {
+			rule: rule.name,
+			arn: codepipeline.pipeline.arn,
+			roleArn: farRole.arn,
+		});
+
+		return {
+			EcrImageAction: {
+				rule,
+				targets: {
+					pipeline,
+				},
+			},
+		};
+	})();
 
 	return all([
+		s3.artifactStore.bucket,
+		s3.assets.bucket,
+		s3.deploy.bucket,
 		cloudwatch.loggroup.arn,
 		handler.role.arn,
 		handler.role.name,
 		handler.http.arn,
 		handler.http.url,
-		// codepipeline.role.arn,
-		s3.artifactStore.bucket,
+		handler.http.alias.arn,
+		handler.http.alias.name,
 		cloudmap.service.arn,
+		cloudmap.service.name,
 		cloudmap.instance.instanceId,
+		codepipeline.pipeline.arn,
+		codepipeline.pipeline.name,
+		eventbridge.EcrImageAction.rule.arn,
+		eventbridge.EcrImageAction.rule.name,
+		eventbridge.EcrImageAction.targets.pipeline.arn,
+		eventbridge.EcrImageAction.targets.pipeline.targetId,
 	]).apply(
 		([
-			cloudwatch,
+			artifactStoreBucket,
+			assetsBucket,
+			deployBucket,
+			cloudwatchLoggroupArn,
 			functionRoleArn,
 			functionRoleName,
 			functionHttpArn,
 			functionHttpUrl,
-			// pipeline,
-			artifactStoreBucket,
-			cloudmapService,
-			cloudmapInstance,
+			functionAliasArn,
+			functionAliasName,
+			cloudmapServiceArn,
+			cloudmapServiceName,
+			cloudmapInstanceId,
+			pipelineArn,
+			pipelineName,
+			eventRuleArn,
+			eventRuleName,
+			eventTargetArn,
+			eventTargetId,
 		]) => {
 			return {
 				_SPORK_LAMBDA_IMPORTS: {
@@ -391,9 +515,20 @@ export = async () => {
 						datalayer,
 					},
 				},
+				spork_lambda_s3: {
+					deploy: {
+						bucket: deployBucket,
+					},
+					artifactStore: {
+						bucket: artifactStoreBucket,
+					},
+					assets: {
+						bucket: assetsBucket,
+					},
+				},
 				spork_lambda_cloudwatch: {
 					loggroup: {
-						arn: cloudwatch,
+						arn: cloudwatchLoggroupArn,
 					},
 				},
 				spork_lambda_handler: {
@@ -404,26 +539,41 @@ export = async () => {
 					http: {
 						arn: functionHttpArn,
 						url: functionHttpUrl,
+						alias: {
+							arn: functionAliasArn,
+							name: functionAliasName,
+						},
 					},
 				},
 				spork_lambda_cloudmap: {
 					service: {
-						arn: cloudmapService,
+						arn: cloudmapServiceArn,
+						name: cloudmapServiceName,
 					},
 					instance: {
-						id: cloudmapInstance,
+						id: cloudmapInstanceId,
 					},
 				},
-				spork_lambda_s3: {
-					artifactStore: {
-						bucket: artifactStoreBucket,
+				spork_lambda_pipeline: {
+					pipeline: {
+						arn: pipelineArn,
+						name: pipelineName,
 					},
 				},
-				// spork_lambda_pipeline: {
-				// 	role: {
-				// 		arn: pipeline,
-				// 	},
-				// },
+				spork_lambda_eventbridge: {
+					EcrImageAction: {
+						rule: {
+							arn: eventRuleArn,
+							name: eventRuleName,
+						},
+						targets: {
+							pipeline: {
+								arn: eventTargetArn,
+								targetId: eventTargetId,
+							},
+						},
+					},
+				},
 			};
 		},
 	);

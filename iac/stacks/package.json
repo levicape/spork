@@ -12,6 +12,7 @@
     "@pulumi/awsx": "catalog:pulumi",
     "@pulumi/docker-build": "catalog:pulumi",
     "@pulumi/pulumi": "catalog:pulumi",
+    "yaml": "catalog:core",
     "zod": "catalog:core"
   },
   "devDependencies": {
