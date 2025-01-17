@@ -27,7 +27,7 @@ catalogs:
       version: 1.1.0
   core:
     yaml:
-      specifier: ^2.6.1
+      specifier: ^2.7.0
       version: 2.7.0
     zod:
       specifier: 3.24.1
@@ -42,11 +42,14 @@ catalogs:
       version: 46.2.0
   default:
     '@levicape/fourtwo':
-      specifier: 0.4.3-main.4
-      version: 0.4.3-main.4
+      specifier: 0.6.1-main.8
+      version: 0.6.1-main.8
+    '@levicape/fourtwo-builders':
+      specifier: 0.6.2-main.9
+      version: 0.6.2-main.9
     '@levicape/fourtwo-pulumi':
-      specifier: 0.4.3-main.4
-      version: 0.4.3-main.4
+      specifier: 0.6.2-main.9
+      version: 0.6.2-main.9
     '@levicape/paloma':
       specifier: 0.0.8-main.1
       version: 0.0.8-main.1
@@ -86,8 +89,8 @@ catalogs:
       specifier: ^1.4.7
       version: 1.4.7
     nx:
-      specifier: 20.2.2
-      version: 20.2.2
+      specifier: 20.3.0
+      version: 20.3.0
     publint:
       specifier: ^0.2.12
       version: 0.2.12
@@ -130,8 +133,8 @@ catalogs:
       specifier: ^9.0.7
       version: 9.0.7
     '@types/node':
-      specifier: ^22.10.1
-      version: 22.10.1
+      specifier: ^22.10.3
+      version: 22.10.7
 
 importers:
 
@@ -194,13 +197,13 @@ importers:
         version: 1.9.4
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.4.3-main.4(projen@0.71.163)
+        version: 0.6.1-main.8(projen@0.71.163)
       '@types/jsonwebtoken':
         specifier: catalog:types
         version: 9.0.7
       '@types/node':
         specifier: catalog:types
-        version: 22.10.1
+        version: 22.10.7
       depcheck:
         specifier: catalog:package
         version: 1.4.7
@@ -209,7 +212,7 @@ importers:
         version: 29.7.0
       nx:
         specifier: catalog:package
-        version: 20.2.2
+        version: 20.3.0
       publint:
         specifier: catalog:package
         version: 0.2.12
@@ -243,7 +246,7 @@ importers:
         version: 1.9.4
       '@types/node':
         specifier: catalog:types
-        version: 22.10.1
+        version: 22.10.7
       publint:
         specifier: catalog:package
         version: 0.2.12
@@ -274,7 +277,7 @@ importers:
         version: 1.9.4
       '@types/node':
         specifier: catalog:types
-        version: 22.10.1
+        version: 22.10.7
       publint:
         specifier: catalog:package
         version: 0.2.12
@@ -289,7 +292,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.4.3-main.4(projen@0.71.163)
+        version: 0.6.1-main.8(projen@0.71.163)
       yaml:
         specifier: catalog:core
         version: 2.7.0
@@ -298,10 +301,13 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.4.3-main.4(projen@0.71.163)
+        version: 0.6.1-main.8(projen@0.71.163)
+      '@levicape/fourtwo-builders':
+        specifier: 'catalog:'
+        version: 0.6.2-main.9(projen@0.71.163)
       '@levicape/fourtwo-pulumi':
         specifier: 'catalog:'
-        version: 0.4.3-main.4(typescript@5.7.2)
+        version: 0.6.2-main.9(typescript@5.7.2)
       '@pulumi/aws':
         specifier: catalog:pulumi
         version: 6.66.2(typescript@5.7.2)
@@ -323,7 +329,7 @@ importers:
     devDependencies:
       '@types/node':
         specifier: catalog:types
-        version: 22.10.1
+        version: 22.10.7
       typescript:
         specifier: catalog:dev
         version: 5.7.2
@@ -332,7 +338,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.4.3-main.4(projen@0.71.163)
+        version: 0.6.1-main.8(projen@0.71.163)
 
   protocols/stands:
     dependencies:
@@ -989,13 +995,22 @@ packages:
     resolution: {integrity: sha512-rsfF5t3sd5c+3ejUgcy8q0cVG2/BxT064L4Xz+CuKEe014u8T4MtFZiWjWZFpfMXSGKzFYEA6DJYm9CqjmIfZg==}
     engines: {node: '>=14'}
 
-  '@levicape/fourtwo-pulumi@0.4.3-main.4':
-    resolution: {integrity: sha512-ggWMcjP6wn6vA90EjWCHZ59youhl+VH2W5lnFXiAGV/eOU1oBw71aYxnM6+LCbdOqQBib41AllJO5r2rUm7lGQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.4.3-main.4/24add9a31b8f3c10f4a93b452002ed0197a8d98b}
+  '@levicape/fourtwo-builders@0.6.2-main.9':
+    resolution: {integrity: sha512-jvg3qw5xccIxFx8uT9NaQHls0WIcZaD0LpmXeOKrNWY9K/ZQr65hxeYPvjKJqshNIsoG/tcZ5lzhymabJ4BGqA==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.6.2-main.9/dd266bbcfb32c28a0a14dd5f628c93aa4330167b}
+    engines: {node: '>=23.5.0'}
+
+  '@levicape/fourtwo-pulumi@0.6.2-main.9':
+    resolution: {integrity: sha512-FGrBtDGtOeOgkLhKBAeF4khheKQgVFRKqVvyY7GTaFp4+myJ4KzlwQ+gxTho1oEn2//u0cAem5k8BpQXdpN+IQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.6.2-main.9/b3d818fbfbd27a2162face1123ae48d49ca9d8c0}
     engines: {node: '>=22.0.0'}
 
-  '@levicape/fourtwo@0.4.3-main.4':
-    resolution: {integrity: sha512-w3qM6NmQDIlBRgT0w1v8xAMaWCl0zHKWi0licjl50kVgEMrn6CUiJ8IRQxDER9/NR9lo9a7RCWjmAiv5EJPf/g==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.4.3-main.4/356d029c95b9e561d0c40ffb4b9b211676759e6b}
-    engines: {node: '>=23.3.0'}
+  '@levicape/fourtwo@0.6.1-main.8':
+    resolution: {integrity: sha512-aRwb7jgJL2SAoAiiuyMRY15n4mNG0KX4nUW+e8z+jtx2Q53JCZ7ZPjOj3t1MTFD0PUymhjOTKmCAqrEuIPBbwg==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.6.1-main.8/2cae545cc83448ef21ceb3a5531871097531ad0e}
+    engines: {node: '>=23.5.0'}
+    hasBin: true
+
+  '@levicape/fourtwo@0.6.2-main.9':
+    resolution: {integrity: sha512-b5vpEX/kmXD9HdowvOEP6LV1kjitD2BPc8nIJBj1JS8OhGWXo/laX+REn31SEZjrDh6HQ/VDKjHDvQJbR9h9rQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.6.2-main.9/60d0f0e6336fd485ab166cefe50981f06f2bb6bc}
+    engines: {node: '>=23.5.0'}
     hasBin: true
 
   '@levicape/paloma@0.0.8-main.1':
@@ -1080,62 +1095,62 @@ packages:
     resolution: {integrity: sha512-y7efHHwghQfk28G2z3tlZ67pLG0XdfYbcVG26r7YIXALRsrVQcTq4/tdenSmdOrEsNahIYA/eh8aEVROWGFUDg==}
     engines: {node: ^16.14.0 || >=18.0.0}
 
-  '@nx/nx-darwin-arm64@20.2.2':
-    resolution: {integrity: sha512-gnS5mtbaBAO5TJkl4T68rQaN/79MMWePavw2SOcFyFnIdAriGEZ+ZFDUE0B/xYJSs9CPWLaGHf+n7oqyxaGd9A==}
+  '@nx/nx-darwin-arm64@20.3.0':
+    resolution: {integrity: sha512-9PqSe1Sh7qNqA4GL0cZH0t3S0EZzb2Xn14XY9au7yf0+eoxyag1oETjjULrxLeUmSoXW2hDxzNtoqKFE9zF07Q==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@nx/nx-darwin-x64@20.2.2':
-    resolution: {integrity: sha512-IctvdQon+K8mlhl06zIq1xTPwf5L4OuS7crzCmK26p5F/lV6iz/UXSPCcgn+bYKOL/q3QCLNR7UasQMjzgCNkQ==}
+  '@nx/nx-darwin-x64@20.3.0':
+    resolution: {integrity: sha512-gsGGhJVvi5QZVVTZie5sNMo1zOAU+A2edm6DGegObdFRLV41Ju/Yrm/gTaSp4yUtywd3UU4S/30C/nI2c55adA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@nx/nx-freebsd-x64@20.2.2':
-    resolution: {integrity: sha512-4/Blg9Y6LVU8tS8yoa2BEXPHWsorpvCuZRH0gXPh96i6b71o4ORPafyLOHp08o3WjtUZb4jl5TfDryE+8y62ZA==}
+  '@nx/nx-freebsd-x64@20.3.0':
+    resolution: {integrity: sha512-DiymYZBBu0upbiskdfn9KRyoXdyvKohezJiV3j4VkeRE8KR2p04NgwRQviDFbeD1cjWrDy9wk8y+G5PabLlqAA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [freebsd]
 
-  '@nx/nx-linux-arm-gnueabihf@20.2.2':
-    resolution: {integrity: sha512-AVAxbUXi6q+inmp8re3OV7HzH6fbkKnnMKvjDLnkzK8dA2Mv4JFl/gz++rgkYfEsBk20lcB1i3unqNrtOvzS7Q==}
+  '@nx/nx-linux-arm-gnueabihf@20.3.0':
+    resolution: {integrity: sha512-Aksx66e8jmt/4rGJ/5z34SWXbPcYr9Ht52UonEeuCdQdoEvAOs7yBUbllYOjIcUsfZikEyZgvqfiQslsggSJdQ==}
     engines: {node: '>= 10'}
     cpu: [arm]
     os: [linux]
 
-  '@nx/nx-linux-arm64-gnu@20.2.2':
-    resolution: {integrity: sha512-h04SLH464Oh/k/1mpAfsMhTVlnc1NJItx4N5DLZb2VuOOY+Tquhrp7HBJLyAhU0Q74JG0LevGFO6wdxliHupmA==}
+  '@nx/nx-linux-arm64-gnu@20.3.0':
+    resolution: {integrity: sha512-Y5wmYEwF1bl014Ps8QjagI911VbViQSFHSTVOCNSObdAzig9E5o6NOkoWe+doT1UZLrrInnlkrggQUsbtdKjOg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@nx/nx-linux-arm64-musl@20.2.2':
-    resolution: {integrity: sha512-rnRXDLvHHj66rCslD4ShDq6KBOVsQ+X63GWTGKM0pnTIIDje9+ltZCoAByieCUm4BvFfCWMUf9y0mGfZvLVKSw==}
+  '@nx/nx-linux-arm64-musl@20.3.0':
+    resolution: {integrity: sha512-yGcIkmImyOMfPkQSYH2EVjPmFE0VkLcO71Bbkpr3RlJ1N/vjYxsGbdnqPiBb8Wshib/hmwpiMHf/yzQtKH0SQw==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@nx/nx-linux-x64-gnu@20.2.2':
-    resolution: {integrity: sha512-K1Z2DVTnyCGl4nolhZ8fvHEixoe1pZOY256LD6D0lGca4Fsi3mHQ7lDU237Pzyc91+cfLva/OAvrivRPeU+DMA==}
+  '@nx/nx-linux-x64-gnu@20.3.0':
+    resolution: {integrity: sha512-nkA2DLI+rpmiuiy7dyXP4l9s7dgHkQWDX7lG1XltiT41RzAReJF1h8qBE6XrsAYE1CtI76DRWVphnc93+iZr+A==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@nx/nx-linux-x64-musl@20.2.2':
-    resolution: {integrity: sha512-pyWe+d2Y2pJVgPZf27KkDBufhFPq+Xhs3/zAQdJbicMvym7uhw0qMTV+lmoMXgfx52WZzhqTfG8JQcDqHjExJw==}
+  '@nx/nx-linux-x64-musl@20.3.0':
+    resolution: {integrity: sha512-sPMtTt9iTrCmFEIp9Qv27UX9PeL1aqKck2dz2TAFbXKVtF6+djOdTcNnTYw45KIP6izcUcOXXAq4G0QSQE7CLg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@nx/nx-win32-arm64-msvc@20.2.2':
-    resolution: {integrity: sha512-zqSoVrV34tx6qhQo/PwD9IMGhzoNSaFQxjTjNCY61sE7iwi5Qt4dDs3Rlh1ZFCBFnrjziymRPY2RryArgeK8Bw==}
+  '@nx/nx-win32-arm64-msvc@20.3.0':
+    resolution: {integrity: sha512-ppfNa/8OfpWA9o26Pz3vArN4ulAC+Hx70/ghPRCP7ed1Mb3Z6yR2Ry9KfBRImbqajvuAExM0TePKMGq9LCdXmg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@nx/nx-win32-x64-msvc@20.2.2':
-    resolution: {integrity: sha512-IfQf2axmCuSArhFGaocIDt8ajWDHXoVut5NOQH4eV2q9whP1j/LVB8EehEaolF5UenM7rhL4V25PXPuuBaUq4A==}
+  '@nx/nx-win32-x64-msvc@20.3.0':
+    resolution: {integrity: sha512-8FOejZ4emtLSVn3pYWs4PIc3n4//qMbwMDPVxmPE8us3ir91Qh0bzr5zRj7Q8sEdSgvneXRXqtBp2grY2KMJsw==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -1748,8 +1763,8 @@ packages:
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
 
-  '@types/node@22.10.1':
-    resolution: {integrity: sha512-qKgsUwfHZV2WCWLAnVP1JqnpE6Im6h3Y0+fYgMTasNQ7V++CBX5OT1as0g0f+OyubbFqhf6XVNIsmN4IIhEgGQ==}
+  '@types/node@22.10.7':
+    resolution: {integrity: sha512-V09KvXxFiutGp6B7XkpaDXlNadZxrzajcY50EuoLIpQ6WWYCSvf19lVIazzfIzQvhUN2HjX12spLojTnhuKlGg==}
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
@@ -3071,8 +3086,8 @@ packages:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
     engines: {node: '>=8'}
 
-  nx@20.2.2:
-    resolution: {integrity: sha512-wHgC/NQ82Q3LOeUZXPI2j/JhpZwb7JjRc0uDn3kQU+lN/ulySCJHTHCf4CIglW4NjZeN1WZZ7YMeddtFWETGGA==}
+  nx@20.3.0:
+    resolution: {integrity: sha512-Nzi4k7tV22zwO2iBLk+pHxorLEWPJpPrVCACtz0SQ63j/LiAgfhoqruJO+VU+V+E9qdyPsvmqIL/Iaf/GRQlqA==}
     hasBin: true
     peerDependencies:
       '@swc-node/register': ^1.8.0
@@ -3464,6 +3479,10 @@ packages:
 
   resolve-pkg-maps@1.0.0:
     resolution: {integrity: sha512-seS2Tj26TBVOC2NIc2rOe2y2ZO7efxITtLZcGSOnHHNOQ7CkiUBfw0Iw2ck6xkIhPwLhKNLS8BO+hEpngQlqzw==}
+
+  resolve.exports@2.0.3:
+    resolution: {integrity: sha512-OcXjMsGdhL4XnbShKpAcSqPMzQoYkYyhbEaeSko47MjRP9NfEQMhZkXL1DoFlt9LWQn4YttrdnV6X2OiyzBi+A==}
+    engines: {node: '>=10'}
 
   resolve@1.22.10:
     resolution: {integrity: sha512-NPRy+/ncIMeDlTAsuqwKIiferiawhefFJtkNSW0qZJEqMEb+qBt/77B/jGeeek+F0uOeN05CDa6HXbbIgtVX4w==}
@@ -3878,11 +3897,6 @@ packages:
   yaml@1.10.2:
     resolution: {integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==}
     engines: {node: '>= 6'}
-
-  yaml@2.6.1:
-    resolution: {integrity: sha512-7r0XPzioN/Q9kXBro/XPnA6kznR73DHq+GXh5ON7ZozRO6aMjbmiBuKste2wslTFkC5d1dw0GooOCepZXJ2SAg==}
-    engines: {node: '>= 14'}
-    hasBin: true
 
   yaml@2.7.0:
     resolution: {integrity: sha512-+hSoy/QHluxmC9kCIJyL/uyFmLmc+e5CFR5Wa+bpIhIj85LVb9ZH2nVnqrHoSvKogwODv0ClqZkmiSSaIH5LTA==}
@@ -5058,7 +5072,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.6
       '@types/istanbul-reports': 3.0.4
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
       '@types/yargs': 17.0.33
       chalk: 4.1.2
 
@@ -5111,7 +5125,13 @@ snapshots:
     optionalDependencies:
       re2-wasm: 1.0.2
 
-  '@levicape/fourtwo-pulumi@0.4.3-main.4(typescript@5.7.2)':
+  '@levicape/fourtwo-builders@0.6.2-main.9(projen@0.71.163)':
+    dependencies:
+      '@levicape/fourtwo': 0.6.2-main.9(projen@0.71.163)
+    transitivePeerDependencies:
+      - projen
+
+  '@levicape/fourtwo-pulumi@0.6.2-main.9(typescript@5.7.2)':
     dependencies:
       '@kubernetes-models/postgres-operator': 0.4.2
       '@pulumi/aws': 6.66.2(typescript@5.7.2)
@@ -5131,7 +5151,23 @@ snapshots:
       - ts-node
       - typescript
 
-  '@levicape/fourtwo@0.4.3-main.4(projen@0.71.163)':
+  '@levicape/fourtwo@0.6.1-main.8(projen@0.71.163)':
+    dependencies:
+      '@aws/codecatalyst-workflows-sdk': 0.1.5-preview.6(projen@0.71.163)
+      '@stricli/core': 1.1.0
+      aws4fetch: 1.0.20
+      enquirer: 2.4.1
+      fast-xml-parser: 4.5.1
+      ini: 5.0.0
+      js-yaml: 4.1.0
+      pretty-ms: 9.2.0
+      verror: 1.10.1
+      yaml: 2.7.0
+      zod: 3.24.1
+    transitivePeerDependencies:
+      - projen
+
+  '@levicape/fourtwo@0.6.2-main.9(projen@0.71.163)':
     dependencies:
       '@aws/codecatalyst-workflows-sdk': 0.1.5-preview.6(projen@0.71.163)
       '@stricli/core': 1.1.0
@@ -5312,34 +5348,34 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@nx/nx-darwin-arm64@20.2.2':
+  '@nx/nx-darwin-arm64@20.3.0':
     optional: true
 
-  '@nx/nx-darwin-x64@20.2.2':
+  '@nx/nx-darwin-x64@20.3.0':
     optional: true
 
-  '@nx/nx-freebsd-x64@20.2.2':
+  '@nx/nx-freebsd-x64@20.3.0':
     optional: true
 
-  '@nx/nx-linux-arm-gnueabihf@20.2.2':
+  '@nx/nx-linux-arm-gnueabihf@20.3.0':
     optional: true
 
-  '@nx/nx-linux-arm64-gnu@20.2.2':
+  '@nx/nx-linux-arm64-gnu@20.3.0':
     optional: true
 
-  '@nx/nx-linux-arm64-musl@20.2.2':
+  '@nx/nx-linux-arm64-musl@20.3.0':
     optional: true
 
-  '@nx/nx-linux-x64-gnu@20.2.2':
+  '@nx/nx-linux-x64-gnu@20.3.0':
     optional: true
 
-  '@nx/nx-linux-x64-musl@20.2.2':
+  '@nx/nx-linux-x64-musl@20.3.0':
     optional: true
 
-  '@nx/nx-win32-arm64-msvc@20.2.2':
+  '@nx/nx-win32-arm64-msvc@20.3.0':
     optional: true
 
-  '@nx/nx-win32-x64-msvc@20.2.2':
+  '@nx/nx-win32-x64-msvc@20.3.0':
     optional: true
 
   '@opentelemetry/api-logs@0.55.0':
@@ -6241,7 +6277,7 @@ snapshots:
     dependencies:
       '@types/http-cache-semantics': 4.0.4
       '@types/keyv': 3.1.4
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
       '@types/responselike': 1.0.3
 
   '@types/google-protobuf@3.15.12': {}
@@ -6260,15 +6296,15 @@ snapshots:
 
   '@types/jsonwebtoken@9.0.7':
     dependencies:
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
 
   '@types/keyv@3.1.4':
     dependencies:
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
 
   '@types/minimatch@3.0.5': {}
 
-  '@types/node@22.10.1':
+  '@types/node@22.10.7':
     dependencies:
       undici-types: 6.20.0
 
@@ -6276,7 +6312,7 @@ snapshots:
 
   '@types/responselike@1.0.3':
     dependencies:
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
 
   '@types/semver@7.5.8': {}
 
@@ -7181,7 +7217,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
       chalk: 4.1.2
       ci-info: 3.9.0
       graceful-fs: 4.2.11
@@ -7563,7 +7599,7 @@ snapshots:
     dependencies:
       path-key: 3.1.1
 
-  nx@20.2.2:
+  nx@20.3.0:
     dependencies:
       '@napi-rs/wasm-runtime': 0.2.4
       '@yarnpkg/lockfile': 1.1.0
@@ -7589,26 +7625,27 @@ snapshots:
       npm-run-path: 4.0.1
       open: 8.4.2
       ora: 5.3.0
+      resolve.exports: 2.0.3
       semver: 7.6.3
       string-width: 4.2.3
       tar-stream: 2.2.0
       tmp: 0.2.3
       tsconfig-paths: 4.2.0
       tslib: 2.8.1
-      yaml: 2.6.1
+      yaml: 2.7.0
       yargs: 17.7.2
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@nx/nx-darwin-arm64': 20.2.2
-      '@nx/nx-darwin-x64': 20.2.2
-      '@nx/nx-freebsd-x64': 20.2.2
-      '@nx/nx-linux-arm-gnueabihf': 20.2.2
-      '@nx/nx-linux-arm64-gnu': 20.2.2
-      '@nx/nx-linux-arm64-musl': 20.2.2
-      '@nx/nx-linux-x64-gnu': 20.2.2
-      '@nx/nx-linux-x64-musl': 20.2.2
-      '@nx/nx-win32-arm64-msvc': 20.2.2
-      '@nx/nx-win32-x64-msvc': 20.2.2
+      '@nx/nx-darwin-arm64': 20.3.0
+      '@nx/nx-darwin-x64': 20.3.0
+      '@nx/nx-freebsd-x64': 20.3.0
+      '@nx/nx-linux-arm-gnueabihf': 20.3.0
+      '@nx/nx-linux-arm64-gnu': 20.3.0
+      '@nx/nx-linux-arm64-musl': 20.3.0
+      '@nx/nx-linux-x64-gnu': 20.3.0
+      '@nx/nx-linux-x64-musl': 20.3.0
+      '@nx/nx-win32-arm64-msvc': 20.3.0
+      '@nx/nx-win32-x64-msvc': 20.3.0
     transitivePeerDependencies:
       - debug
 
@@ -7635,7 +7672,7 @@ snapshots:
       bl: 4.1.0
       chalk: 4.1.2
       cli-cursor: 3.1.0
-      cli-spinners: 2.6.1
+      cli-spinners: 2.9.2
       is-interactive: 1.0.0
       log-symbols: 4.1.0
       strip-ansi: 6.0.1
@@ -7896,7 +7933,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.0
-      '@types/node': 22.10.1
+      '@types/node': 22.10.7
       long: 5.2.3
 
   proxy-from-env@1.1.0: {}
@@ -7991,6 +8028,8 @@ snapshots:
   resolve-from@5.0.0: {}
 
   resolve-pkg-maps@1.0.0: {}
+
+  resolve.exports@2.0.3: {}
 
   resolve@1.22.10:
     dependencies:
@@ -8413,8 +8452,6 @@ snapshots:
   yallist@4.0.0: {}
 
   yaml@1.10.2: {}
-
-  yaml@2.6.1: {}
 
   yaml@2.7.0: {}
 

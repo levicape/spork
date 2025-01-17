@@ -1,6 +1,15 @@
+import {
+	CodeBuildBuildspecArtifactsBuilder,
+	CodeBuildBuildspecBuilder,
+	CodeBuildBuildspecEnvBuilder,
+	CodeBuildBuildspecResourceLambdaPhaseBuilder,
+	CodeDeployAppspecBuilder,
+	CodeDeployAppspecResourceBuilder,
+} from "@levicape/fourtwo-builders";
 import { Context } from "@levicape/fourtwo-pulumi";
 import { EventRule, EventTarget } from "@pulumi/aws/cloudwatch";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
+import { Project } from "@pulumi/aws/codebuild";
 import { Pipeline } from "@pulumi/aws/codepipeline";
 import { getAuthorizationToken } from "@pulumi/aws/ecr/getAuthorizationToken";
 import { ManagedPolicy } from "@pulumi/aws/iam";
@@ -28,6 +37,8 @@ import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
 export = async () => {
 	const context = await Context.fromConfig();
 	const _ = (name: string) => `${context.prefix}-${name}`;
+	// TODO: From $CI_ENVIRONMENT
+	const stage = "current";
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
 	// Stack references
@@ -72,7 +83,7 @@ export = async () => {
 	})();
 	//
 
-	// Resources
+	// Object Store
 	const s3 = (() => {
 		const bucket = (name: string) => {
 			const bucket = new Bucket(_(name), {
@@ -111,9 +122,10 @@ export = async () => {
 			return bucket;
 		};
 		return {
-			deploy: bucket("deploy"),
 			artifactStore: bucket("artifact-store"),
 			assets: bucket("assets"),
+			build: bucket("build"),
+			deploy: bucket("deploy"),
 		};
 	})();
 
@@ -254,8 +266,21 @@ export = async () => {
 				?.map((host) => [`https://${host}`, `https://www.${host}`])
 				.reduce((acc, current) => [...acc, ...current], []) ?? [];
 
+		const alias = new Alias(
+			_("lambda-handler-http-alias"),
+			{
+				name: stage,
+				functionName: lambda.name,
+				functionVersion: "$LATEST",
+			},
+			{
+				ignoreChanges: ["functionVersion"],
+			},
+		);
+
 		const url = new FunctionUrl(_("lambda-handler-http-url"), {
 			functionName: lambda.name,
+			qualifier: alias.name,
 			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
 			cors: {
 				allowMethods: ["*"],
@@ -263,18 +288,6 @@ export = async () => {
 				maxAge: 86400,
 			},
 		});
-
-		const alias = new Alias(
-			_("lambda-handler-http-alias"),
-			{
-				functionName: lambda.name,
-				functionVersion: "$LATEST",
-				name: "current",
-			},
-			{
-				ignoreChanges: ["functionVersion"],
-			},
-		);
 
 		return {
 			role: datalayer.props.lambda.role,
@@ -288,6 +301,7 @@ export = async () => {
 		};
 	})({ codestar, datalayer }, cloudwatch);
 
+	// Cloudmap
 	const cloudmap = (({ datalayer: { cloudmap } }) => {
 		const { namespace } = cloudmap;
 		const cloudMapService = new Service(_("cloudmap-service"), {
@@ -321,21 +335,103 @@ export = async () => {
 		};
 	})({ datalayer });
 
-	const codepipeline = (() => {
+	const codebuild = (() => {
+		const appspec = (props: {
+			name: string;
+			alias: string;
+			currentVersion: string;
+			targetVersion: string;
+		}) => {
+			const content = stringify(
+				new CodeDeployAppspecBuilder()
+					.setResources([
+						{
+							"<APPLICATION_IMAGE_NAME>": new CodeDeployAppspecResourceBuilder()
+								.setName(props.name)
+								.setAlias(props.alias)
+								.setCurrentVersion(props.currentVersion)
+								.setTargetVersion(props.targetVersion),
+						},
+					])
+					.build(),
+			);
+			return {
+				content,
+			};
+		};
+
 		const buildspec = (() => {
 			const content = stringify(
-				// CodeBuild
-				/*
-				Read SHA of tagged image
-				Create function version
-				*/
-				{},
+				new CodeBuildBuildspecBuilder()
+					.setVersion("0.2")
+					.setArtifacts(
+						new CodeBuildBuildspecArtifactsBuilder()
+							.setFiles(["appspec.yml", "appspec.zip"])
+							.setName("httphandler_update"),
+					)
+					.setEnv(
+						new CodeBuildBuildspecEnvBuilder().setVariables({
+							APPSPEC_TEMPLATE: appspec({
+								name: "<LAMBDA_FUNCTION_NAME>",
+								alias: "<LAMBDA_FUNCTION_ALIAS>",
+								currentVersion: "<CURRENT_VERSION>",
+								targetVersion: "<TARGET_VERSION>",
+							}).content,
+							SOURCE_IMAGE_REPOSITORY: "<SOURCE_IMAGE_REPOSITORY>",
+							SOURCE_IMAGE_URI: "<SOURCE_IMAGE_URI>",
+							LAMBDA_FUNCTION_NAME: "<LAMBDA_FUNCTION_NAME>",
+						}),
+					)
+					.setPhases({
+						build:
+							new CodeBuildBuildspecResourceLambdaPhaseBuilder().setCommands([
+								"env",
+								"export CURRENT_VERSION=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.Version' --output text)",
+								"echo $CURRENT_VERSION",
+								"aws lambda update-function-configuration --function-name $LAMBDA_FUNCTION_NAME --image-uri $SOURCE_IMAGE_URI",
+								"sleep 10",
+								"aws lambda publish-version --function-name $LAMBDA_FUNCTION_NAME  > .version",
+								"export TARGET_VERSION=$(jq -r '.Version' .version)",
+								"echo $TARGET_VERSION",
+								"echo $APPSPEC_TEMPLATE",
+								`NODE_NO_WARNINGS=1 node -e '(${(
+									// biome-ignore lint/complexity/useArrowFunction:
+									function () {
+										const template = process.env.APPSPEC_TEMPLATE;
+										const lambdaArn = process.env.LAMBDA_FUNCTION_NAME;
+										const lambdaAlias = process.env.LAMBDA_FUNCTION_ALIAS;
+										const currentVersion = process.env.CURRENT_VERSION;
+										const targetVersion = process.env.TARGET_VERSION;
+
+										if (!template) {
+											throw new Error("APPSPEC_TEMPLATE not set");
+										}
+
+										if (currentVersion === targetVersion) {
+											throw new Error("Version is the same");
+										}
+
+										const appspec = template
+											.replace("<LAMBDA_FUNCTION_NAME>", lambdaArn ?? "!")
+											.replace("<LAMBDA_FUNCTION_ALIAS>", lambdaAlias ?? "!")
+											.replace("<CURRENT_VERSION>", currentVersion ?? "!")
+											.replace("<TARGET_VERSION>", targetVersion ?? "!");
+
+										process.stdout.write(appspec);
+									}
+								).toString()})()' > appspec.yml`,
+								"cat appspec.yml",
+								"zip appspec.zip appspec.yml",
+								"ls -al",
+							]),
+					})
+					.build(),
 			);
 
 			const upload = new BucketObjectv2(_("buildspec-upload"), {
 				bucket: s3.deploy.bucket,
 				content,
-				key: "buildspec.yml",
+				key: "Buildspec.yml",
 			});
 
 			return {
@@ -344,76 +440,157 @@ export = async () => {
 			};
 		})();
 
-		const appspec = (() => {
-			const content = stringify(
-				// Resources
-				/*
-				Type: AWS::Lambda::Function
-				Properties:
-					Name: "myLambdaFunction"
-					Alias: "myLambdaFunctionAlias"
-					CurrentVersion: "1"
-					TargetVersion: "2"			
-			*/
-				{},
-			);
-
-			const upload = new BucketObjectv2(_("appspec-upload"), {
-				bucket: s3.deploy.bucket,
-				content,
-				key: "appspec.yml",
+		const project = (() => {
+			const project = new Project(_("codebuild-project"), {
+				description: `(${getStack()}) CodeBuild project`,
+				buildTimeout: 8,
+				serviceRole: farRole.arn,
+				artifacts: {
+					type: "CODEPIPELINE",
+					artifactIdentifier: "httphandler_update",
+				},
+				environment: {
+					type: "ARM_LAMBDA_CONTAINER",
+					computeType: "BUILD_LAMBDA_1GB",
+					image: "aws/codebuild/amazonlinux-aarch64-lambda-standard:nodejs20",
+					environmentVariables: [
+						{
+							name: "SOURCE_IMAGE_REPOSITORY",
+							value: "SourceImage.RepositoryName",
+							type: "PLAINTEXT",
+						},
+						{
+							name: "SOURCE_IMAGE_URI",
+							value: "SourceImage.ImageUri",
+							type: "PLAINTEXT",
+						},
+						{
+							name: "LAMBDA_FUNCTION_NAME",
+							value: "LAMBDA_FUNCTION_NAME",
+							type: "PLAINTEXT",
+						},
+						{
+							name: "LAMBDA_FUNCTION_ALIAS",
+							value: "LAMBDA_FUNCTION_ALIAS",
+							type: "PLAINTEXT",
+						},
+					],
+				},
+				source: {
+					type: "CODEPIPELINE",
+					buildspec: buildspec.content,
+				},
 			});
 
 			return {
-				content,
-				upload,
+				project,
 			};
 		})();
+
+		return {
+			...project,
+			spec: {
+				buildspec,
+			},
+		};
+	})();
+
+	const codepipeline = (() => {
 		const pipeline = new Pipeline(_("http-handler-pipeline"), {
+			pipelineType: "V2",
 			roleArn: farRole.arn,
+			executionMode: "QUEUED",
 			artifactStores: [
 				{
 					location: s3.artifactStore.bucket,
 					type: "S3",
 				},
 			],
-			pipelineType: "V2",
 			stages: [
 				{
 					name: "Source",
 					actions: [
 						{
-							name: "Appspec",
+							name: "Image",
+							namespace: "SourceImage",
 							category: "Source",
 							owner: "AWS",
-							provider: "S3",
-							outputArtifacts: ["s3_appspec_output"],
+							provider: "ECR",
 							version: "1",
-							configuration: {
-								S3Bucket: s3.deploy.bucket,
-								S3ObjectKey: appspec.upload.key,
-								AllowOverrideForS3ObjectKey: "false",
-								PollForSourceChanges: "false",
-							},
+							outputArtifacts: ["source_image"],
+							configuration: all([codestar.ecr.repository.name]).apply(
+								([repositoryName]) => {
+									return {
+										RepositoryName: repositoryName,
+										ImageTag: stage,
+									};
+								},
+							),
 						},
 					],
 				},
 				{
-					name: "Deploy",
+					name: "HttpHandler",
 					actions: [
-						// Codebuild
-						// Update appspec with codebuild output
 						{
-							name: "CodeDeploy_HTTP_Handler",
+							runOrder: 1,
+							name: "Update",
+							namespace: "HttpHandlerUpdate",
+							category: "Build",
+							owner: "AWS",
+							provider: "CodeBuild",
+							version: "1",
+							inputArtifacts: ["source_image"],
+							outputArtifacts: ["httphandler_update"],
+							configuration: all([
+								codebuild.project.name,
+								handler.http.name,
+								handler.http.alias.name,
+							]).apply(([projectName, functionName, aliasName]) => {
+								return {
+									ProjectName: projectName,
+									EnvironmentVariables: JSON.stringify([
+										{
+											name: "SOURCE_IMAGE_REPOSITORY",
+											value: "#{SourceImage.RepositoryName}",
+											type: "PLAINTEXT",
+										},
+										{
+											name: "SOURCE_IMAGE_URI",
+											value: "#{SourceImage.ImageURI}",
+											type: "PLAINTEXT",
+										},
+										{
+											name: "LAMBDA_FUNCTION_NAME",
+											value: functionName,
+											type: "PLAINTEXT",
+										},
+										{
+											name: "LAMBDA_FUNCTION_ALIAS",
+											value: aliasName,
+											type: "PLAINTEXT",
+										},
+									]),
+								};
+							}),
+						},
+						{
+							runOrder: 2,
+							name: "Cutover",
 							category: "Deploy",
 							owner: "AWS",
 							provider: "CodeDeploy",
-							inputArtifacts: ["s3_appspec_output"],
 							version: "1",
-							configuration: {
-								ApplicationName: codestar.codedeploy.application.name,
-								DeploymentGroupName: codestar.codedeploy.deploymentGroup.name,
-							},
+							inputArtifacts: ["httphandler_update"],
+							configuration: all([
+								codestar.codedeploy.application.name,
+								codestar.codedeploy.deploymentGroup.name,
+							]).apply(([applicationName, deploymentGroupName]) => {
+								return {
+									ApplicationName: applicationName,
+									DeploymentGroupName: deploymentGroupName,
+								};
+							}),
 						},
 					],
 				},
@@ -427,8 +604,6 @@ export = async () => {
 
 		return {
 			pipeline,
-			buildspec,
-			appspec,
 		};
 	})();
 
@@ -446,7 +621,7 @@ export = async () => {
 					"repository-name": [name],
 					"action-type": ["PUSH"],
 					result: ["SUCCESS"],
-					"image-tag": ["current"],
+					"image-tag": [stage],
 				},
 			}),
 		});
@@ -469,6 +644,7 @@ export = async () => {
 	return all([
 		s3.artifactStore.bucket,
 		s3.assets.bucket,
+		s3.build.bucket,
 		s3.deploy.bucket,
 		cloudwatch.loggroup.arn,
 		handler.role.arn,
@@ -480,6 +656,8 @@ export = async () => {
 		cloudmap.service.arn,
 		cloudmap.service.name,
 		cloudmap.instance.instanceId,
+		codebuild.project.arn,
+		codebuild.project.name,
 		codepipeline.pipeline.arn,
 		codepipeline.pipeline.name,
 		eventbridge.EcrImageAction.rule.arn,
@@ -490,6 +668,7 @@ export = async () => {
 		([
 			artifactStoreBucket,
 			assetsBucket,
+			buildBucket,
 			deployBucket,
 			cloudwatchLoggroupArn,
 			functionRoleArn,
@@ -501,6 +680,8 @@ export = async () => {
 			cloudmapServiceArn,
 			cloudmapServiceName,
 			cloudmapInstanceId,
+			codebuildProjectArn,
+			codebuildProjectName,
 			pipelineArn,
 			pipelineName,
 			eventRuleArn,
@@ -516,6 +697,9 @@ export = async () => {
 					},
 				},
 				spork_lambda_s3: {
+					build: {
+						bucket: buildBucket,
+					},
 					deploy: {
 						bucket: deployBucket,
 					},
@@ -552,6 +736,12 @@ export = async () => {
 					},
 					instance: {
 						id: cloudmapInstanceId,
+					},
+				},
+				spork_lambda_codebuild: {
+					project: {
+						arn: codebuildProjectArn,
+						name: codebuildProjectName,
 					},
 				},
 				spork_lambda_pipeline: {

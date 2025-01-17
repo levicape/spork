@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "@levicape/fourtwo": "catalog:",
+    "@levicape/fourtwo-builders": "catalog:",
     "@levicape/fourtwo-pulumi": "catalog:",
     "@pulumi/aws": "catalog:pulumi",
     "@pulumi/awsx": "catalog:pulumi",

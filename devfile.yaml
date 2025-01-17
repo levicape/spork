@@ -13,7 +13,7 @@ commands:
   - id: update-node
     exec:
       component: source
-      commandLine: sudo npx -y n 22
+      commandLine: sudo npx -y n 23
   - id: install-corepack
     exec:
       component: source

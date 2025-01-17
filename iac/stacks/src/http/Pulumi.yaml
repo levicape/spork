@@ -1,6 +1,6 @@
-name: spork-lambda
+name: spork-http
 description: | 
-  Lambda functions
+  Lambda http handler, cloudmap service
 runtime:
   name: nodejs
   options:

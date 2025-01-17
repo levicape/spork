@@ -79,13 +79,13 @@ export const OUTPUT_IMAGES = [
 ] as const;
 
 export const PULUMI_STACKS = [
-	// "account",
 	"codestar",
 	"datalayer",
-	"lambda",
-	// "scheduledtasks",
+	//event
+	"http",
+	//stream
+	// "tasks",
 	// "observability",
-	// "qualityassurance",
 	// "websiteinternal",
 	// "websitefrontend",
 	// "websitemarketing",
@@ -105,7 +105,7 @@ export default async () => {
 			runMode={"SUPERSEDED"}
 			compute={{
 				Type: "EC2",
-				Fleet: "Linux.Arm64.2XLarge",
+				Fleet: "Linux.Arm64.XLarge",
 			}}
 			triggers={[
 				{
@@ -126,14 +126,14 @@ export default async () => {
 										Variables: [
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
-											register("PAKETO_CLI_IMAGE", "buildpacksio/pack:latest"),
-											register("PAKETO_BUILDER_IMAGE", "heroku/builder:24"),
-											register("PAKETO_LAUNCHER_IMAGE", "heroku/heroku:24"),
-											register("PULUMI_VERSION", "3.144.1"),
 											register(
 												"NODE_AUTH_TOKEN",
 												_$_("Secrets.GITHUB_LEVICAPE_PAT"),
 											),
+											register("PAKETO_CLI_IMAGE", "buildpacksio/pack:latest"),
+											register("PAKETO_BUILDER_IMAGE", "heroku/builder:24"),
+											register("PAKETO_LAUNCHER_IMAGE", "heroku/heroku:24"),
+											register("PULUMI_VERSION", "3.144.1"),
 										],
 									}}
 									caching={FileCaching({
@@ -206,6 +206,14 @@ export default async () => {
 									caching={FileCaching()}
 									inputs={{
 										Sources: ["WorkflowSource"],
+										Variables: [
+											register("NPM_REGISTRY_PROTOCOL", "https"),
+											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
+											register(
+												"NODE_AUTH_TOKEN",
+												_$_("Secrets.GITHUB_LEVICAPE_PAT"),
+											),
+										],
 									}}
 									outputs={{
 										AutoDiscoverReports: {
@@ -216,6 +224,12 @@ export default async () => {
 									timeout={8}
 									steps={
 										<>
+											<CodeCatalystStepX
+												run={`npm config set @levicape:registry=${env("NPM_REGISTRY_PROTOCOL")}://${env("NPM_REGISTRY_HOST")} --location project`}
+											/>
+											<CodeCatalystStepX
+												run={`npm config set //${env("NPM_REGISTRY_HOST")}/:_authToken=${env("NODE_AUTH_TOKEN")} --location project`}
+											/>
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
@@ -243,6 +257,12 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NPM_REGISTRY_PROTOCOL", "https"),
+											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
+											register(
+												"NODE_AUTH_TOKEN",
+												_$_("Secrets.GITHUB_LEVICAPE_PAT"),
+											),
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 										],
 									}}
@@ -266,6 +286,12 @@ export default async () => {
 											)}
 											<CodeCatalystStepX
 												run={`mkdir -p ${OUTPUT_IMAGES_PATH}`}
+											/>
+											<CodeCatalystStepX
+												run={`npm config set @levicape:registry=${env("NPM_REGISTRY_PROTOCOL")}://${env("NPM_REGISTRY_HOST")} --location project`}
+											/>
+											<CodeCatalystStepX
+												run={`npm config set //${env("NPM_REGISTRY_HOST")}/:_authToken=${env("NODE_AUTH_TOKEN")} --location project`}
 											/>
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
@@ -306,10 +332,16 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NPM_REGISTRY_PROTOCOL", "https"),
+											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
+											register(
+												"NODE_AUTH_TOKEN",
+												_$_("Secrets.GITHUB_LEVICAPE_PAT"),
+											),
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("CI_ENVIRONMENT", "current"),
 											register("AWS_REGION", "us-west-2"),
-											register("FRONTEND_HOSTNAME", "levicape.cloud"),
+											register("FRONTEND_HOSTNAME", "spork.levicape.cloud"),
 											register("PULUMI_HOME", PULUMI_CACHE),
 											register(
 												"PULUMI_CONFIG_PASSPHRASE",
@@ -327,6 +359,12 @@ export default async () => {
 									}}
 									steps={
 										<>
+											<CodeCatalystStepX
+												run={`npm config set @levicape:registry=${env("NPM_REGISTRY_PROTOCOL")}://${env("NPM_REGISTRY_HOST")} --location project`}
+											/>
+											<CodeCatalystStepX
+												run={`npm config set //${env("NPM_REGISTRY_HOST")}/:_authToken=${env("NODE_AUTH_TOKEN")} --location project`}
+											/>
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
@@ -416,8 +454,15 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NPM_REGISTRY_PROTOCOL", "https"),
+											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
+											register(
+												"NODE_AUTH_TOKEN",
+												_$_("Secrets.GITHUB_LEVICAPE_PAT"),
+											),
 											register("APPLICATION_IMAGE_NAME", APPLICATION),
 											register("AWS_REGION", "us-west-2"),
+											register("CI_ENVIRONMENT", "current"),
 										],
 										Artifacts: ["images", "pulumi"],
 									}}
@@ -426,6 +471,12 @@ export default async () => {
 									}}
 									steps={
 										<>
+											<CodeCatalystStepX
+												run={`npm config set @levicape:registry=${env("NPM_REGISTRY_PROTOCOL")}://${env("NPM_REGISTRY_HOST")} --location project`}
+											/>
+											<CodeCatalystStepX
+												run={`npm config set //${env("NPM_REGISTRY_HOST")}/:_authToken=${env("NODE_AUTH_TOKEN")} --location project`}
+											/>
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
@@ -458,7 +509,7 @@ export default async () => {
 											))}
 											<CodeCatalystStepX run={"env"} />
 											<CodeCatalystStepX
-												run={`node -e '(${
+												run={`NODE_NO_WARNINGS=1 node -e '(${
 													// biome-ignore lint/complexity/useArrowFunction:
 													function () {
 														let imports = JSON.parse(
@@ -496,7 +547,10 @@ export default async () => {
 												run={`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL`}
 											/>
 											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_NAME`} />
-											{...[_$_("WorkflowSource.CommitId")].map((tag) => (
+											{...[
+												_$_("WorkflowSource.CommitId"),
+												"$CI_ENVIRONMENT",
+											].map((tag) => (
 												<>
 													<CodeCatalystStepX run={`echo ${tag}`} />
 													<CodeCatalystStepX
@@ -505,9 +559,9 @@ export default async () => {
 													<CodeCatalystStepX
 														run={`docker tag $APPLICATION_IMAGE_NAME:latest $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL:${tag}`}
 													/>
-													{/* <CodeCatalystStepX
-														run={`docker push $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL/$APPLICATION_IMAGE_TAG:${tag}`}
-													/> */}
+													<CodeCatalystStepX
+														run={`docker push $_${APPLICATION.toUpperCase()}_CODE_REPOSITORY_URL:${tag}`}
+													/>
 												</>
 											))}
 										</>
