@@ -415,10 +415,13 @@ export default async () => {
 														run={`${PULUMI_CACHE}/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/${stack}`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/src/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}"`}
+														run={`${PULUMI_CACHE}/bin/pulumi refresh -C $(pwd)/iac/stacks/src/${stack} --yes --skip-preview --clear-pending-creates --json --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}-refresh"`}
 													/>
 													<CodeCatalystStepX
-														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}"`}
+														run={`${PULUMI_CACHE}/bin/pulumi preview -C $(pwd)/iac/stacks/src/${stack}  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}-preview"`}
+													/>
+													<CodeCatalystStepX
+														run={`${PULUMI_CACHE}/bin/pulumi up -C $(pwd)/iac/stacks/src/${stack} --yes --suppress-progress --non-interactive --diff --message "${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}-up"`}
 													/>
 													<CodeCatalystStepX
 														run={`${PULUMI_CACHE}/bin/pulumi stack output -C $(pwd)/iac/stacks/src/${stack} --json > $(pwd)/${OUTPUT_PULUMI_PATH}/${stack}.json`}
@@ -548,7 +551,7 @@ export default async () => {
 											/>
 											<CodeCatalystStepX run={`echo $APPLICATION_IMAGE_NAME`} />
 											{...[
-												_$_("WorkflowSource.CommitId"),
+												`git-${_$_("WorkflowSource.CommitId")}`,
 												"$CI_ENVIRONMENT",
 											].map((tag) => (
 												<>

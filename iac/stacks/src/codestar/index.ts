@@ -2,7 +2,8 @@ import { Context } from "@levicape/fourtwo-pulumi";
 import { Application } from "@pulumi/aws/codedeploy";
 import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
 import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
-import { Repository as ECRRepository } from "@pulumi/aws/ecr";
+import { Repository as ECRRepository, LifecyclePolicy } from "@pulumi/aws/ecr";
+import { getLifecyclePolicyDocument } from "@pulumi/aws/ecr/getLifecyclePolicyDocument";
 import { RepositoryPolicy } from "@pulumi/aws/ecr/repositoryPolicy";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import { all } from "@pulumi/pulumi/output";
@@ -15,6 +16,32 @@ export = async () => {
 
 	const ecr = await (async () => {
 		const repository = new ECRRepository(_("binaries"));
+		new LifecyclePolicy(_("binaries-lifecycle"), {
+			repository: repository.name,
+			policy: repository.repositoryUrl.apply(
+				async () =>
+					(
+						await getLifecyclePolicyDocument({
+							rules: [
+								{
+									priority: 1,
+									description: "Expire images older than 14 days",
+									selection: {
+										tagStatus: "tagged",
+										countType: "sinceImagePushed",
+										countUnit: "days",
+										countNumber: 14,
+										tagPrefixLists: ["git"],
+									},
+									action: {
+										type: "expire",
+									},
+								},
+							],
+						})
+					).json,
+			),
+		});
 		new RepositoryPolicy(_("binaries-policy"), {
 			repository: repository.name,
 			policy: repository.repositoryUrl.apply(() =>
@@ -41,6 +68,7 @@ export = async () => {
 				}),
 			),
 		});
+
 		return {
 			repository,
 		};
