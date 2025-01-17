@@ -6,9 +6,9 @@ packages:
   - 'protocols/*'
 catalog:
   "@levicape/paloma": "0.0.8-main.1"
-  "@levicape/fourtwo": "0.6.1-main.8"
-  "@levicape/fourtwo-pulumi": "0.6.2-main.9"
-  "@levicape/fourtwo-builders": "0.6.2-main.9"
+  "@levicape/fourtwo": "0.6.3-main.10"
+  "@levicape/fourtwo-pulumi": "0.6.3-main.10"
+  "@levicape/fourtwo-builders": "0.6.3-main.10"
 
 
 
@@ -187,6 +187,7 @@ catalogs:
     "@pulumi/synced-folder": "^0.11.1"
     "@pulumi/aws": "^6.64.0"
     "@pulumi/awsx": "^2.19.0"
+    "@pulumi/aws-native": "1.24.0"
     "@pulumi/command": "^1.0.1"
     "@pulumi/docker": "^4.5.7"
     "@pulumi/kubernetes": "^4.18.4"

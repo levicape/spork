@@ -42,14 +42,14 @@ catalogs:
       version: 46.2.0
   default:
     '@levicape/fourtwo':
-      specifier: 0.6.1-main.8
-      version: 0.6.1-main.8
+      specifier: 0.6.3-main.10
+      version: 0.6.3-main.10
     '@levicape/fourtwo-builders':
-      specifier: 0.6.2-main.9
-      version: 0.6.2-main.9
+      specifier: 0.6.3-main.10
+      version: 0.6.3-main.10
     '@levicape/fourtwo-pulumi':
-      specifier: 0.6.2-main.9
-      version: 0.6.2-main.9
+      specifier: 0.6.3-main.10
+      version: 0.6.3-main.10
     '@levicape/paloma':
       specifier: 0.0.8-main.1
       version: 0.0.8-main.1
@@ -111,6 +111,9 @@ catalogs:
     '@pulumi/aws':
       specifier: ^6.64.0
       version: 6.66.2
+    '@pulumi/aws-native':
+      specifier: 1.24.0
+      version: 1.24.0
     '@pulumi/awsx':
       specifier: ^2.19.0
       version: 2.19.0
@@ -197,7 +200,7 @@ importers:
         version: 1.9.4
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.1-main.8(projen@0.71.163)
+        version: 0.6.3-main.10(projen@0.71.163)
       '@types/jsonwebtoken':
         specifier: catalog:types
         version: 9.0.7
@@ -292,7 +295,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.1-main.8(projen@0.71.163)
+        version: 0.6.3-main.10(projen@0.71.163)
       yaml:
         specifier: catalog:core
         version: 2.7.0
@@ -301,16 +304,19 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.1-main.8(projen@0.71.163)
+        version: 0.6.3-main.10(projen@0.71.163)
       '@levicape/fourtwo-builders':
         specifier: 'catalog:'
-        version: 0.6.2-main.9(projen@0.71.163)
+        version: 0.6.3-main.10(projen@0.71.163)
       '@levicape/fourtwo-pulumi':
         specifier: 'catalog:'
-        version: 0.6.2-main.9(typescript@5.7.2)
+        version: 0.6.3-main.10(typescript@5.7.2)
       '@pulumi/aws':
         specifier: catalog:pulumi
         version: 6.66.2(typescript@5.7.2)
+      '@pulumi/aws-native':
+        specifier: catalog:pulumi
+        version: 1.24.0(typescript@5.7.2)
       '@pulumi/awsx':
         specifier: catalog:pulumi
         version: 2.19.0(typescript@5.7.2)
@@ -338,7 +344,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.1-main.8(projen@0.71.163)
+        version: 0.6.3-main.10(projen@0.71.163)
 
   protocols/stands:
     dependencies:
@@ -995,21 +1001,16 @@ packages:
     resolution: {integrity: sha512-rsfF5t3sd5c+3ejUgcy8q0cVG2/BxT064L4Xz+CuKEe014u8T4MtFZiWjWZFpfMXSGKzFYEA6DJYm9CqjmIfZg==}
     engines: {node: '>=14'}
 
-  '@levicape/fourtwo-builders@0.6.2-main.9':
-    resolution: {integrity: sha512-jvg3qw5xccIxFx8uT9NaQHls0WIcZaD0LpmXeOKrNWY9K/ZQr65hxeYPvjKJqshNIsoG/tcZ5lzhymabJ4BGqA==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.6.2-main.9/dd266bbcfb32c28a0a14dd5f628c93aa4330167b}
+  '@levicape/fourtwo-builders@0.6.3-main.10':
+    resolution: {integrity: sha512-IXbMVo2ytZnMYhtY/2fFIcl+qgi4+s6yaBrUuQvg0Ad8u59orAnogJsGS7NCUql5bR1U9nugam/vzr/vd4jz/Q==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.6.3-main.10/f989de513b09017dc0d480b61dc0384c759faab6}
     engines: {node: '>=23.5.0'}
 
-  '@levicape/fourtwo-pulumi@0.6.2-main.9':
-    resolution: {integrity: sha512-FGrBtDGtOeOgkLhKBAeF4khheKQgVFRKqVvyY7GTaFp4+myJ4KzlwQ+gxTho1oEn2//u0cAem5k8BpQXdpN+IQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.6.2-main.9/b3d818fbfbd27a2162face1123ae48d49ca9d8c0}
+  '@levicape/fourtwo-pulumi@0.6.3-main.10':
+    resolution: {integrity: sha512-6Z622sWNtFl0TsTBZUJoZJk0idhexkzUKvgtj4ywJUzWGn0VBOQ0m99gm332r1nsw6opHcrN6KvUQPSR6R07dw==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.6.3-main.10/be9cbd16546f7968a67a7ce859e4fabbb13d5dd7}
     engines: {node: '>=22.0.0'}
 
-  '@levicape/fourtwo@0.6.1-main.8':
-    resolution: {integrity: sha512-aRwb7jgJL2SAoAiiuyMRY15n4mNG0KX4nUW+e8z+jtx2Q53JCZ7ZPjOj3t1MTFD0PUymhjOTKmCAqrEuIPBbwg==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.6.1-main.8/2cae545cc83448ef21ceb3a5531871097531ad0e}
-    engines: {node: '>=23.5.0'}
-    hasBin: true
-
-  '@levicape/fourtwo@0.6.2-main.9':
-    resolution: {integrity: sha512-b5vpEX/kmXD9HdowvOEP6LV1kjitD2BPc8nIJBj1JS8OhGWXo/laX+REn31SEZjrDh6HQ/VDKjHDvQJbR9h9rQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.6.2-main.9/60d0f0e6336fd485ab166cefe50981f06f2bb6bc}
+  '@levicape/fourtwo@0.6.3-main.10':
+    resolution: {integrity: sha512-CJDtRN0DD0YsPvuFHOMPP0hxt7TvqwZAdbo1UYZlRvpMmPcuEB2m1TpUq+KH75vXaYQEpFp3HGID2BldNxFeGQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.6.3-main.10/e5406aec4a6b9947a4b3ace50419696201890f14}
     engines: {node: '>=23.5.0'}
     hasBin: true
 
@@ -1264,6 +1265,9 @@ packages:
 
   '@protobufjs/utf8@1.1.0':
     resolution: {integrity: sha512-Vvn3zZrhQZkkBE8LSuW3em98c0FwgO4nxzv6OdSxPKJIEKY2bGbHn+mhGIPerzI4twdxaP8/0+06HBpwf345Lw==}
+
+  '@pulumi/aws-native@1.24.0':
+    resolution: {integrity: sha512-OHYL4vYLwhCfcs05fqnyIMh++UIB1XKnilKq12cfJ+YzTaE2jsYeDFYqS9cQUE+6I9FfkzqWo53Ds6HhL9y9vQ==}
 
   '@pulumi/aws@6.66.2':
     resolution: {integrity: sha512-jO5L4JcjYriqXBGYH9LVb+GjawHUJvkWvLtb5nXxIKpkykEO1LyWVZdR4ngFcT7Hlw99Tg1ms4ut7LdETPCuUw==}
@@ -5125,13 +5129,13 @@ snapshots:
     optionalDependencies:
       re2-wasm: 1.0.2
 
-  '@levicape/fourtwo-builders@0.6.2-main.9(projen@0.71.163)':
+  '@levicape/fourtwo-builders@0.6.3-main.10(projen@0.71.163)':
     dependencies:
-      '@levicape/fourtwo': 0.6.2-main.9(projen@0.71.163)
+      '@levicape/fourtwo': 0.6.3-main.10(projen@0.71.163)
     transitivePeerDependencies:
       - projen
 
-  '@levicape/fourtwo-pulumi@0.6.2-main.9(typescript@5.7.2)':
+  '@levicape/fourtwo-pulumi@0.6.3-main.10(typescript@5.7.2)':
     dependencies:
       '@kubernetes-models/postgres-operator': 0.4.2
       '@pulumi/aws': 6.66.2(typescript@5.7.2)
@@ -5151,23 +5155,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@levicape/fourtwo@0.6.1-main.8(projen@0.71.163)':
-    dependencies:
-      '@aws/codecatalyst-workflows-sdk': 0.1.5-preview.6(projen@0.71.163)
-      '@stricli/core': 1.1.0
-      aws4fetch: 1.0.20
-      enquirer: 2.4.1
-      fast-xml-parser: 4.5.1
-      ini: 5.0.0
-      js-yaml: 4.1.0
-      pretty-ms: 9.2.0
-      verror: 1.10.1
-      yaml: 2.7.0
-      zod: 3.24.1
-    transitivePeerDependencies:
-      - projen
-
-  '@levicape/fourtwo@0.6.2-main.9(projen@0.71.163)':
+  '@levicape/fourtwo@0.6.3-main.10(projen@0.71.163)':
     dependencies:
       '@aws/codecatalyst-workflows-sdk': 0.1.5-preview.6(projen@0.71.163)
       '@stricli/core': 1.1.0
@@ -5483,6 +5471,15 @@ snapshots:
   '@protobufjs/pool@1.1.0': {}
 
   '@protobufjs/utf8@1.1.0': {}
+
+  '@pulumi/aws-native@1.24.0(typescript@5.7.2)':
+    dependencies:
+      '@pulumi/pulumi': 3.145.0(typescript@5.7.2)
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
+      - ts-node
+      - typescript
 
   '@pulumi/aws@6.66.2(typescript@5.7.2)':
     dependencies:

@@ -7,6 +7,7 @@ import {
 	CodeDeployAppspecResourceBuilder,
 } from "@levicape/fourtwo-builders";
 import { Context } from "@levicape/fourtwo-pulumi";
+import { Version } from "@pulumi/aws-native/lambda";
 import { EventRule, EventTarget } from "@pulumi/aws/cloudwatch";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { Project } from "@pulumi/aws/codebuild";
@@ -266,12 +267,17 @@ export = async () => {
 				?.map((host) => [`https://${host}`, `https://www.${host}`])
 				.reduce((acc, current) => [...acc, ...current], []) ?? [];
 
+		const version = new Version(_("lambda-handler-http-version"), {
+			functionName: lambda.name,
+			description: `(${getStack()}) Version ${stage}`,
+		});
+
 		const alias = new Alias(
 			_("lambda-handler-http-alias"),
 			{
 				name: stage,
 				functionName: lambda.name,
-				functionVersion: "$LATEST",
+				functionVersion: version.version,
 			},
 			{
 				ignoreChanges: ["functionVersion"],
@@ -297,6 +303,7 @@ export = async () => {
 				url: url.functionUrl,
 				qualifier: url.qualifier,
 				alias,
+				version,
 			},
 		};
 	})({ codestar, datalayer }, cloudwatch);
@@ -346,7 +353,7 @@ export = async () => {
 				new CodeDeployAppspecBuilder()
 					.setResources([
 						{
-							"<APPLICATION_IMAGE_NAME>": new CodeDeployAppspecResourceBuilder()
+							httphandler: new CodeDeployAppspecResourceBuilder()
 								.setName(props.name)
 								.setAlias(props.alias)
 								.setCurrentVersion(props.currentVersion)
@@ -386,11 +393,9 @@ export = async () => {
 						build:
 							new CodeBuildBuildspecResourceLambdaPhaseBuilder().setCommands([
 								"env",
-								"export CURRENT_VERSION=$(aws lambda get-function --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.Version' --output text)",
+								`export CURRENT_VERSION=$(aws lambda get-function --qualifier ${stage} --function-name $LAMBDA_FUNCTION_NAME --query 'Configuration.Version' --output text)`,
 								"echo $CURRENT_VERSION",
-								"aws lambda update-function-configuration --function-name $LAMBDA_FUNCTION_NAME --image-uri $SOURCE_IMAGE_URI",
-								"sleep 10",
-								"aws lambda publish-version --function-name $LAMBDA_FUNCTION_NAME  > .version",
+								"aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --image-uri $SOURCE_IMAGE_URI --publish > .version",
 								"export TARGET_VERSION=$(jq -r '.Version' .version)",
 								"echo $TARGET_VERSION",
 								"echo $APPSPEC_TEMPLATE",
@@ -651,8 +656,10 @@ export = async () => {
 		handler.role.name,
 		handler.http.arn,
 		handler.http.url,
+		handler.http.version.version,
 		handler.http.alias.arn,
 		handler.http.alias.name,
+		handler.http.alias.functionVersion,
 		cloudmap.service.arn,
 		cloudmap.service.name,
 		cloudmap.instance.instanceId,
@@ -675,8 +682,10 @@ export = async () => {
 			functionRoleName,
 			functionHttpArn,
 			functionHttpUrl,
+			functionHttpInitialVersion,
 			functionAliasArn,
 			functionAliasName,
+			functionAliasVersion,
 			cloudmapServiceArn,
 			cloudmapServiceName,
 			cloudmapInstanceId,
@@ -723,9 +732,11 @@ export = async () => {
 					http: {
 						arn: functionHttpArn,
 						url: functionHttpUrl,
+						initialVersion: functionHttpInitialVersion,
 						alias: {
 							arn: functionAliasArn,
 							name: functionAliasName,
+							version: functionAliasVersion,
 						},
 					},
 				},
