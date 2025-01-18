@@ -1,5 +1,6 @@
 {
   "name": "@levicape/spork-examples-basic",
+  "version": "0.0.0-local.0",
   "config": {
     "packagebin": "corepack pnpm",
     "packagemanager": "pnpm",

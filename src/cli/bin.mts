@@ -1,4 +1,4 @@
-#!/usr/bin/env node --experimental-strip-types
+#!/usr/bin/env node
 import { run } from "@stricli/core";
 import { SporkCliApp } from "./SporkCliApp.mjs";
 
@@ -6,6 +6,7 @@ const app = await SporkCliApp();
 await run(app, process.argv.slice(2), {
 	process: {
 		...process,
+		// @ts-ignore
 		exit: (code: number) => {
 			console.dir({
 				Cli: {

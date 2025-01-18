@@ -1,5 +1,6 @@
 {
   "name": "@levicape/protobuf-spork-stands",
+  "version": "0.0.0-local.0",
   "config": {
     "packagemanager": "pnpm",
     "packageexecutor": "corepack pnpm exec",
@@ -43,18 +44,16 @@
   },
   "private": true,
   "scripts": {
-    "build": "$npm_package_config_packageexecutor nx nx:compile --verbose",
+    "build": "$npm_package_config_packageexecutor nx exec -- buf generate",
     "clean": "rm -rf $npm_package_config_outpaths || true",
     "dx:lint": "$npm_package_config_packageexecutor nx build && $npm_package_config_packageexecutor nx exec -- protobuf:format && $npm_package_config_packageexecutor nx package:format",
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify it. \"",
-    "generate": "$npm_package_config_packageexecutor nx exec -- buf generate",
     "lint": "$npm_package_config_packageexecutor nx nx:lint",
     "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
     "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
-    "pregenerate": "$npm_package_config_packageexecutor nx clean",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "protobuf:format": "$npm_package_config_packageexecutor nx exec -- buf format -w",
     "protobuf:lint": "echo 'buf lint'; # $npm_package_config_packageexecutor nx exec -- buf lint",

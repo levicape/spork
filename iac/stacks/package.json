@@ -1,5 +1,6 @@
 {
   "name": "@levicape/spork-iac-stacks",
+  "version": "0.0.0-local.0",
   "config": {
     "packagemanager": "pnpm",
     "packageexecutor": "corepack pnpm exec",

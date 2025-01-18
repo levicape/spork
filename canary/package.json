@@ -1,5 +1,6 @@
 {
   "name": "@levicape/spork-canary",
+  "version": "0.0.0-local.0",
   "config": {
     "packagemanager": "pnpm",
     "packagebin": "corepack pnpm",
@@ -32,7 +33,7 @@
       },
       "nx:compile": {
         "dependsOn": [
-          "compile"
+          "build"
         ]
       },
       "nx:test": {
@@ -48,13 +49,11 @@
   },
   "repository": "github:levicape/spork",
   "scripts": {
-    "build": "$npm_package_config_packageexecutor nx nx:compile",
+    "build": "$npm_package_config_packageexecutor tsc",
     "clean": "rm -rf $npm_package_config_outpaths || true",
     "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
-    "clean:tsc": "rm -rf ./.tsc",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
-    "compile": "$npm_package_config_packageexecutor tsc",
-    "dx:lint": "$npm_package_config_packagebin run compile && $npm_package_config_packagebin run lint:format && $npm_package_config_packagebin run package:format",
+    "dx:lint": "$npm_package_config_packageexecutor nx build && $npm_package_config_packageexecutor nx lint:format && $npm_package_config_packageexecutor nx package:format",
     "dx:precommit": "$npm_package_config_packagebin run dx:precommit:pre && $npm_package_config_packagebin run package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
     "dx:prepublish": "$npm_package_config_packagebin run dx:prepublish:pre && $npm_package_config_packagebin run dx:lint && $npm_package_config_packagebin run prepublish",
@@ -67,7 +66,6 @@
     "package:format": "$npm_package_config_packageexecutor syncpack format",
     "package:update": "$npm_package_config_packageexecutor syncpack update",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
-    "precompile": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "test": "$npm_package_config_packageexecutor nx nx:test",

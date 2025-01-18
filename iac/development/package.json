@@ -1,5 +1,6 @@
 {
   "name": "iac-development",
+  "version": "0.0.0-local.0",
   "dependencies": {
     "@levicape/fourtwo": "catalog:",
     "yaml": "catalog:core"

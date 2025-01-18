@@ -16,7 +16,7 @@
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
     "server": "module/app/router/hono/HonoHttpSpork.mjs",
-    "httphandler": "HonoHttpSporkLambda"
+    "handlerhttplambda": "./module/app/router/hono/HonoHttpSpork.HonoHttpSporkLambda"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:aws",
@@ -84,6 +84,11 @@
   "license": "AGPL-3.0-only",
   "nx": {
     "targets": {
+      "build:tsc": {
+        "dependsOn": [
+          "generate:protocols"
+        ]
+      },
       "dx:test": {
         "dependsOn": [
           "dx:lint",
@@ -99,14 +104,9 @@
           "@levicape/spork-iac-stacks:dx:precommit"
         ]
       },
-      "dx:prepublish": {
-        "dependsOn": [
-          "clean:tsc"
-        ]
-      },
       "nx:compile": {
         "dependsOn": [
-          "compile",
+          "build:tsc",
           "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile"
         ]
@@ -120,11 +120,6 @@
       "nx:sync": {
         "dependsOn": [
           "iac-workflows:nx:sync"
-        ]
-      },
-      "compile": {
-        "dependsOn": [
-          "generate:protocols"
         ]
       }
     }
@@ -142,12 +137,11 @@
   },
   "repository": "github:levicape/spork",
   "scripts": {
-    "build": "$npm_package_config_packageexecutor nx nx:compile --verbose",
+    "build": "$npm_package_config_packageexecutor nx nx:compile",
+    "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "rm -rf $npm_package_config_outpaths || true",
     "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
-    "clean:tsc": "rm -rf ./.tsc",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
-    "compile": "$npm_package_config_packageexecutor tsc",
     "dx:cli:bin": "NODE_NO_WARNINGS=1 $npm_package_config_packageexecutor tsx $npm_package_config_binpath",
     "dx:cli:dev": "node --inspect-brk --import tsx $npm_package_config_binpath",
     "dx:cli:mjs": "NODE_NO_WARNINGS=1 node $npm_package_config_clipath",
@@ -159,9 +153,10 @@
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "dx:sync": "$npm_package_config_packageexecutor nx dx:sync:pre && $npm_package_config_packageexecutor nx nx:sync",
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
-    "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run compile && $npm_package_config_packagebin run test",
-    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run generate\" --artifact gen --destination $npm_package_config_protocols --clean",
-    "handler:http:lambda": "$npm_package_config_packageexecutor aws-lambda-ric $npm_package_config_server.$npm_package_config_httphandler",
+    "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run build && $npm_package_config_packagebin run test",
+    "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "handler:http:lambda": "$npm_package_config_packageexecutor aws-lambda-ric $npm_package_config_handlerhttplambda",
+    "heroku-prebuild": "npm rebuild aws-lambda-ric",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -171,7 +166,7 @@
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
     "postclean:packages": "$npm_package_config_packagebin install",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
-    "precompile": "$npm_package_config_packageexecutor nx clean",
+    "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "start": "node $npm_package_config_clipath server start $npm_package_config_server",
