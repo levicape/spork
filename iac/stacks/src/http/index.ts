@@ -231,10 +231,13 @@ export = async () => {
 			{
 				role: roleArn,
 				architectures: ["arm64"],
-				memorySize: Number.parseInt("512"),
+				memorySize: Number.parseInt("256"),
 				timeout: 18,
 				packageType: "Image",
 				imageUri: `${codestar.ecr.repository.url}:kickstart`,
+				imageConfig: {
+					entryPoints: ["httplambda"],
+				},
 				vpcConfig: {
 					securityGroupIds: datalayer.props.lambda.vpcConfig.securityGroupIds,
 					subnetIds: datalayer.props.lambda.vpcConfig.subnetIds,

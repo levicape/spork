@@ -156,11 +156,11 @@ export default async () => {
 											{["pnpm", "n"].map((pkg: string) => (
 												<CodeCatalystStepX run={`npm install --g ${pkg}`} />
 											))}
-											<CodeCatalystStepX run="npm exec n 22" />
+											<CodeCatalystStepX run="npm exec n 23" />
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec pnpm install" />
+											<CodeCatalystStepX run="npm exec pnpm install --ignore-scripts" />
 											{...[...ALL_CACHES, `${DOCKER_CACHE}/images`].flatMap(
 												(cache) => {
 													return (
@@ -233,11 +233,11 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 22" />
+											<CodeCatalystStepX run="npm exec n 23" />
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
 											<CodeCatalystStepX run="npm exec pnpm build" />
 											<CodeCatalystStepX run="npm exec pnpm lint" />
 											<CodeCatalystStepX run="npm exec pnpm test" />
@@ -296,11 +296,11 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 22" />
+											<CodeCatalystStepX run="npm exec n 23" />
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
 											<CodeCatalystStepX
 												run={
 													"npm exec pnpm exec nx pack:build iac-images-application --verbose"
@@ -371,8 +371,8 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
 											<CodeCatalystStepX
 												run={`aws ssm get-parameter --name ${AwsStateBackendCommandsParameter()}`}
 											/>
@@ -486,8 +486,8 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 22" />
-											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline" />
+											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
 											<CodeCatalystStepX
 												run={`ls -la ${input(OUTPUT_IMAGES_PATH)}`}
 											/>

@@ -15,7 +15,8 @@
     "clipath": "./module/cli/bin.mjs",
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
-    "server": "module/app/router/hono/HonoHttpSpork.mjs"
+    "server": "module/app/router/hono/HonoHttpSpork.mjs",
+    "httphandler": "HonoHttpSporkLambda"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:aws",
@@ -26,6 +27,7 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@hono/zod-validator": "catalog:hono",
     "@stricli/core": "catalog:cli",
+    "aws-lambda-ric": "catalog:aws",
     "consola": "catalog:server",
     "hono-rate-limiter": "catalog:hono",
     "slonik": "catalog:database",
@@ -46,7 +48,7 @@
     "typescript": "catalog:dev"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=23.6.0"
   },
   "exports": {
     "./domains": "./module/app/domains/index.js",
@@ -127,7 +129,7 @@
       }
     }
   },
-  "packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c",
+  "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
   "peerDependencies": {
     "@bufbuild/protobuf": "catalog:protobuf",
     "@hono/node-server": "catalog:hono",
@@ -159,6 +161,7 @@
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
     "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run compile && $npm_package_config_packagebin run test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run generate\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "handler:http:lambda": "$npm_package_config_packageexecutor aws-lambda-ric $npm_package_config_server.$npm_package_config_httphandler",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",

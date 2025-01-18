@@ -81,13 +81,17 @@ export = async () => {
 
 		const deploymentConfig = new DeploymentConfig(_("deployment-config"), {
 			computePlatform: "Lambda",
-			trafficRoutingConfig: {
-				type: "TimeBasedLinear",
-				timeBasedLinear: {
-					interval: 10,
-					percentage: 10,
-				},
-			},
+			trafficRoutingConfig: context.environment.isProd
+				? {
+						type: "TimeBasedLinear",
+						timeBasedLinear: {
+							interval: 2,
+							percentage: 12,
+						},
+					}
+				: {
+						type: "AllAtOnce",
+					},
 		});
 
 		const deploymentGroup = new DeploymentGroup(_("deployment-group"), {

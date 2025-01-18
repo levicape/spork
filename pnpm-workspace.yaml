@@ -67,6 +67,7 @@ catalogs:
     "aws4fetch": "^1.0.20"
     "pino-lambda": "^4.4.1"
     "@aws/codecatalyst-workflows-sdk": "0.1.5-preview.6"
+    "aws-lambda-ric": "^3.2.1"
   database:
     "better-sqlite3": "^11.6.0"
     "slonik": "^46.2.0"

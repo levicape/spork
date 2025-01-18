@@ -68,9 +68,9 @@ Actions:
             - Run: npm root -g
             - Run: npm install --g pnpm
             - Run: npm install --g n
-            - Run: npm exec n 22
+            - Run: npm exec n 23
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec pnpm install
+            - Run: npm exec pnpm install --ignore-scripts
             - Run: mkdir -p /tmp/npm-global
             - Run: mkdir -p /tmp/pnpm-store
             - Run: mkdir -p /tmp/nx-cache
@@ -134,9 +134,9 @@ Actions:
             - Run: npm config set @levicape:registry=$NPM_REGISTRY_PROTOCOL://$NPM_REGISTRY_HOST --location project
             - Run: npm config set //$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN --location project
             - Run: npm config set prefix=/tmp/npm-global
-            - Run: npm exec n 22
+            - Run: npm exec n 23
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec pnpm install --prefer-offline
+            - Run: npm exec pnpm install --prefer-offline --ignore-scripts
             - Run: npm exec pnpm build
             - Run: npm exec pnpm lint
             - Run: npm exec pnpm test
@@ -193,9 +193,9 @@ Actions:
             - Run: npm config set @levicape:registry=$NPM_REGISTRY_PROTOCOL://$NPM_REGISTRY_HOST --location project
             - Run: npm config set //$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN --location project
             - Run: npm config set prefix=/tmp/npm-global
-            - Run: npm exec n 22
+            - Run: npm exec n 23
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec pnpm install --prefer-offline
+            - Run: npm exec pnpm install --prefer-offline --ignore-scripts
             - Run: npm exec pnpm exec nx pack:build iac-images-application --verbose
             - Run: docker save $APPLICATION_IMAGE_NAME | gzip > _images/application.tar.gz
             - Run: du -sh _images/application.tar.gz
@@ -261,8 +261,8 @@ Actions:
             - Run: npm config set //$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN --location project
             - Run: npm config set prefix=/tmp/npm-global
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec n 22
-            - Run: npm exec pnpm install --prefer-offline
+            - Run: npm exec n 23
+            - Run: npm exec pnpm install --prefer-offline --ignore-scripts
             - Run: aws ssm get-parameter --name /fourtwo/_principal/pulumi/backend/StateBackendCommandReference
             - Run: npm exec pnpm exec fourtwo aws pulumi ci -- --region $AWS_REGION > .pulumi-ci
             - Run: cat .pulumi-ci
@@ -364,8 +364,8 @@ Actions:
             - Run: npm config set //$NPM_REGISTRY_HOST/:_authToken=$NODE_AUTH_TOKEN --location project
             - Run: npm config set prefix=/tmp/npm-global
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
-            - Run: npm exec n 22
-            - Run: npm exec pnpm install --prefer-offline
+            - Run: npm exec n 23
+            - Run: npm exec pnpm install --prefer-offline --ignore-scripts
             - Run: ls -la $CATALYST_SOURCE_DIR_images/_images
             - Run: docker load --input $CATALYST_SOURCE_DIR_images/_images/application.tar.gz
             - Run: docker images
@@ -398,7 +398,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"e1c302901cee5db1773bda0ff2ec0fd5c0211e03bb3af3a2b1d60b89265df527"}
-#**:_$~- {"$$":"footer","started":"2025-01-17T23:28:29.466Z","now":"2025-01-17T23:28:29.473Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"41ac2866962c70b74a23f59c16dd61a8cdeb768c63dd3e182e81162190bb3dc8"}
+#**:_$~- {"$$":"footer","started":"2025-01-18T02:15:22.633Z","now":"2025-01-18T02:15:22.641Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 
