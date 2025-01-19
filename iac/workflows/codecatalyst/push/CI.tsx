@@ -13,9 +13,11 @@ import { CodeCatalystBuildX } from "@levicape/fourtwo/x/codecatalyst/actions/aws
 let FileCaching = ({
 	docker,
 	pulumi,
+	python,
 }: {
 	docker?: boolean;
 	pulumi?: boolean;
+	python?: boolean;
 } = {}) => ({
 	FileCaching: {
 		a64_npm_global: {
@@ -27,10 +29,6 @@ let FileCaching = ({
 				Path: "/tmp/pnpm-store",
 				RestoreKeys: ["pnpminstall"],
 			},
-		},
-		a64_nx: {
-			Path: "/tmp/nx-cache",
-			RestoreKeys: ["nx"],
 		},
 		...(docker
 			? {
@@ -45,6 +43,14 @@ let FileCaching = ({
 					a64_pulumi: {
 						Path: "/tmp/pulumi",
 						RestoreKeys: ["pulumi"],
+					},
+				}
+			: {}),
+		...(python
+			? {
+					a64_python: {
+						Path: "/root/.pyenv",
+						RestoreKeys: ["python"],
 					},
 				}
 			: {}),
@@ -112,6 +118,11 @@ export default async () => {
 					Type: "PUSH",
 					Branches: ["main"],
 				},
+				{
+					Type: "SCHEDULE",
+					Expression: "0 0 * * ? *",
+					Branches: ["main"],
+				},
 			]}
 		>
 			{{
@@ -124,6 +135,7 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NODEJS_VERSION", "23"),
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register(
@@ -134,11 +146,13 @@ export default async () => {
 											register("PAKETO_BUILDER_IMAGE", "heroku/builder:24"),
 											register("PAKETO_LAUNCHER_IMAGE", "heroku/heroku:24"),
 											register("PULUMI_VERSION", "3.144.1"),
+											register("PYTHON_VERSION", "3.11"),
 										],
 									}}
 									caching={FileCaching({
 										docker: true,
 										pulumi: true,
+										python: true,
 									})}
 									timeout={9}
 									steps={
@@ -156,7 +170,7 @@ export default async () => {
 											{["pnpm", "n"].map((pkg: string) => (
 												<CodeCatalystStepX run={`npm install --g ${pkg}`} />
 											))}
-											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec n $NODEJS_VERSION" />
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
@@ -195,6 +209,15 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`du -sh node_modules ${NPM_GLOBAL_CACHE} ${PNP_STORE}`}
 											/>
+											{/* Python */}
+											<CodeCatalystStepX run="which pyenv" />
+											<CodeCatalystStepX run={'eval "$(pyenv init -)"'} />
+											<CodeCatalystStepX run="git clone https://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update" />
+											<CodeCatalystStepX run="pyenv update || true" />
+											<CodeCatalystStepX run="pyenv install $$PYTHON_VERSION || true" />
+											<CodeCatalystStepX run="pyenv global $$PYTHON_VERSION || true" />
+											<CodeCatalystStepX run="pyenv versions || true" />
+											<CodeCatalystStepX run="python3 -m pip install -r requirements.txt" />
 										</>
 									}
 								/>
@@ -203,10 +226,11 @@ export default async () => {
 								<CodeCatalystBuildX
 									architecture={"arm64"}
 									dependsOn={["Install"]}
-									caching={FileCaching()}
+									caching={FileCaching({ python: true })}
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NODEJS_VERSION", "23"),
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register(
@@ -233,11 +257,15 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec n $NODEJS_VERSION" />
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
+											<CodeCatalystStepX
+												run={`python3 -c "print('ok')" || true`}
+											/>
+											<CodeCatalystStepX run="npm rebuild node-gyp" />
 											<CodeCatalystStepX run="npm exec pnpm build" />
 											<CodeCatalystStepX run="npm exec pnpm lint" />
 											<CodeCatalystStepX run="npm exec pnpm test" />
@@ -252,11 +280,12 @@ export default async () => {
 								<CodeCatalystBuildX
 									dependsOn={["Install"]}
 									architecture={"arm64"}
-									caching={FileCaching({ docker: true })}
+									caching={FileCaching({ docker: true, python: true })}
 									timeout={10}
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NODEJS_VERSION", "23"),
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register(
@@ -296,11 +325,12 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm config set prefix=${NPM_GLOBAL_CACHE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec n $NODEJS_VERSION" />
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
+											<CodeCatalystStepX run="npm rebuild node-gyp" />
 											<CodeCatalystStepX
 												run={
 													"npm exec pnpm exec nx pack:build iac-images-application --verbose"
@@ -332,6 +362,7 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NODEJS_VERSION", "23"),
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register(
@@ -371,7 +402,7 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec n $NODEJS_VERSION" />
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
 											<CodeCatalystStepX
 												run={`aws ssm get-parameter --name ${AwsStateBackendCommandsParameter()}`}
@@ -457,6 +488,7 @@ export default async () => {
 									inputs={{
 										Sources: ["WorkflowSource"],
 										Variables: [
+											register("NODEJS_VERSION", "23"),
 											register("NPM_REGISTRY_PROTOCOL", "https"),
 											register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
 											register(
@@ -486,7 +518,7 @@ export default async () => {
 											<CodeCatalystStepX
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
-											<CodeCatalystStepX run="npm exec n 23" />
+											<CodeCatalystStepX run="npm exec n $NODEJS_VERSION" />
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
 											<CodeCatalystStepX
 												run={`ls -la ${input(OUTPUT_IMAGES_PATH)}`}
@@ -517,7 +549,7 @@ export default async () => {
 													function () {
 														let imports = JSON.parse(
 															process.env[
-																"_<APPLICATION_IMAGE_NAME>_LAMBDA_IMPORTS"
+																"_<APPLICATION_IMAGE_NAME>_<STACK_NAME>_IMPORTS"
 															] ?? "",
 														);
 
@@ -537,6 +569,7 @@ export default async () => {
 															"<APPLICATION_IMAGE_NAME>",
 															APPLICATION.toUpperCase(),
 														)
+														.replaceAll("<STACK_NAME>", "LAMBDA")
 												})()' > .ci-env`}
 											/>
 											<CodeCatalystStepX run={"cat .ci-env"} />
@@ -567,6 +600,7 @@ export default async () => {
 													/>
 												</>
 											))}
+											<CodeCatalystStepX run={`npm exec pnpm store prune`} />
 										</>
 									}
 								/>

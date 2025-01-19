@@ -16,7 +16,7 @@
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
     "server": "module/app/router/hono/HonoHttpSpork.mjs",
-    "handlerhttplambda": "./module/app/router/hono/HonoHttpSpork.HonoHttpSporkLambda"
+    "handlerhttplambda": "./module/lambda/HttpHandler.HonoHttpSporkLambda"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:aws",
@@ -111,15 +111,15 @@
           "@levicape/spork-canary:nx:compile"
         ]
       },
+      "nx:sync": {
+        "dependsOn": [
+          "iac-workflows:nx:sync"
+        ]
+      },
       "nx:test": {
         "dependsOn": [
           "test:module",
           "@levicape/spork-canary:nx:test"
-        ]
-      },
-      "nx:sync": {
-        "dependsOn": [
-          "iac-workflows:nx:sync"
         ]
       }
     }

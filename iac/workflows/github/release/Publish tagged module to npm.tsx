@@ -145,7 +145,7 @@ export default (
 		{
 			packageName: "@levicape/protobuf-spork-stands",
 			cwd: "protocols/stands",
-			compile: "generate",
+			compile: "build",
 		},
 	],
 });
