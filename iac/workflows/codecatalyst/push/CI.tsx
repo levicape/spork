@@ -262,6 +262,7 @@ export default async () => {
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
+											<CodeCatalystStepX run="sudo yum install -y g++ make cmake unzip libcurl-devel automake autoconf libtool" />
 											<CodeCatalystStepX
 												run={`python3 -c "print('ok')" || true`}
 											/>
@@ -330,6 +331,7 @@ export default async () => {
 												run={`npm exec pnpm config set store-dir ${PNP_STORE}`}
 											/>
 											<CodeCatalystStepX run="npm exec pnpm install --prefer-offline --ignore-scripts" />
+											<CodeCatalystStepX run="sudo yum install -y g++ make cmake unzip libcurl-devel automake autoconf libtool" />
 											<CodeCatalystStepX run="npm rebuild node-gyp" />
 											<CodeCatalystStepX
 												run={

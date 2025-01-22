@@ -154,6 +154,7 @@ Actions:
             - Run: npm exec n $NODEJS_VERSION
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec pnpm install --prefer-offline --ignore-scripts
+            - Run: sudo yum install -y g++ make cmake unzip libcurl-devel automake autoconf libtool
             - Run: python3 -c "print('ok')" || true
             - Run: npm rebuild node-gyp
             - Run: npm exec pnpm build
@@ -217,6 +218,7 @@ Actions:
             - Run: npm exec n $NODEJS_VERSION
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec pnpm install --prefer-offline --ignore-scripts
+            - Run: sudo yum install -y g++ make cmake unzip libcurl-devel automake autoconf libtool
             - Run: npm rebuild node-gyp
             - Run: npm exec pnpm exec nx pack:build iac-images-application --verbose
             - Run: docker save $APPLICATION_IMAGE_NAME | gzip > _images/application.tar.gz
@@ -417,7 +419,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)][schedule(0_0_*_*_?_*)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"5a0abec9ad7c26f5b79089cf507637fa9a42bb634b6e7dde44634b2fa654c734"}
-#**:_$~- {"$$":"footer","started":"2025-01-19T21:06:08.969Z","now":"2025-01-19T21:06:08.977Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"b0ef402bd2ba103c0cb12450eec27adf8156f0000d111876a4eddc91d88d9dc9"}
+#**:_$~- {"$$":"footer","started":"2025-01-22T18:37:06.852Z","now":"2025-01-22T18:37:06.861Z","elapsed":"9ms"}
 # END OF GENERATED FILE
 

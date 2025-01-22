@@ -118,7 +118,11 @@ export async function generate(
 		command: executable,
 		args,
 		cwd: `${resolve(root)}/${name}`,
-		env: process.env,
+		env: {
+			...process.env,
+			NODE_NO_WARNINGS: "1",
+			NPM_CONFIG_UPDATE_NOTIFIER: "false",
+		},
 	});
 	printDuration(`compile ${name}`, Date.now() - startTime);
 
@@ -152,11 +156,12 @@ export async function generate(
 				`Support for loading ES Module`,
 				`\\(Use `,
 				`npm warn`,
+				`npm notice`,
 			];
 			const ignored = new RegExp(all.join("|"), "i");
 			const noderr = ignored.test(line.trim());
 			if (noderr) {
-				console.warn(
+				console.dir(
 					{
 						CompileModule: {
 							generate: {
