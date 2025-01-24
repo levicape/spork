@@ -7,12 +7,13 @@
     "build": {
       "cache": true,
       "outputs": [
-        "{projectRoot}/module",
-        "{projectRoot}/commonjs",
         "{projectRoot}/.vinxi",
-        "{projectRoot}/.build",
-        "{projectRoot}/public",
-        "{projectRoot}/gen"
+        "{projectRoot}/.output",
+        "{projectRoot}/build-http",
+        "{projectRoot}/build-staticwww",
+        "{projectRoot}/commonjs",
+        "{projectRoot}/gen",
+        "{projectRoot}/module"
       ]
     }
   }

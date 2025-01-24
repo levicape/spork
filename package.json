@@ -16,7 +16,7 @@
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
     "server": "module/app/router/hono/HonoHttpSpork.mjs",
-    "handlerhttplambda": "./module/lambda/HttpHandler.HonoHttpSporkLambda"
+    "handlerhttplambda": "module/lambda/HttpHandler.HonoHttpSporkLambda"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:aws",
@@ -27,10 +27,9 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@hono/zod-validator": "catalog:hono",
     "@stricli/core": "catalog:cli",
-    "aws-lambda-ric": "catalog:aws",
     "consola": "catalog:server",
     "hono-rate-limiter": "catalog:hono",
-    "slonik": "catalog:database",
+    "slonik": "catalog:database-sql",
     "ts-proto": "catalog:protobuf",
     "ulidx": "catalog:id"
   },
@@ -48,7 +47,7 @@
     "typescript": "catalog:dev"
   },
   "engines": {
-    "node": ">=23.6.0"
+    "node": "22"
   },
   "exports": {
     "./domains": "./module/app/domains/index.js",
@@ -98,17 +97,23 @@
       "dx:precommit": {
         "dependsOn": [
           "dx:prepublish",
-          "nx:test",
+          "nx:test"
+        ]
+      },
+      "dx:prepublish": {
+        "dependsOn": [
           "@levicape/spork-examples-basic:dx:precommit",
           "@levicape/spork-canary:dx:precommit",
-          "@levicape/spork-iac-stacks:dx:precommit"
+          "@levicape/spork-iac-stacks:dx:precommit",
+          "@levicape/spork-ui-manifest:dx:precommit"
         ]
       },
       "nx:compile": {
         "dependsOn": [
           "build:tsc",
           "@levicape/spork-examples-basic:nx:compile",
-          "@levicape/spork-canary:nx:compile"
+          "@levicape/spork-canary:nx:compile",
+          "@levicape/spork-ui-manifest:nx:compile"
         ]
       },
       "nx:sync": {
@@ -119,7 +124,8 @@
       "nx:test": {
         "dependsOn": [
           "test:module",
-          "@levicape/spork-canary:nx:test"
+          "@levicape/spork-canary:nx:test",
+          "@levicape/spork-ui-manifest:nx:test"
         ]
       }
     }
@@ -155,8 +161,6 @@
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
     "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run build && $npm_package_config_packagebin run test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
-    "handler:http:lambda": "$npm_package_config_packageexecutor aws-lambda-ric $npm_package_config_handlerhttplambda",
-    "heroku-prebuild": "npm rebuild aws-lambda-ric",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -164,7 +168,7 @@
     "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
-    "postclean:packages": "$npm_package_config_packagebin install",
+    "postclean:packages": "$npm_package_config_packagebin install --ignore-scripts --prefer-offline && sleep 2s",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",

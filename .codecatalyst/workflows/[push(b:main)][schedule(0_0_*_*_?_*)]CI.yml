@@ -20,7 +20,7 @@ Actions:
     Actions:
       Install:
         Identifier: aws/build@v1.0.0
-        Timeout: 9
+        Timeout: 19
         Caching:
           FileCaching:
             a64_npm_global:
@@ -62,9 +62,9 @@ Actions:
             - Name: PAKETO_LAUNCHER_IMAGE
               Value: heroku/heroku:24
             - Name: PULUMI_VERSION
-              Value: 3.144.1
+              Value: 3.147.0
             - Name: PYTHON_VERSION
-              Value: "3.11"
+              Value: 3.11.6
         Configuration:
           Container:
             Registry: CODECATALYST
@@ -104,15 +104,15 @@ Actions:
             - Run: eval "$(pyenv init -)"
             - Run: git clone https://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update
             - Run: pyenv update || true
-            - Run: pyenv install $$PYTHON_VERSION || true
-            - Run: pyenv global $$PYTHON_VERSION || true
+            - Run: pyenv install $PYTHON_VERSION || true
+            - Run: pyenv global $PYTHON_VERSION || true
             - Run: pyenv versions || true
             - Run: python3 -m pip install -r requirements.txt
       Compile:
         Identifier: aws/build@v1.0.0
         DependsOn:
           - Install
-        Timeout: 8
+        Timeout: 19
         Caching:
           FileCaching:
             a64_npm_global:
@@ -139,6 +139,8 @@ Actions:
               Value: npm.pkg.github.com
             - Name: NODE_AUTH_TOKEN
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
+            - Name: PYTHON
+              Value: /root/.pyenv/shims/python3
         Outputs:
           AutoDiscoverReports:
             Enabled: true
@@ -154,9 +156,14 @@ Actions:
             - Run: npm exec n $NODEJS_VERSION
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec pnpm install --prefer-offline --ignore-scripts
-            - Run: sudo yum install -y g++ make cmake unzip libcurl-devel automake autoconf libtool
+            - Run: sudo yum install -y g++ make cmake zip unzip libcurl-devel automake autoconf libtool zlib zlib-devel zlib-static
+            - Run: sudo yum install -y jq || true
+            - Run: sudo yum install -y protobuf protobuf-devel protobuf-compiler || true
+            - Run: sudo yum install -y sqlite sqlite-devel sqlite-libs sqlite-tools || true
             - Run: python3 -c "print('ok')" || true
             - Run: npm rebuild node-gyp
+            - Run: npm rebuild knex better-sqlite3
+            - Run: npm exec pnpm rebuild || true
             - Run: npm exec pnpm build
             - Run: npm exec pnpm lint
             - Run: npm exec pnpm test
@@ -165,7 +172,7 @@ Actions:
         Identifier: aws/build@v1.0.0
         DependsOn:
           - Install
-        Timeout: 10
+        Timeout: 19
         Caching:
           FileCaching:
             a64_npm_global:
@@ -198,6 +205,8 @@ Actions:
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
             - Name: APPLICATION_IMAGE_NAME
               Value: spork
+            - Name: PYTHON
+              Value: /root/.pyenv/shims/python3
         Outputs:
           Artifacts:
             - Name: images
@@ -218,8 +227,13 @@ Actions:
             - Run: npm exec n $NODEJS_VERSION
             - Run: npm exec pnpm config set store-dir /tmp/pnpm-store
             - Run: npm exec pnpm install --prefer-offline --ignore-scripts
-            - Run: sudo yum install -y g++ make cmake unzip libcurl-devel automake autoconf libtool
+            - Run: sudo yum install -y g++ make cmake zip unzip libcurl-devel automake autoconf libtool zlib zlib-devel zlib-static
+            - Run: sudo yum install -y jq || true
+            - Run: sudo yum install -y protobuf protobuf-devel protobuf-compiler || true
+            - Run: sudo yum install -y sqlite sqlite-devel sqlite-libs sqlite-tools || true
             - Run: npm rebuild node-gyp
+            - Run: npm rebuild knex better-sqlite3
+            - Run: npm exec pnpm rebuild || true
             - Run: npm exec pnpm exec nx pack:build iac-images-application --verbose
             - Run: docker save $APPLICATION_IMAGE_NAME | gzip > _images/application.tar.gz
             - Run: du -sh _images/application.tar.gz
@@ -228,7 +242,7 @@ Actions:
         Identifier: aws/build@v1.0.0
         DependsOn:
           - Install
-        Timeout: 10
+        Timeout: 19
         Environment:
           Name: current
         Caching:
@@ -334,14 +348,28 @@ Actions:
             - Run: cat _pulumi/http.json
             - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/http --shell > $(pwd)/_pulumi/http.sh
             - Run: cat _pulumi/http.sh
+            - Run: /tmp/pulumi/bin/pulumi stack init "$APPLICATION_IMAGE_NAME-ui-manifest-web.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web || true
+            - Run: /tmp/pulumi/bin/pulumi stack select "$APPLICATION_IMAGE_NAME-ui-manifest-web.$CI_ENVIRONMENT" -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web || true
+            - Run: /tmp/pulumi/bin/pulumi config set aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web
+            - Run: /tmp/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web
+            - Run: /tmp/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' "$CI_ENVIRONMENT.$APPLICATION_IMAGE_NAME.cloud.$FRONTEND_HOSTNAME" -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web
+            - Run: /tmp/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web
+            - Run: /tmp/pulumi/bin/pulumi refresh -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web --yes --skip-preview --clear-pending-creates --json --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh"
+            - Run: /tmp/pulumi/bin/pulumi preview -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web  --show-replacement-steps --json --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-preview"
+            - Run: /tmp/pulumi/bin/pulumi up -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web --yes --suppress-progress --non-interactive --diff --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-up"
+            - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web --json > $(pwd)/_pulumi/synthetic_ui-manifest_web.json
+            - Run: cat _pulumi/synthetic_ui-manifest_web.json
+            - Run: /tmp/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/synthetic/ui-manifest/web --shell > $(pwd)/_pulumi/synthetic_ui-manifest_web.sh
+            - Run: cat _pulumi/synthetic_ui-manifest_web.sh
             - Run: du -sh _pulumi
   Deployment:
     DependsOn:
       - Integration
     Actions:
-      Lambda:
+      PushImage:
         Identifier: aws/build@v1.0.0
-        Timeout: 10
+        Timeout: 19
         Environment:
           Name: current
         Caching:
@@ -396,9 +424,11 @@ Actions:
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/datalayer.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/http.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/http.sh
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/synthetic_ui-manifest_web.sh
+            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/synthetic_ui-manifest_web.sh
             - Run: env
             - Run: |-
-                NODE_NO_WARNINGS=1 node -e '(function(){let imports=JSON.parse(process.env["_SPORK_LAMBDA_IMPORTS"]??"");let envs={"_SPORK_CODE_REPOSITORY_URL":imports.spork.codestar.ecr.repository.url};Object.entries(envs).forEach(([key,value])=>{process.stdout.write(`export ${key}="${value}"
+                NODE_NO_WARNINGS=1 node -e '(function(){let imports=JSON.parse(process.env["_SPORK_HTTP_IMPORTS"]??"");let envs={"_SPORK_CODE_REPOSITORY_URL":imports.spork.codestar.ecr.repository.url};Object.entries(envs).forEach(([key,value])=>{process.stdout.write(`export ${key}="${value}"
                 `)})})()' > .ci-env
             - Run: cat .ci-env
             - Run: source .ci-env
@@ -419,7 +449,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)][schedule(0_0_*_*_?_*)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"b0ef402bd2ba103c0cb12450eec27adf8156f0000d111876a4eddc91d88d9dc9"}
-#**:_$~- {"$$":"footer","started":"2025-01-22T18:37:06.852Z","now":"2025-01-22T18:37:06.861Z","elapsed":"9ms"}
+#**:_$~- {"$$":"body","hashed":"a2be9d96df6dc4d4260c5dfaf37c82e7947aba9f5afc67ff6ec923b02430f982"}
+#**:_$~- {"$$":"footer","started":"2025-01-24T20:27:51.544Z","now":"2025-01-24T20:27:51.553Z","elapsed":"9ms"}
 # END OF GENERATED FILE
 
