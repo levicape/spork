@@ -24,21 +24,69 @@
   "exports": {
     ".": "./module/index.mjs"
   },
+  "files": [
+    "module"
+  ],
   "nx": {
     "targets": {
+      "build:module": {
+        "dependsOn": [
+          "build:tsc"
+        ]
+      },
+      "canary:harness": {
+        "dependsOn": [
+          "build:module"
+        ]
+      },
+      "canary:server": {
+        "dependsOn": [
+          "build:module"
+        ]
+      },
       "dx:precommit": {
         "dependsOn": [
-          "dx:prepublish"
+          "dx:prepublish",
+          "dx:test"
+        ]
+      },
+      "dx:prepublish": {
+        "dependsOn": [
+          "dx:prepublish:pre",
+          "dx:lint"
+        ]
+      },
+      "dx:lint": {
+        "dependsOn": [
+          "nx:compile",
+          "lint:format",
+          "package:format"
+        ]
+      },
+      "dx:test": {
+        "dependsOn": [
+          "dx:lint",
+          "nx:test"
+        ]
+      },
+      "nx:clean": {
+        "dependsOn": [
+          "clean:module"
         ]
       },
       "nx:compile": {
         "dependsOn": [
-          "build"
+          "build:module"
         ]
       },
       "nx:test": {
         "dependsOn": [
           "test:basic"
+        ]
+      },
+      "test:basic": {
+        "dependsOn": [
+          "build:module"
         ]
       }
     }
@@ -49,26 +97,26 @@
   },
   "repository": "github:levicape/spork",
   "scripts": {
-    "build": "$npm_package_config_packageexecutor tsc",
-    "clean": "rm -rf $npm_package_config_outpaths || true",
-    "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
-    "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
-    "dx:lint": "$npm_package_config_packageexecutor nx build && $npm_package_config_packageexecutor nx lint:format && $npm_package_config_packageexecutor nx package:format",
-    "dx:precommit": "$npm_package_config_packagebin run dx:precommit:pre && $npm_package_config_packagebin run package:deps",
+    "build": "$npm_package_config_packageexecutor nx nx:compile",
+    "build:tsc": "$npm_package_config_packageexecutor tsc",
+    "clean": "$npm_package_config_packageexecutor nx nx:clean",
+    "clean:module": "rm -rf $npm_package_config_outpaths || true",
+    "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
-    "dx:prepublish": "$npm_package_config_packagebin run dx:prepublish:pre && $npm_package_config_packagebin run dx:lint && $npm_package_config_packagebin run prepublish",
+    "dx:prepublish": "$npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
-    "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_lintpaths",
-    "lint:format": "$npm_package_config_packageexecutor biome check --write $npm_package_config_lintpaths",
-    "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_lintpaths",
-    "package:deps": "$npm_package_config_packageexecutor depcheck",
-    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
-    "package:format": "$npm_package_config_packageexecutor syncpack format",
-    "package:update": "$npm_package_config_packageexecutor syncpack update",
+    "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
+    "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
+    "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
+    "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
+    "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
+    "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
+    "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
-    "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
-    "test": "$npm_package_config_packageexecutor nx nx:test",
+    "prepublish": "$npm_package_config_packageexecutor publint --strict",
+    "test": "$npm_package_config_packageexecutor nx nx:test --no-cloud --verbose",
     "test:basic": "node --experimental-strip-types module/basic/server.canary.mjs"
   },
   "type": "module",

@@ -50,7 +50,7 @@
       },
       "compile": {
         "dependsOn": [
-          "@levicape/spork:compile"
+          "@levicape/spork:build:module"
         ]
       },
       "handler": {

@@ -7,10 +7,10 @@
     "packagemanager": "pnpm",
     "packagebin": "corepack pnpm",
     "packageexecutor": "corepack pnpm exec",
-    "outpaths": "./build-http ./build-staticwww",
+    "outpaths": "./output",
     "lintpaths": "./app ./server",
     "protocols": "./src/_protocols",
-    "server": "./build-http/server/index.js"
+    "server": "./output/http/server/index.js"
   },
   "dependencies": {
     "@react-router/node": "catalog:web-react-router",
@@ -33,8 +33,7 @@
     "vite-tsconfig-paths": "catalog:web-vite"
   },
   "files": [
-    "build-http",
-    "build-staticwww"
+    "output"
   ],
   "nx": {
     "targets": {
@@ -82,8 +81,8 @@
   },
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile --verbose",
-    "build:http": "ROUTER_BUILD=build-http ROUTER_SSR=1 $npm_package_config_packageexecutor react-router build --sourcemapClient inline --sourcemapServer inline",
-    "build:staticwww": "ROUTER_BUILD=build-staticwww ROUTER_SSR=0 $npm_package_config_packageexecutor react-router build",
+    "build:http": "ROUTER_BUILD=output/http ROUTER_SSR=1 $npm_package_config_packageexecutor react-router build --sourcemapClient inline --sourcemapServer inline",
+    "build:staticwww": "ROUTER_BUILD=output/staticwww ROUTER_SSR=0 $npm_package_config_packageexecutor react-router build",
     "build:tsc": "$npm_package_config_packageexecutor react-router typegen && $npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
     "clean:module": "rm -rf $npm_package_config_outpaths || true",

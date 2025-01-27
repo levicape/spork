@@ -6,13 +6,15 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"env": {
+					"CONTAINER_RUNTIME": "docker",
+					"CONTAINER_PLATFORM": "linux/arm64",
 					"DOCKER_SOCKET": "/var/run/docker.sock:/var/run/docker.sock",
 					"DOCKER_WORKSPACE": "/workspace",
 					"PAKETO_IMAGE": "buildpacksio/pack"
 				},
 				"forwardAllArgs": true,
 				"commands": [
-					"docker run --rm -v $DOCKER_SOCKET -v $PWD:$DOCKER_WORKSPACE -w $DOCKER_WORKSPACE -e PACK_VOLUME_KEY=packvol $PAKETO_IMAGE"
+					"$CONTAINER_RUNTIME run --rm -v $DOCKER_SOCKET -v $PWD:$DOCKER_WORKSPACE -w $DOCKER_WORKSPACE -e PACK_VOLUME_KEY=packvol --platform $CONTAINER_PLATFORM $PAKETO_IMAGE"
 				]
 			}
 		},

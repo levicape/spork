@@ -1,18 +1,23 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
-  "parallel": 1,
-  "cacheDirectory": "/tmp/nx-cache",
   "targetDefaults": {
-    "build": {
+    "build:http": {
       "cache": true,
       "outputs": [
-        "{projectRoot}/.vinxi",
-        "{projectRoot}/.output",
-        "{projectRoot}/build-http",
-        "{projectRoot}/build-staticwww",
+        "{projectRoot}/output/http"
+      ]
+    },
+    "build:staticwww": {
+      "cache": true,
+      "outputs": [
+        "{projectRoot}/output/staticwww"
+      ]
+    },    
+    "build:tsc": {
+      "cache": true,
+      "outputs": [
         "{projectRoot}/commonjs",
-        "{projectRoot}/gen",
         "{projectRoot}/module"
       ]
     }

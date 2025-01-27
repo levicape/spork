@@ -16,7 +16,7 @@
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
     "server": "module/app/router/hono/HonoHttpSpork.mjs",
-    "handlerhttplambda": "module/lambda/HttpHandler.HonoHttpSporkLambda"
+    "handlerhttplambda": "module/lambda/HttpHandler.handler"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:aws",
@@ -83,15 +83,14 @@
   "license": "AGPL-3.0-only",
   "nx": {
     "targets": {
+      "build:module": {
+        "dependsOn": [
+          "build:tsc"
+        ]
+      },
       "build:tsc": {
         "dependsOn": [
           "generate:protocols"
-        ]
-      },
-      "dx:test": {
-        "dependsOn": [
-          "dx:lint",
-          "nx:test"
         ]
       },
       "dx:precommit": {
@@ -102,15 +101,35 @@
       },
       "dx:prepublish": {
         "dependsOn": [
+          "dx:prepublish:pre",
+          "dx:lint",
           "@levicape/spork-examples-basic:dx:precommit",
           "@levicape/spork-canary:dx:precommit",
           "@levicape/spork-iac-stacks:dx:precommit",
           "@levicape/spork-ui-manifest:dx:precommit"
         ]
       },
+      "dx:lint": {
+        "dependsOn": [
+          "nx:compile",
+          "nx:lint:format",
+          "package:format"
+        ]
+      },
+      "dx:test": {
+        "dependsOn": [
+          "dx:lint",
+          "nx:test"
+        ]
+      },
+      "nx:clean": {
+        "dependsOn": [
+          "clean:module"
+        ]
+      },
       "nx:compile": {
         "dependsOn": [
-          "build:tsc",
+          "build:module",
           "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile",
           "@levicape/spork-ui-manifest:nx:compile"
@@ -127,6 +146,11 @@
           "@levicape/spork-canary:nx:test",
           "@levicape/spork-ui-manifest:nx:test"
         ]
+      },
+      "test:module": {
+        "dependsOn": [
+          "build:module"
+        ]
       }
     }
   },
@@ -138,6 +162,19 @@
     "jsonwebtoken": "catalog:crypto",
     "zod": "catalog:core"
   },
+  "pnpm": {
+    "supportedArchitectures": {
+      "os": [
+        "linux",
+        "darwin",
+        "current"
+      ],
+      "cpu": [
+        "x64",
+        "arm64"
+      ]
+    }
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -145,7 +182,8 @@
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
-    "clean": "rm -rf $npm_package_config_outpaths || true",
+    "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
+    "clean:modules": "rm -rf $npm_package_config_modulepath",
     "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
     "commit": "$npm_package_config_packageexecutor nx dx:precommit --no-cloud --verbose",
     "dx:cli:bin": "NODE_NO_WARNINGS=1 $npm_package_config_packageexecutor tsx $npm_package_config_binpath",
@@ -155,12 +193,13 @@
     "dx:lint": "$npm_package_config_packageexecutor nx build && $npm_package_config_packageexecutor nx lint:format && $npm_package_config_packageexecutor nx package:format",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx dx:sync && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will recompile iac files and check package.json dependencies.\"",
-    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
-    "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
+    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
+    "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile packages, run dx:lint and format package.json and verify all exports are valid. \"",
     "dx:sync": "$npm_package_config_packageexecutor nx dx:sync:pre && $npm_package_config_packageexecutor nx nx:sync",
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
     "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run build && $npm_package_config_packagebin run test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "heroku-prebuild": "$npm_package_config_packagemanager rebuild || true",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",

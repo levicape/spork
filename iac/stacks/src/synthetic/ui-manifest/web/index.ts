@@ -28,8 +28,9 @@ import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
-const EXTRACT_ENTRYPOINT = "deploy-spork-ui-manifest";
-const ARTIFACT_ROOT = "/tmp/spork-ui-manifest/build-staticwww/client" as const;
+const PACKAGE_NAME = "@levicape/spork-ui-manifest" as const;
+const ARTIFACT_ROOT = "spork-ui-manifest" as const;
+const DEPLOY_DIRECTORY = "output/staticwww/client" as const;
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -205,7 +206,7 @@ export = async () => {
 					.setArtifacts(
 						new CodeBuildBuildspecArtifactsBuilder()
 							.setFiles(["**/*"])
-							.setBaseDirectory(".extractimage")
+							.setBaseDirectory(`.extractimage/${DEPLOY_DIRECTORY}`)
 							.setName("staticwww_extractimage"),
 					)
 					.setEnv(
@@ -229,14 +230,26 @@ export = async () => {
 								`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $STACKREF_CODESTAR_ECR_REPOSITORY_URL`,
 								"docker pull $SOURCE_IMAGE_URI",
 								"docker images",
-								`docker run --detach --entrypoint ${EXTRACT_ENTRYPOINT} $SOURCE_IMAGE_URI > .container`,
+								[
+									"docker run",
+									"--detach",
+									"--entrypoint",
+									"deploy",
+									`-e DEPLOY_FILTER=${PACKAGE_NAME}`,
+									`-e DEPLOY_OUTPUT=/tmp/${ARTIFACT_ROOT}`,
+									"$SOURCE_IMAGE_URI",
+									"> .container",
+								].join(" "),
 								"docker ps -al",
 								"cat .container",
 								"sleep 10s",
 								`docker container logs $(cat .container)`,
-								`docker cp $(cat .container):${ARTIFACT_ROOT} $CODEBUILD_SRC_DIR/.extractimage`,
+								"sleep 10s",
+								`docker container logs $(cat .container)`,
+								`docker cp $(cat .container):/tmp/${ARTIFACT_ROOT} $CODEBUILD_SRC_DIR/.extractimage`,
 								"ls -al $CODEBUILD_SRC_DIR/.extractimage || true",
-								"du -sh $CODEBUILD_SRC_DIR/.extractimage || true",
+								`ls -al $CODEBUILD_SRC_DIR/.extractimage/${DEPLOY_DIRECTORY} || true`,
+								`du -sh $CODEBUILD_SRC_DIR/.extractimage/${DEPLOY_DIRECTORY} || true`,
 								"aws s3 ls s3://$S3_STATICWWW_BUCKET",
 							]),
 					})
@@ -320,7 +333,7 @@ export = async () => {
 	})();
 
 	const codepipeline = (() => {
-		const pipeline = new Pipeline(_("web-pipeline"), {
+		const pipeline = new Pipeline(_("deploy-pipeline"), {
 			pipelineType: "V2",
 			roleArn: farRole.arn,
 			executionMode: "QUEUED",
