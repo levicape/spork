@@ -1,8 +1,12 @@
-import c from "consola";
+import { ConsolaTransport } from "@loglayer/transport-consola";
+import { createConsola } from "consola";
+import { LogLayer } from "loglayer";
 import { ulid } from "ulidx";
 
-export const ConsolaLogger = () => {
-	c.withTag(
-		ulid(Date.now() + Math.floor(Math.random() * 50000)).slice(21),
-	).wrapConsole();
-};
+const log = new LogLayer({
+	transport: new ConsolaTransport({
+		logger: createConsola({
+			level: 5,
+		}),
+	}),
+});

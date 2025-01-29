@@ -8,6 +8,12 @@
         "{projectRoot}/output/http"
       ]
     },
+    "build:webhttp": {
+      "cache": true,
+      "outputs": [
+        "{projectRoot}/output/webhttp"
+      ]
+    },
     "build:staticwww": {
       "cache": true,
       "outputs": [

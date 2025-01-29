@@ -204,7 +204,7 @@ export class PostgresTable<
     */
 
 		isClientLoggingEnabled() &&
-			Logger.request({
+			Logger.client({
 				PostgresTable: {
 					post: JSON.stringify({
 						columns,

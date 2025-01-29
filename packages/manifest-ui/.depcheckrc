@@ -1,0 +1,11 @@
+ignores: 
+- "@bufbuild/protobuf"
+- "@levicape/*"
+- "expect"
+- "jsonc-parser"
+- "nx" 
+- "tailwindcss"
+- "tslib"
+- "tsx" 
+- "ts-proto"
+- "verror"

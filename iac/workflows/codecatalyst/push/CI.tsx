@@ -26,7 +26,7 @@ let FileCaching = ({
 	FileCaching: {
 		...{
 			a64_nodejs: {
-				Path: "/layers/heroku_nodejs-pnpm-install",
+				Path: "/cc/cache/nodejs",
 				RestoreKeys: ["nodejs"],
 			},
 		},
@@ -114,8 +114,8 @@ export const PULUMI_STACKS: Array<{
 		stack: "http",
 	},
 	{
-		stack: "synthetic/ui-manifest/web",
-		name: "ui-manifest-web",
+		stack: "domains/manifest/web",
+		name: "manifest-web",
 	},
 ].map((stack) => ({ ...stack, output: stack.stack.replaceAll("/", "_") }));
 

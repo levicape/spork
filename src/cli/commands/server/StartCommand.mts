@@ -1,4 +1,5 @@
 import { buildCommand } from "@stricli/core";
+import { env } from "std-env";
 import { Logger } from "../../../app/server/logging/Logger.js";
 
 type Flags = {
@@ -56,7 +57,12 @@ export const StartCommand = async () => {
 						brief: "Port to listen on",
 						kind: "parsed",
 						default: "5555",
-						parse: Number,
+						parse: (port) => {
+							if (port === "") {
+								port = "5555";
+							}
+							return Number(port);
+						},
 						optional: false,
 					},
 					import: {

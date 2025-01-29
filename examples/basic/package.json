@@ -76,8 +76,6 @@
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:prepublish:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "dx:start": "$npm_package_config_packageexecutor nx dx:start:pre && $npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx handler",
-    "dx:start:pre": "echo \"Starting dx:start. This will dx:lint the package and start the harness.\"",
-    "handler": "echo 'node --test  \"module/**/*.test.js\"'",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -86,7 +84,7 @@
     "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
-    "precompile": "$npm_package_config_packageexecutor nx clean",
+    "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor publint --strict",
     "test": "$npm_package_config_packageexecutor nx nx:test --no-cloud --verbose"

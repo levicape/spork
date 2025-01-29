@@ -28,9 +28,9 @@ import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
-const PACKAGE_NAME = "@levicape/spork-ui-manifest" as const;
-const ARTIFACT_ROOT = "spork-ui-manifest" as const;
-const DEPLOY_DIRECTORY = "output/staticwww/client" as const;
+const PACKAGE_NAME = "@levicape/spork-manifest-ui" as const;
+const ARTIFACT_ROOT = "spork-manifest-ui" as const;
+const DEPLOY_DIRECTORY = "output/staticwww" as const;
 
 export = async () => {
 	const context = await Context.fromConfig();

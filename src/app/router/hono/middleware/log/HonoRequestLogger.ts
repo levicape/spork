@@ -113,7 +113,7 @@ function after(
 	});
 }
 
-export const HonoRequestLogger = (fn = Logger.request) => {
+export const HonoRequestLogger = (fn = Logger.debug) => {
 	return async function logger2(
 		c: {
 			req: { raw: { url: string }; method: string };

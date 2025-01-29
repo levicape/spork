@@ -26,10 +26,13 @@
     "@aws-sdk/util-dynamodb": "catalog:aws",
     "@bufbuild/protobuf": "catalog:protobuf",
     "@hono/zod-validator": "catalog:hono",
+    "@loglayer/transport-consola": "catalog:log-loglayer",
     "@stricli/core": "catalog:cli",
-    "consola": "catalog:server",
+    "consola": "catalog:log-consola",
     "hono-rate-limiter": "catalog:hono",
+    "loglayer": "catalog:log-loglayer",
     "slonik": "catalog:database-sql",
+    "std-env": "catalog:core",
     "ts-proto": "catalog:protobuf",
     "ulidx": "catalog:id"
   },
@@ -93,6 +96,13 @@
           "generate:protocols"
         ]
       },
+      "dx:lint": {
+        "dependsOn": [
+          "nx:compile",
+          "lint:format",
+          "package:format"
+        ]
+      },
       "dx:precommit": {
         "dependsOn": [
           "dx:prepublish",
@@ -106,14 +116,7 @@
           "@levicape/spork-examples-basic:dx:precommit",
           "@levicape/spork-canary:dx:precommit",
           "@levicape/spork-iac-stacks:dx:precommit",
-          "@levicape/spork-ui-manifest:dx:precommit"
-        ]
-      },
-      "dx:lint": {
-        "dependsOn": [
-          "nx:compile",
-          "nx:lint:format",
-          "package:format"
+          "@levicape/spork-manifest-ui:dx:precommit"
         ]
       },
       "dx:test": {
@@ -132,7 +135,7 @@
           "build:module",
           "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile",
-          "@levicape/spork-ui-manifest:nx:compile"
+          "@levicape/spork-manifest-ui:nx:compile"
         ]
       },
       "nx:sync": {
@@ -144,7 +147,7 @@
         "dependsOn": [
           "test:module",
           "@levicape/spork-canary:nx:test",
-          "@levicape/spork-ui-manifest:nx:test"
+          "@levicape/spork-manifest-ui:nx:test"
         ]
       },
       "test:module": {
@@ -199,7 +202,6 @@
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
     "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run build && $npm_package_config_packagebin run test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
-    "heroku-prebuild": "$npm_package_config_packagemanager rebuild || true",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -212,7 +214,7 @@
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
-    "start": "node $npm_package_config_clipath server start $npm_package_config_server",
+    "start": "node $npm_package_config_clipath server start $npm_package_config_server --port $PORT",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
     "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test --parallel=1 --verbose --no-cloud"

@@ -6,7 +6,7 @@ export interface ILogger {
 	log: LogFunction;
 	warn: LogFunction;
 	debug: LogFunction;
-	request: LogFunction;
+	trace: LogFunction;
 	client: LogFunction;
 }
 
