@@ -11,7 +11,7 @@
 					"PAKETO_BUILDER": "heroku/builder:24"
 				},
 				"commands": [
-					"pnpm exec nx run iac-images:cli:pack build $DEFAULT_IMAGE_NAME --buildpack $PAKETO_BUILDPACK --builder $PAKETO_BUILDER --default-process cli  --cache 'type=build;format=bind;source=/cc/cache/docker;type=launch;format=volume;'"
+					"pnpm exec nx run iac-images:cli:pack build $DEFAULT_IMAGE_NAME --buildpack $PAKETO_BUILDPACK --builder $PAKETO_BUILDER --default-process cli --cache 'type=build;format=bind;source=/cc/cache/docker;type=launch;format=volume;'"
 				]
 			}
 		}

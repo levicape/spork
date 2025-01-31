@@ -1,0 +1,15 @@
+{
+	"web": {
+		"services": {
+			"spork-manifest-io": {
+				"routes": [{
+					"path": "/!/v1/Spork/Manifest/",
+					"container": {
+						"host": "spork-manifest-io-http",
+						"port": 3210
+					}
+				}]
+			}
+		}	
+	}
+}

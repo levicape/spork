@@ -1,9 +1,9 @@
 import { buildCommand } from "@stricli/core";
+import type { SporkCliAppProps } from "../../SporkCliApp.mjs";
 
 type Flags = {
 	readonly target: string;
 };
-type Subprocess = import("child_process").ChildProcess;
 
 const defaults = { NODE_ENV: process.env.NODE_ENV };
 
@@ -63,7 +63,7 @@ function spawn(
 	return arr;
 }
 
-export const ClusterCommand = async () => {
+export const ClusterCommand = async (_props: SporkCliAppProps) => {
 	return async () =>
 		buildCommand({
 			loader: async () => {

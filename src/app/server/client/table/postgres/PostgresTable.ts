@@ -4,8 +4,6 @@ import {
 	createTypeParserPreset,
 	sql,
 } from "slonik";
-import { isClientLoggingEnabled } from "../../../logging/ConsoleLogger.js";
-import { Logger } from "../../../logging/Logger.js";
 import type { IRow, ITable } from "../ITable.js";
 type BasicDataType = string | number | boolean | Date | null | Uint8Array;
 export type PostgresCredentials = {
@@ -23,6 +21,12 @@ export type PostgresTableProps = {
 	writes?: DatabasePool;
 	reads?: DatabasePool;
 };
+// Logger.log({
+// 	ServerContext: {
+// 		message: "Polyfilling BigInt.toJSON",
+// 	},
+// });
+// BigIntJsonSupport();
 export class PostgresTable<
 	T extends Partial<Record<keyof T, BasicDataType>> & IRow<K>,
 	K extends IRow<K>,
@@ -92,16 +96,16 @@ export class PostgresTable<
 				);
 			};
 			this.initialize().then(() => {
-				Logger.debug({
-					PostgresTable: {
-						master: this.master,
-						replica: this.replica,
-						databaseName: this.databaseName,
-						tableName: this.tableName,
-						schemaName: this.schemaName,
-						getKey: this.getKey,
-					},
-				});
+				// Logger.debug({
+				// 	PostgresTable: {
+				// 		master: this.master,
+				// 		replica: this.replica,
+				// 		databaseName: this.databaseName,
+				// 		tableName: this.tableName,
+				// 		schemaName: this.schemaName,
+				// 		getKey: this.getKey,
+				// 	},
+				// });
 			});
 		} else {
 			this.reads = reads;
@@ -203,15 +207,15 @@ export class PostgresTable<
       )}
     */
 
-		isClientLoggingEnabled() &&
-			Logger.client({
-				PostgresTable: {
-					post: JSON.stringify({
-						columns,
-						values,
-					}),
-				},
-			});
+		// isClientLoggingEnabled() &&
+		// 	Logger.client({
+		// 		PostgresTable: {
+		// 			post: JSON.stringify({
+		// 				columns,
+		// 				values,
+		// 			}),
+		// 		},
+		// 	});
 		const insertSql = sql.unsafe`INSERT INTO ${sql.identifier([this.tableName])} (${sql.join(columns, sql.fragment`, `)}) VALUES (${sql.join(
 			values.map((val) => {
 				if (typeof val === "string") {
@@ -225,14 +229,14 @@ export class PostgresTable<
 			sql.fragment`, `,
 		)});`;
 
-		isClientLoggingEnabled() &&
-			Logger.client({
-				PostgresTable: {
-					post: JSON.stringify({
-						insertSql,
-					}),
-				},
-			});
+		// isClientLoggingEnabled() &&
+		// 	Logger.client({
+		// 		PostgresTable: {
+		// 			post: JSON.stringify({
+		// 				insertSql,
+		// 			}),
+		// 		},
+		// 	});
 		await this.writes.query(insertSql);
 	};
 
@@ -275,16 +279,16 @@ export class PostgresTable<
 			return sql.unsafe`INSERT INTO ${sql.identifier([this.tableName])} (${sql.join(columns, sql.fragment`, `)}) VALUES (${sql.join(values, sql.fragment`, `)}) ON CONFLICT DO NOTHING;`;
 		});
 
-		isClientLoggingEnabled() &&
-			Logger.warn({
-				PostgresTable: {
-					insert: JSON.stringify({
-						insertStatements: insertStatements.map((statement) => {
-							return statement.sql;
-						}),
-					}),
-				},
-			});
+		// isClientLoggingEnabled() &&
+		// 	Logger.warn({
+		// 		PostgresTable: {
+		// 			insert: JSON.stringify({
+		// 				insertStatements: insertStatements.map((statement) => {
+		// 					return statement.sql;
+		// 				}),
+		// 			}),
+		// 		},
+		// 	});
 
 		await this.writes.transaction(async (trx) => {
 			for (const statement of insertStatements) {

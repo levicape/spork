@@ -1,11 +1,20 @@
 import { buildApplication, buildRouteMap } from "@stricli/core";
+import type { ILogLayer } from "loglayer";
 import { CodeRoutemap } from "./commands/code/CodeRoutemap.mjs";
 import { ServerRoutemap } from "./commands/server/ServerRoutemap.mjs";
 
-export const SporkCliApp = async () => {
+export type SporkCliDependencyContainer = {
+	logger: ILogLayer;
+};
+
+export type SporkCliAppProps = {
+	service: SporkCliDependencyContainer;
+};
+
+export const SporkCliApp = async (props: SporkCliAppProps) => {
 	const routemap = [
-		["server", await ServerRoutemap()],
-		["code", await CodeRoutemap()],
+		["server", await ServerRoutemap(props)],
+		["code", await CodeRoutemap(props)],
 	] as const;
 
 	const prepare = await Promise.all(

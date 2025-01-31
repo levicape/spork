@@ -5,15 +5,19 @@ import { z } from "zod";
 export const ServiceValidationZodSchema = z.literal("sesame");
 
 export const ServiceValidationZodRoute = () => (app: Hono) => {
-	return app.post(
+	return app.get(
 		"/open",
-		zValidator("json", ServiceValidationZodSchema, (result, c) => {
+		zValidator("query", ServiceValidationZodSchema, (result, c) => {
 			if (!result.success) {
-				throw new Error("Invalid input");
+				return c.json({
+					message: "you shall not pass",
+					result,
+				});
 			}
 
 			return c.json({
 				message: "you may pass",
+				result,
 			});
 		}),
 	);

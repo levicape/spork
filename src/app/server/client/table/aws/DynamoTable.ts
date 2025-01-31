@@ -8,6 +8,12 @@ import {
 import type { NativeScalarAttributeValue } from "@aws-sdk/util-dynamodb";
 import type { IRow, ITable } from "../../table/ITable.js";
 
+// Logger.log({
+// 	ServerContext: {
+// 		message: "Polyfilling BigInt.toJSON",
+// 	},
+// });
+// BigIntJsonSupport();
 type Region = string;
 
 export type DynamoImageAttribute = { N?: string; S?: string };

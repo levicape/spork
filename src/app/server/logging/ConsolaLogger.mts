@@ -1,24 +1,11 @@
 import { ConsolaTransport } from "@loglayer/transport-consola";
 import { createConsola } from "consola";
 import { Context, Effect } from "effect";
-import type { ILogLayer } from "loglayer";
 import { LogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
 import { env } from "std-env";
 import { ulid } from "ulidx";
-
-export type ConsolaLoggerProps = {
-	readonly prefix?: string;
-	readonly context?: Record<string, unknown>;
-};
-
-export class ConsolaLogger extends Context.Tag("ConsolaLogger")<
-	ConsolaLogger,
-	{
-		readonly props: ConsolaLoggerProps;
-		readonly logger: Effect.Effect<ILogLayer, unknown>;
-	}
->() {}
+import { LoggingContext } from "./LoggingContext.mjs";
 
 const rootloglayer = Effect.succeed(
 	new LogLayer({
@@ -51,7 +38,7 @@ export const withConsolaLogger = (props: {
 	prefix?: string;
 	context?: Record<string, unknown>;
 }) =>
-	Context.add(ConsolaLogger, {
+	Context.add(LoggingContext, {
 		props,
 		logger: Effect.gen(function* () {
 			const logger = yield* yield* Effect.cached(rootloglayer);
@@ -60,6 +47,7 @@ export const withConsolaLogger = (props: {
 				: logger.child();
 			return child.withContext({
 				...props.context,
+				loggerId: ulid(),
 			});
 		}),
 	});

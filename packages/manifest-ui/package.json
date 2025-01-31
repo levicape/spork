@@ -22,11 +22,11 @@
     "loglayer": "catalog:log-loglayer",
     "react": "catalog:web-react",
     "react-dom": "catalog:web-react",
-    "serialize-error": "catalog:core",
+    "serialize-error": "catalog:error",
     "sirv": "catalog:http-express",
     "std-env": "catalog:core",
     "ulidx": "catalog:id",
-    "verror": "catalog:core"
+    "verror": "catalog:error"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
@@ -133,7 +133,7 @@
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
     "clean:module": "rm -rf $npm_package_config_outpaths || true",
     "dev": "$npm_package_config_packageexecutor nx dev:webhttp",
-    "dev:staticwww": "$npm_package_config_packageexecutor vite --cors --debug",
+    "dev:staticwww": "$npm_package_config_packageexecutor vite --cors --debug --host --port $PORT",
     "dev:webhttp": "SERVER_ENTRYPOINT=./src/$npm_package_config_serverrender $npm_package_config_server",
     "dx:noop": "true",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
@@ -153,7 +153,7 @@
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "preview": "$npm_package_config_packageexecutor nx preview:webhttp",
-    "preview:staticwww": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --cors --debug",
+    "preview:staticwww": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --cors --debug --host --port $PORT",
     "preview:webhttp": "NODE_ENV=production CLIENT_OUTPUT=$npm_package_config_staticwwwoutput SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpmodule $npm_package_config_server",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose"
   },

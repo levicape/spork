@@ -150,3 +150,7 @@ _models
 
 .nx/cache
 .nx/workspace-data
+
+# nohup
+nohup.out
+.pidfile.*
