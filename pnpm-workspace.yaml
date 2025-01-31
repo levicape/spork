@@ -72,7 +72,6 @@ catalogs:
   database-sqlite:
     "better-sqlite3": "^11.6.0"
   dev:
-
     "typescript": "^5.7.3"
     "tsx": "^4.19.2"
   effect:
@@ -108,9 +107,12 @@ catalogs:
     "@kubernetes-models/postgres-operator": "^0.4.2"
   lint:
     "@biomejs/biome": "^1.9.4"
+  log-awspowertools:
+    "@aws-lambda-powertools/logger": "^2.13.1"
   log-consola:
     "consola": "^3.4.0"
   log-loglayer:
+    "@loglayer/transport-aws-lambda-powertools": "^2.0.6"
     "@loglayer/transport-consola": "^1.0.14"
     "loglayer": "^5.5.1"
   package:

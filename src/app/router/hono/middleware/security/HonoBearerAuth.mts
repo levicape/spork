@@ -1,5 +1,5 @@
 import { subtle } from "node:crypto";
-import type { Context, MiddlewareHandler } from "hono";
+import type { Context, MiddlewareHandler, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import VError from "verror";
@@ -175,7 +175,7 @@ export const HonoBearerAuth = (
 		throw new HTTPException(status, { res });
 	};
 
-	return async function bearerAuth(c, next) {
+	return async function bearerAuth(c: Context, next: Next) {
 		const headerToken = c.req.header(options.headerName || HEADER);
 
 		let equal = false;

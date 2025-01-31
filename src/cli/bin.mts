@@ -4,8 +4,10 @@ import { run } from "@stricli/core";
 import { Context, Effect } from "effect";
 import { process } from "std-env";
 import VError from "verror";
-import { withConsolaLogger } from "../app/server/logging/ConsolaLogger.mjs";
-import { LoggingContext } from "../app/server/logging/LoggingContext.mjs";
+import {
+	LoggingContext,
+	withStructuredLogging,
+} from "../app/server/logging/LoggingContext.mjs";
 import { SporkCliApp } from "./SporkCliApp.mjs";
 
 NodeRuntime.runMain(
@@ -35,6 +37,6 @@ NodeRuntime.runMain(
 				});
 			});
 		}),
-		Context.empty().pipe(withConsolaLogger({ prefix: "CLI" })),
+		Context.empty().pipe(withStructuredLogging({ prefix: "CLI" })),
 	),
 );

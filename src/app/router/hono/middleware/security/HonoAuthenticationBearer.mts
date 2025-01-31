@@ -64,6 +64,11 @@ export const HonoHttpAuthenticationDerive =
 								"localhost",
 							),
 						});
+						logger?.withContext({
+							principal: {
+								id: "admin",
+							},
+						});
 						break;
 					default:
 						context.set(HonoHttpAuthenticationBearerPrincipal, {
@@ -77,6 +82,11 @@ export const HonoHttpAuthenticationDerive =
 								Date.now().toString(),
 								"localhost",
 							),
+						});
+						logger?.withContext({
+							principal: {
+								id: jwt.sub,
+							},
 						});
 						break;
 				}
@@ -95,7 +105,6 @@ export const HonoHttpAuthenticationDerive =
 		logger
 			?.withMetadata({
 				HonoAuthenticationBearer: {
-					token,
 					jwt,
 					unparseable,
 				},

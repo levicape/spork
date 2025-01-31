@@ -50,7 +50,7 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 
 						let lifecycle = Effect.tryPromise({
 							try: async (): ReturnType<HonoHttpServerExports<Hono>> => {
-								const uncachepath = `${path}?${nowunix}`;
+								const uncachepath = `${path}?${Date.now()}`;
 								const module = await import(uncachepath);
 								if (!module[import_]) {
 									throw new VError(
@@ -144,7 +144,20 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 						if (watchpath && watchpath !== "") {
 							let fiber: RuntimeFiber<unknown, unknown> | undefined;
 							let semaphore = makeSemaphore(1);
-							watch(path).on("all", (event, path) => {
+							watch(path, {
+								atomic: true,
+								awaitWriteFinish: true,
+								binaryInterval: 1000,
+								interval: 800,
+								persistent: true,
+								usePolling: true,
+							}).on("all", (event, path) => {
+								if (
+									["add", "addDir", "change", "ready"].every((e) => e !== event)
+								) {
+									return;
+								}
+
 								Effect.runFork(
 									Effect.gen(function* () {
 										const lock = yield* semaphore;

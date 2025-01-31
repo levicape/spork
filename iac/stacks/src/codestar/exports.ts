@@ -17,9 +17,5 @@ export const SporkCodestarStackExportsZod = z.object({
 			arn: z.string(),
 			name: z.string(),
 		}),
-		deploymentGroup: z.object({
-			arn: z.string(),
-			name: z.string(),
-		}),
 	}),
 });

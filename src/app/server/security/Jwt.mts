@@ -81,6 +81,10 @@ export class JwtTools {
 			const manager = this.connect(jwtPrivateKeyParameterName);
 			const material = await manager.get(jwtPrivateKeyParameterName);
 			if (material.length > 0) {
+				this.signKey = {
+					manager,
+					material,
+				};
 				this.logger
 					.withMetadata({
 						JwtTools: {
@@ -89,14 +93,13 @@ export class JwtTools {
 								jwtPrivateKeyParameterName: jwtPrivateKeyParameterName,
 								length: material.length,
 							},
+							signKey: {
+								manager: this.signKey?.manager.constructor.name,
+								material: this.signKey?.material,
+							},
 						},
 					})
 					.info("Jwt signing key loaded");
-
-				this.signKey = {
-					manager,
-					material,
-				};
 			} else {
 				throw new VError("AUTH_NOT_INITIALIZED");
 			}
@@ -109,7 +112,10 @@ export class JwtTools {
 			this.logger
 				.withMetadata({
 					JwtTools: {
-						signKey: this.signKey,
+						signKey: {
+							manager: this.signKey?.manager.constructor.name,
+							material: this.signKey?.material,
+						},
 					},
 				})
 				.warn("Jwt signing key not found, using default");

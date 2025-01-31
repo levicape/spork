@@ -1,10 +1,12 @@
 import { serve } from "@hono/node-server";
-import { Context, Effect, pipe } from "effect";
+import { Context, Effect } from "effect";
 import type { Hono } from "hono";
 import { serializeError } from "serialize-error";
 import { process } from "std-env";
-import { withConsolaLogger } from "../../server/logging/ConsolaLogger.mjs";
-import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
+import {
+	LoggingContext,
+	withStructuredLogging,
+} from "../../server/logging/LoggingContext.mjs";
 
 export type HonoHttpServerBuilderProps<App extends Hono> = {
 	app: Effect.Effect<App, unknown>;
@@ -138,7 +140,7 @@ export const HonoHttpServerBuilder =
 											error: serializeError(error),
 										},
 									})
-									.info("Server stopped");
+									.info("Server closed");
 
 								if (error) {
 									reject(error);
@@ -151,7 +153,7 @@ export const HonoHttpServerBuilder =
 				};
 			}),
 			(effect?.context ?? Context.empty()).pipe(
-				withConsolaLogger({ prefix: "SERVER" }),
+				withStructuredLogging({ prefix: "SERVER" }),
 			),
 		);
 	};

@@ -108,11 +108,18 @@ catalogs:
     '@biomejs/biome':
       specifier: ^1.9.4
       version: 1.9.4
+  log-awspowertools:
+    '@aws-lambda-powertools/logger':
+      specifier: ^2.13.1
+      version: 2.13.1
   log-consola:
     consola:
       specifier: ^3.4.0
       version: 3.4.0
   log-loglayer:
+    '@loglayer/transport-aws-lambda-powertools':
+      specifier: ^2.0.6
+      version: 2.0.6
     '@loglayer/transport-consola':
       specifier: ^1.0.14
       version: 1.0.14
@@ -214,6 +221,9 @@ importers:
 
   .:
     dependencies:
+      '@aws-lambda-powertools/logger':
+        specifier: catalog:log-awspowertools
+        version: 2.13.1
       '@aws-sdk/client-dynamodb':
         specifier: catalog:aws
         version: 3.731.0
@@ -244,6 +254,9 @@ importers:
       '@hono/zod-validator':
         specifier: catalog:hono
         version: 0.4.2(hono@4.6.16)(zod@3.24.1)
+      '@loglayer/transport-aws-lambda-powertools':
+        specifier: catalog:log-loglayer
+        version: 2.0.6(@aws-lambda-powertools/logger@2.13.1)
       '@loglayer/transport-consola':
         specifier: catalog:log-loglayer
         version: 1.0.14(consola@3.4.0)
@@ -562,6 +575,17 @@ packages:
 
   '@aws-crypto/util@5.2.0':
     resolution: {integrity: sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ==}
+
+  '@aws-lambda-powertools/commons@2.13.1':
+    resolution: {integrity: sha512-R9y4XhFyz7KuYXwpvVonUWmVZMarKaK+4WUjG+SXkNad9m247uwIX6UM/GmliCIX0z+YpN6M9HoEBRTVofLfZw==}
+
+  '@aws-lambda-powertools/logger@2.13.1':
+    resolution: {integrity: sha512-yM93J0EO8mmmKMGJ3sbnKgeioMc1jLZVKHssagHQp/3S/NaRJp6pX4ukEFA8bq3mkMfkAtcsqTAaL6CTRKiHIA==}
+    peerDependencies:
+      '@middy/core': 4.x || 5.x || 6.x
+    peerDependenciesMeta:
+      '@middy/core':
+        optional: true
 
   '@aws-sdk/client-dynamodb@3.731.0':
     resolution: {integrity: sha512-z6hgc5XPgysZTTyQLq9ggc18qvOBdZcw74PQzxOZJ57du+kkFINHoYVUyEjxjLOpWOyaQDJ4iOECB+Q+Uc2iJQ==}
@@ -1359,6 +1383,12 @@ packages:
   '@loglayer/shared@1.2.1':
     resolution: {integrity: sha512-3S015jg+B90CoKPCQ6CWvWUhQeSzQm78xUwyO3map7IuVuyT9ZwHCEDNKbQiFsDJ98i3bHb0SSHvVSWxOuX+Qw==}
     engines: {node: '>=18'}
+
+  '@loglayer/transport-aws-lambda-powertools@2.0.6':
+    resolution: {integrity: sha512-jWMfMkpWwJx3jhz7QaAyUujz/I00EqQw78K3uJ6BdQjelfQT2OLxnIV7fxfeMtvSNsO+BXkYBQD8+/w9YMB8hg==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      '@aws-lambda-powertools/logger': '*'
 
   '@loglayer/transport-consola@1.0.14':
     resolution: {integrity: sha512-Pq50iW3+2dC51xWRGNOvHY70kUF6B+yGcuTBbeKdU+CoJSRIUmM9DzJFOkOiSicbQ84+l0/ZMo23VQriZCqpdQ==}
@@ -3646,6 +3676,9 @@ packages:
   lodash.isstring@4.0.1:
     resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==}
 
+  lodash.merge@4.6.2:
+    resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
+
   lodash.once@4.1.1:
     resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
 
@@ -4989,6 +5022,13 @@ snapshots:
       '@smithy/util-utf8': 2.3.0
       tslib: 2.8.1
 
+  '@aws-lambda-powertools/commons@2.13.1': {}
+
+  '@aws-lambda-powertools/logger@2.13.1':
+    dependencies:
+      '@aws-lambda-powertools/commons': 2.13.1
+      lodash.merge: 4.6.2
+
   '@aws-sdk/client-dynamodb@3.731.0':
     dependencies:
       '@aws-crypto/sha256-browser': 5.2.0
@@ -6287,6 +6327,11 @@ snapshots:
       '@loglayer/shared': 1.2.1
 
   '@loglayer/shared@1.2.1': {}
+
+  '@loglayer/transport-aws-lambda-powertools@2.0.6(@aws-lambda-powertools/logger@2.13.1)':
+    dependencies:
+      '@aws-lambda-powertools/logger': 2.13.1
+      '@loglayer/transport': 1.2.4
 
   '@loglayer/transport-consola@1.0.14(consola@3.4.0)':
     dependencies:
@@ -8751,6 +8796,8 @@ snapshots:
   lodash.isplainobject@4.0.6: {}
 
   lodash.isstring@4.0.1: {}
+
+  lodash.merge@4.6.2: {}
 
   lodash.once@4.1.1: {}
 

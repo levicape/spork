@@ -1,4 +1,4 @@
-import type { Context, Next } from "hono";
+import type { Context, MiddlewareHandler, Next } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { compress } from "hono/compress";
 import { prettyJSON } from "hono/pretty-json";
@@ -95,7 +95,7 @@ export type HonoHttpMiddlewareStandardProps = HonoHttpSecurityProps &
 
 export const HonoHttpMiddlewareStandard = (
 	props: HonoHttpMiddlewareStandardProps,
-) => {
+): Array<MiddlewareHandler> => {
 	const { logger, jwtTools } = props;
 
 	return [
@@ -116,5 +116,5 @@ export const HonoHttpMiddlewareStandard = (
 		// ...HonoHttpResponse({
 		// 	responseTimeHeader: "X-Response-Time",
 		// }),
-	] as const;
+	];
 };

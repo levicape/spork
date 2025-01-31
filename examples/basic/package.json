@@ -106,7 +106,7 @@
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
-    "start": "node $npm_package_config_clipath server start $npm_package_config_server --port $PORT",
+    "start": "$npm_package_config_packageexecutor spork server start $npm_package_config_server --port $PORT",
     "test": "$npm_package_config_packageexecutor nx nx:test --no-cloud --verbose"
   },
   "type": "module"

@@ -42,12 +42,13 @@ export const withConsolaLogger = (props: {
 		props,
 		logger: Effect.gen(function* () {
 			const logger = yield* yield* Effect.cached(rootloglayer);
+			const loggerId = ulid().slice(-16);
 			let child = props.prefix
 				? logger.withPrefix(props.prefix)
 				: logger.child();
 			return child.withContext({
 				...props.context,
-				loggerId: ulid(),
+				loggerId,
 			});
 		}),
 	});

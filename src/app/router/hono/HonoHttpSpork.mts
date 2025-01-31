@@ -1,8 +1,10 @@
 import { Context, Effect, pipe } from "effect";
 import { Hono } from "hono";
 import { AuthenticatedRouter } from "../../domains/authenticated/AuthenticatedRouter.mjs";
-import { withConsolaLogger } from "../../server/logging/ConsolaLogger.mjs";
-import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
+import {
+	LoggingContext,
+	withStructuredLogging,
+} from "../../server/logging/LoggingContext.mjs";
 import { Jwt, JwtLayer } from "../../server/security/Jwt.mjs";
 import { HonoHttpApp } from "./HonoHttpApp.mjs";
 import { HonoHttpServerApp } from "./HonoHttpServer.mjs";
@@ -36,7 +38,7 @@ export const server = HonoHttpServerBuilder({
 				}),
 				JwtLayer,
 			),
-			Context.empty().pipe(withConsolaLogger({ prefix: "APP" })),
+			Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
 		),
 	),
 });

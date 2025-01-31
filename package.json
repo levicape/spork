@@ -15,10 +15,10 @@
     "clipath": "./module/cli/bin.mjs",
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
-    "server": "module/app/router/hono/HonoHttpSpork.mjs",
-    "handlerhttplambda": "module/lambda/HttpHandler.handler"
+    "server": "module/app/router/hono/HonoHttpSpork.mjs"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "catalog:log-awspowertools",
     "@aws-sdk/client-dynamodb": "catalog:aws",
     "@aws-sdk/client-secrets-manager": "catalog:aws",
     "@aws-sdk/client-sqs": "catalog:aws",
@@ -28,6 +28,7 @@
     "@effect/platform": "catalog:effect",
     "@effect/platform-node": "catalog:effect",
     "@hono/zod-validator": "catalog:hono",
+    "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
     "@loglayer/transport-consola": "catalog:log-loglayer",
     "@stricli/core": "catalog:cli",
     "chokidar": "catalog:server",
@@ -194,7 +195,7 @@
     "build": "$npm_package_config_packageexecutor nx nx:compile",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
-    "clean:modules": "rm -rf $npm_package_config_outpaths",
+    "clean:module": "rm -rf $npm_package_config_outpaths",
     "clean:packages": "rm -rf **/node_modules && $npm_package_config_packageexecutor nx reset",
     "dx:cli:bin": "NODE_NO_WARNINGS=1 $npm_package_config_packageexecutor tsx $npm_package_config_binpath",
     "dx:cli:dev": "node --inspect-brk --import tsx $npm_package_config_binpath",

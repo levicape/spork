@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const SporkDatalayerStackExportsZod = z.object({
-	_SPORK_DATALAYER_PROPS: z.object({
+	spork_datalayer_props: z.object({
 		lambda: z.object({
 			role: z.object({
 				arn: z.string(),

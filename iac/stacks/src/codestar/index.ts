@@ -1,18 +1,16 @@
 import { Context } from "@levicape/fourtwo-pulumi";
 import { Application } from "@pulumi/aws/codedeploy";
 import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
-import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
 import { Repository as ECRRepository, LifecyclePolicy } from "@pulumi/aws/ecr";
 import { getLifecyclePolicyDocument } from "@pulumi/aws/ecr/getLifecyclePolicyDocument";
 import { RepositoryPolicy } from "@pulumi/aws/ecr/repositoryPolicy";
-import { getRole } from "@pulumi/aws/iam/getRole";
 import { all } from "@pulumi/pulumi/output";
+import type { z } from "zod";
+import { SporkCodestarStackExportsZod } from "./exports";
 
 export = async () => {
 	const context = await Context.fromConfig();
 	const _ = (name: string) => `${context.prefix}-${name}`;
-
-	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
 	const ecr = await (async () => {
 		const repository = new ECRRepository(_("binaries"));
@@ -94,21 +92,9 @@ export = async () => {
 					},
 		});
 
-		const deploymentGroup = new DeploymentGroup(_("deployment-group"), {
-			appName: application.name,
-			deploymentGroupName: _("deployment-group"),
-			serviceRoleArn: farRole.arn,
-			deploymentConfigName: deploymentConfig.id,
-			deploymentStyle: {
-				deploymentOption: "WITH_TRAFFIC_CONTROL",
-				deploymentType: "BLUE_GREEN",
-			},
-		});
-
 		return {
 			application,
 			deploymentConfig,
-			deploymentGroup,
 		};
 	})();
 
@@ -120,8 +106,6 @@ export = async () => {
 		codedeploy.application.name,
 		codedeploy.deploymentConfig.arn,
 		codedeploy.deploymentConfig.deploymentConfigName,
-		codedeploy.deploymentGroup.arn,
-		codedeploy.deploymentGroup.deploymentGroupName,
 	]).apply(
 		([
 			ecrRepositoryArn,
@@ -131,10 +115,8 @@ export = async () => {
 			codedeployApplicationName,
 			codedeployDeploymentConfigArn,
 			codedeployDeploymentConfigName,
-			codedeployDeploymentGroupArn,
-			codedeployDeploymentGroupName,
 		]) => {
-			return {
+			const exported = {
 				spork_codestar_ecr: {
 					repository: {
 						arn: ecrRepositoryArn,
@@ -151,12 +133,17 @@ export = async () => {
 						arn: codedeployDeploymentConfigArn,
 						name: codedeployDeploymentConfigName,
 					},
-					deploymentGroup: {
-						arn: codedeployDeploymentGroupArn,
-						name: codedeployDeploymentGroupName,
-					},
 				},
-			};
+			} satisfies z.infer<typeof SporkCodestarStackExportsZod>;
+
+			const validate = SporkCodestarStackExportsZod.safeParse(exported);
+			if (!validate.success) {
+				process.stderr.write(
+					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
+				);
+			}
+
+			return exported;
 		},
 	);
 };
