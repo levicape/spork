@@ -40,6 +40,7 @@ const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
 const PACKAGE_NAME = "@levicape/spork" as const;
 const ARTIFACT_ROOT = "spork-io" as const;
 const HANDLER = "spork-io/module/lambda/HttpHandler.handler";
+const LLRT_ARCH: string | undefined = "lambda-arm64-full-sdk";
 
 const CI = {
 	CI_ENVIRONMENT: process.env.CI_ENVIRONMENT ?? "unknown",
@@ -50,8 +51,6 @@ export = async () => {
 	const _ = (name: string) => `${context.prefix}-${name}`;
 	const stage = CI.CI_ENVIRONMENT;
 	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
-
-	// Stack references
 
 	// Stack references
 	const __codestar = await (async () => {
@@ -284,7 +283,7 @@ export = async () => {
 				memorySize: Number.parseInt(context.environment.isProd ? "512" : "256"),
 				timeout: 18,
 				packageType: "Zip",
-				runtime: Runtime.NodeJS22dX,
+				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
 				handler: "index.handler",
 				s3Bucket: s3.deploy.bucket,
 				s3Key: zip.key,
@@ -307,6 +306,8 @@ export = async () => {
 					return {
 						variables: {
 							...cloudmapEnv,
+							NODE_ENV: "production",
+							LOG_LEVEL: "5",
 						},
 					};
 				}),
@@ -526,6 +527,7 @@ export = async () => {
 							`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $STACKREF_CODESTAR_ECR_REPOSITORY_URL`,
 							"docker pull $SOURCE_IMAGE_URI",
 							"docker images",
+							// node_module
 							[
 								"docker run",
 								"--detach",
@@ -553,6 +555,27 @@ export = async () => {
 							"corepack -g install pnpm@9 || true",
 							`pnpm -C $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT} install --offline --prod --ignore-scripts --node-linker=hoisted || true`,
 							`ls -al $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT}/node_modules || true`,
+							// bootstrap binary
+							...(LLRT_ARCH
+								? [
+										[
+											"docker run",
+											"--detach",
+											"--entrypoint",
+											"bootstrap",
+											"$SOURCE_IMAGE_URI",
+											`-e BOOTSTRAP_ARCH=llrt/${LLRT_ARCH}`,
+											"> .container",
+										].join(" "),
+										"docker ps -al",
+										"cat .container",
+										"sleep 10s",
+										`docker container logs $(cat .container)`,
+										`docker cp $(cat .container):/tmp/bootstrap $CODEBUILD_SRC_DIR/.extractimage/bootstrap`,
+										"ls -al $CODEBUILD_SRC_DIR/.extractimage || true",
+										`ls -al $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT} || true`,
+									]
+								: []),
 							`NODE_NO_WARNINGS=1 node -e '(${(
 								// biome-ignore lint/complexity/useArrowFunction:
 								function () {

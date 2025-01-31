@@ -7,14 +7,13 @@ import type { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware
 import { Hono404Handler } from "./middleware/exception/Hono404Handler.js";
 import { HonoExceptionMiddleware } from "./middleware/exception/HonoExceptionMiddleware.mjs";
 
-export type HonoHttpAppProps<Middleware extends Readonly<MiddlewareHandler[]>> =
-	{
-		middleware: Middleware;
-	};
+export type HonoHttpAppProps<Middleware extends Array<MiddlewareHandler>> = {
+	middleware: Middleware;
+};
 
 // Default app
 export const HonoHttpApp = <
-	Middleware extends Readonly<MiddlewareHandler[]> = ReturnType<
+	Middleware extends Array<MiddlewareHandler> = ReturnType<
 		typeof HonoHttpMiddlewareStandard
 	>,
 >({

@@ -2,7 +2,6 @@ import {
 	HonoGuardAuthentication,
 	HonoHttpApp,
 	HonoHttpMiddlewareStandard,
-	HonoHttpSecurity,
 	HonoHttpServerApp,
 	HonoHttpServerBuilder,
 	Jwt,
@@ -10,7 +9,7 @@ import {
 } from "@levicape/spork";
 import {
 	LoggingContext,
-	withConsolaLogger,
+	withStructuredLogging,
 } from "@levicape/spork/server/logging";
 import { Context, Effect, pipe } from "effect";
 import type { Effect as IEffect } from "effect/Effect";
@@ -78,7 +77,7 @@ export const server = HonoHttpServerBuilder({
 				}),
 				JwtLayer,
 			),
-			Context.empty().pipe(withConsolaLogger({ prefix: "APP" })),
+			Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
 		),
 	),
 });

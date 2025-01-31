@@ -93,7 +93,7 @@ export type HonoRequestLoggerProps = {
 	logger: ILogLayer;
 };
 export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
-	// TODO: use context logger
+	// TODO: use Hono context logger
 	const logger = props.logger;
 	return async function logger2(
 		c: {

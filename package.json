@@ -19,6 +19,7 @@
     "handlerhttplambda": "module/lambda/HttpHandler.handler"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "^2.13.1",
     "@aws-sdk/client-dynamodb": "catalog:aws",
     "@aws-sdk/client-secrets-manager": "catalog:aws",
     "@aws-sdk/client-sqs": "catalog:aws",
@@ -28,6 +29,7 @@
     "@effect/platform": "catalog:effect",
     "@effect/platform-node": "catalog:effect",
     "@hono/zod-validator": "catalog:hono",
+    "@loglayer/transport-aws-lambda-powertools": "^2.0.6",
     "@loglayer/transport-consola": "catalog:log-loglayer",
     "@stricli/core": "catalog:cli",
     "chokidar": "catalog:server",
