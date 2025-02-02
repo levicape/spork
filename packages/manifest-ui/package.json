@@ -48,25 +48,25 @@
   ],
   "nx": {
     "targets": {
-      "build:staticwww": {
+      "staticwww:build": {
         "dependsOn": [
           "build:tsc"
         ]
       },
-      "build:webhttp": {
+      "webhttp:build": {
         "dependsOn": [
-          "build:staticwww"
+          "staticwww:build"
         ]
       },
-      "build:webssr": {
+      "webssr:build": {
         "dependsOn": [
-          "build:staticwww",
-          "build:http"
+          "staticwww:build",
+          "webhttp:build"
         ]
       },
-      "dev:webhttp": {
+      "webhttp:dev": {
         "dependsOn": [
-          "build:webssr"
+          "webssr:build"
         ]
       },
       "dx:lint": {
@@ -112,14 +112,14 @@
           "dx:noop"
         ]
       },
-      "preview:staticwww": {
+      "http:build": {
         "dependsOn": [
-          "build:staticwww"
+          "staticwww:build"
         ]
       },
-      "preview:http": {
+      "http:preview": {
         "dependsOn": [
-          "build:webssr"
+          "webssr:build"
         ]
       }
     }
@@ -127,14 +127,10 @@
   "private": true,
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile --verbose",
-    "build:staticwww": "$npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput --ssrManifest",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
-    "build:webhttp": "SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpoutput CLIENT_OUTPUT=$npm_package_config_staticwwwoutput $npm_package_config_packageexecutor vite build --outDir $npm_package_config_webhttpoutput --ssr ./src/$npm_package_config_serverrender",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
     "clean:module": "rm -rf $npm_package_config_outpaths || true",
     "dev": "$npm_package_config_packageexecutor nx dev:webhttp",
-    "dev:staticwww": "$npm_package_config_packageexecutor vite --cors --debug --host --port $PORT",
-    "dev:webhttp": "SERVER_ENTRYPOINT=./src/$npm_package_config_serverrender $npm_package_config_server",
     "dx:noop": "true",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
@@ -153,9 +149,13 @@
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "preview": "$npm_package_config_packageexecutor nx preview:webhttp",
-    "preview:staticwww": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --cors --debug --host --port $PORT",
-    "preview:webhttp": "NODE_ENV=production CLIENT_OUTPUT=$npm_package_config_staticwwwoutput SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpmodule $npm_package_config_server",
-    "test": "$npm_package_config_packageexecutor nx nx:test --verbose"
+    "staticwww:build": "$npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput --ssrManifest",
+    "staticwww:dev": "$npm_package_config_packageexecutor vite --cors --debug --host --port $PORT",
+    "staticwww:preview": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --cors --debug --host --port $PORT",
+    "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
+    "webhttp:build": "SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpoutput CLIENT_OUTPUT=$npm_package_config_staticwwwoutput $npm_package_config_packageexecutor vite build --outDir $npm_package_config_webhttpoutput --ssr ./src/$npm_package_config_serverrender",
+    "webhttp:dev": "SERVER_ENTRYPOINT=./src/$npm_package_config_serverrender $npm_package_config_server",
+    "webhttp:preview": "NODE_ENV=production CLIENT_OUTPUT=$npm_package_config_staticwwwoutput SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpmodule $npm_package_config_server"
   },
   "type": "module"
 }

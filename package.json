@@ -58,7 +58,7 @@
     "typescript": "catalog:dev"
   },
   "engines": {
-    "node": "22"
+    "node": "^22.13.1"
   },
   "exports": {
     ".": "./module/app/index.mjs",

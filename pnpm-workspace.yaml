@@ -7,15 +7,15 @@ packages:
   - 'protocols/*'
 catalog:
   "@levicape/paloma": "0.2.0-main.6"
-  "@levicape/fourtwo": "0.7.0-main.14"
-  "@levicape/fourtwo-pulumi": "0.7.0-main.14"
-  "@levicape/fourtwo-builders": "0.7.0-main.14"
+  "@levicape/fourtwo": "0.7.1-main.15"
+  "@levicape/fourtwo-pulumi": "0.7.1-main.15"
+  "@levicape/fourtwo-builders": "0.7.1-main.15"
 
 
 
 
 
-
+  
 
 
 

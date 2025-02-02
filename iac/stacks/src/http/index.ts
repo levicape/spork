@@ -33,9 +33,11 @@ import { Output, all, getStack } from "@pulumi/pulumi";
 import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
 import { stringify } from "yaml";
 import type { z } from "zod";
+import type { LambdaRouteResource, Route } from "../RouteMap";
 import { $deref } from "../Stack";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
+import type { WWWRootRoute } from "../wwwroot/routes";
 import { SporkHttpStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork" as const;
@@ -319,7 +321,7 @@ export = async () => {
 			},
 			{
 				dependsOn: [zip],
-				ignoreChanges: ["handler", "s3Key", "s3ObjectVersion"],
+				ignoreChanges: ["handler", "s3Bucket", "s3Key", "s3ObjectVersion"],
 			},
 		);
 
@@ -1223,7 +1225,7 @@ export = async () => {
 			arn,
 			name,
 		})),
-		http: all([
+		function: all([
 			handler.http.arn,
 			handler.http.name,
 			handler.http.url,
@@ -1251,9 +1253,11 @@ export = async () => {
 	}));
 
 	const cloudmapOutput = Output.create(cloudmap).apply((cloudmap) => ({
-		application: {
-			name: __codestar.codedeploy.application.name,
-			arn: __codestar.codedeploy.application.arn,
+		namespace: {
+			arn: __datalayer.cloudmap.namespace.arn,
+			name: __datalayer.cloudmap.namespace.name,
+			id: __datalayer.cloudmap.namespace.id,
+			hostedZone: __datalayer.cloudmap.namespace.hostedZone,
 		},
 		service: all([cloudmap.service.arn, cloudmap.service.name]).apply(
 			([arn, name]) => ({ arn, name }),
@@ -1350,6 +1354,44 @@ export = async () => {
 			spork_http_codepipeline,
 			spork_http_eventbridge,
 		]) => {
+			const spork_http_routemap = (() => {
+				const routes: Partial<
+					Record<WWWRootRoute, Route<LambdaRouteResource>>
+				> = {
+					["/~/v1/Spork/Http"]: {
+						$kind: "LambdaRouteResource",
+						lambda: {
+							arn: spork_http_lambda.function.arn,
+							name: spork_http_lambda.function.name,
+							role: {
+								arn: spork_http_lambda.role.arn,
+								name: spork_http_lambda.role.name,
+							},
+							qualifier: spork_http_lambda.function.alias.name,
+						},
+						url: spork_http_lambda.function.url.replace("https://", ""),
+						protocol: "https",
+						cloudmap: {
+							namespace: {
+								arn: spork_http_cloudmap.namespace.arn,
+								name: spork_http_cloudmap.namespace.name,
+								id: spork_http_cloudmap.namespace.id,
+								hostedZone: spork_http_cloudmap.namespace.hostedZone,
+							},
+							service: {
+								arn: spork_http_cloudmap.service.arn,
+								name: spork_http_cloudmap.service.name,
+							},
+							instance: {
+								id: spork_http_cloudmap.instance.id,
+								attributes: spork_http_cloudmap.instance.attributes,
+							},
+						},
+					},
+				};
+				return routes;
+			})();
+
 			const exported = {
 				spork_http_imports: {
 					spork: {
@@ -1364,6 +1406,7 @@ export = async () => {
 				spork_http_codebuild,
 				spork_http_codepipeline,
 				spork_http_eventbridge,
+				spork_http_routemap,
 			} satisfies z.infer<typeof SporkHttpStackExportsZod> & {
 				spork_http_imports: {
 					spork: {
