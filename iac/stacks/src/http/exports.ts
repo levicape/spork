@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export const SporkPanelHttpStackExportsZod = z.object({
-	spork_panel_http_cloudmap: z.object({
+export const SporkHttpStackExportsZod = z.object({
+	spork_http_cloudmap: z.object({
 		application: z.object({
 			arn: z.string(),
 			name: z.string(),
@@ -15,12 +15,21 @@ export const SporkPanelHttpStackExportsZod = z.object({
 			name: z.string(),
 		}),
 	}),
-	spork_panel_http_cloudwatch: z.object({
-		loggroup: z.object({
-			arn: z.string(),
+	spork_http_cloudwatch: z.object({
+		build: z.object({
+			logGroup: z.object({
+				arn: z.string(),
+				name: z.string(),
+			}),
+		}),
+		function: z.object({
+			logGroup: z.object({
+				arn: z.string(),
+				name: z.string(),
+			}),
 		}),
 	}),
-	spork_panel_http_codebuild: z.object({
+	spork_http_codebuild: z.object({
 		httphandler_extractimage: z.object({
 			buildspec: z.object({
 				bucket: z.string(),
@@ -42,7 +51,7 @@ export const SporkPanelHttpStackExportsZod = z.object({
 			}),
 		}),
 	}),
-	spork_panel_http_codepipeline: z.object({
+	spork_http_codepipeline: z.object({
 		pipeline: z.object({
 			arn: z.string(),
 			name: z.string(),
@@ -63,7 +72,7 @@ export const SporkPanelHttpStackExportsZod = z.object({
 			),
 		}),
 	}),
-	spork_panel_http_eventbridge: z.record(
+	spork_http_eventbridge: z.record(
 		z.object({
 			rule: z.object({
 				arn: z.string(),
@@ -76,7 +85,7 @@ export const SporkPanelHttpStackExportsZod = z.object({
 			}),
 		}),
 	),
-	spork_panel_http_lambda: z.object({
+	spork_http_lambda: z.object({
 		codedeploy: z.object({
 			deploymentGroup: z.object({
 				arn: z.string(),
@@ -99,7 +108,7 @@ export const SporkPanelHttpStackExportsZod = z.object({
 			name: z.string(),
 		}),
 	}),
-	spork_panel_http_s3: z.object({
+	spork_http_s3: z.object({
 		artifactStore: z.object({
 			bucket: z.string(),
 			region: z.string(),

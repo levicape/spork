@@ -5,7 +5,7 @@ import { LogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
 import { env } from "std-env";
 import { ulid } from "ulidx";
-import { LoggingContext } from "./LoggingContext.mjs";
+import { LoggingContext, LogstreamPassthrough } from "./LoggingContext.mjs";
 
 const rootloglayer = Effect.succeed(
 	new LogLayer({
@@ -51,4 +51,5 @@ export const withConsolaLogger = (props: {
 				loggerId,
 			});
 		}),
+		stream: LogstreamPassthrough,
 	});

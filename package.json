@@ -210,8 +210,8 @@
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
     "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run build && $npm_package_config_packagebin run test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "http:dev": "rm nohup.out || true; nohup $npm_package_config_packageexecutor tsc -w & echo $! > .pidfile.tsc && pnpm run http:start --watch module; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
     "http:start": "node $npm_package_config_clipath server start $npm_package_config_server --port $PORT --import server",
-    "http:watch": "rm nohup.out || true; nohup $npm_package_config_packageexecutor tsc -w & echo $! > .pidfile.tsc && pnpm run http:start --watch module; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -226,7 +226,7 @@
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
-    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test --parallel=1 --verbose --no-cloud"
+    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test,prepublish --parallel=1 --verbose --no-cloud"
   },
   "type": "module",
   "types": "module/index.d.mts"

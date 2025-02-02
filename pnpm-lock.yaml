@@ -45,17 +45,17 @@ catalogs:
       version: 46.4.0
   default:
     '@levicape/fourtwo':
-      specifier: 0.6.4-main.13
-      version: 0.6.4-main.13
+      specifier: 0.7.0-main.14
+      version: 0.7.0-main.14
     '@levicape/fourtwo-builders':
-      specifier: 0.6.4-main.13
-      version: 0.6.4-main.13
+      specifier: 0.7.0-main.14
+      version: 0.7.0-main.14
     '@levicape/fourtwo-pulumi':
-      specifier: 0.6.4-main.13
-      version: 0.6.4-main.13
+      specifier: 0.7.0-main.14
+      version: 0.7.0-main.14
     '@levicape/paloma':
-      specifier: 0.1.2-main.4
-      version: 0.1.2-main.4
+      specifier: 0.2.0-main.6
+      version: 0.2.0-main.6
   dev:
     tsx:
       specifier: ^4.19.2
@@ -311,7 +311,7 @@ importers:
         version: 1.9.4
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
       '@types/jsonwebtoken':
         specifier: catalog:types
         version: 9.0.7
@@ -350,7 +350,7 @@ importers:
         version: 2.2.3
       '@levicape/paloma':
         specifier: 'catalog:'
-        version: 0.1.2-main.4(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))
+        version: 0.2.0-main.6(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))
       '@levicape/spork':
         specifier: 'workspace:'
         version: link:..
@@ -412,7 +412,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
       yaml:
         specifier: catalog:core
         version: 2.7.0
@@ -421,13 +421,13 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
       '@levicape/fourtwo-builders':
         specifier: 'catalog:'
-        version: 0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
       '@levicape/fourtwo-pulumi':
         specifier: 'catalog:'
-        version: 0.6.4-main.13(typescript@5.7.3)
+        version: 0.7.0-main.14(typescript@5.7.3)
       '@pulumi/aws':
         specifier: catalog:pulumi
         version: 6.67.0(typescript@5.7.3)
@@ -461,7 +461,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
 
   packages/manifest-ui:
     dependencies:
@@ -1354,21 +1354,21 @@ packages:
     resolution: {integrity: sha512-rsfF5t3sd5c+3ejUgcy8q0cVG2/BxT064L4Xz+CuKEe014u8T4MtFZiWjWZFpfMXSGKzFYEA6DJYm9CqjmIfZg==}
     engines: {node: '>=14'}
 
-  '@levicape/fourtwo-builders@0.6.4-main.13':
-    resolution: {integrity: sha512-ll/ZvXzDhuu0ydh+k5+UAeTIIHEGu6UDbyqJv/1+JHb/bcdl4f2G5A3LQ0+9K9zGx1e9NUJ0fcOS+sG3SHxA8Q==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.6.4-main.13/0acc8ca7497e4350b69c06d5ebc35d2c31be724d}
+  '@levicape/fourtwo-builders@0.7.0-main.14':
+    resolution: {integrity: sha512-kBAq3CRMMeLqZO4yVZpCb5ERQUXOSTybi684pOiJP8BU5QMiSu+jpM6GNliNq11rwYzXAwiUHO3YjmOdeCqFZQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.7.0-main.14/f47b315382814e08874f1d0f91a82cbd2612a04e}
     engines: {node: '22'}
 
-  '@levicape/fourtwo-pulumi@0.6.4-main.13':
-    resolution: {integrity: sha512-RGHegDTbwCFANzMm5xk/J+iTTlo7nyp9FeZduIB6iEt8fJ09D0TJ6McjitPREsyyQ8LWur1jQZT3Qizeh3bt0Q==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.6.4-main.13/a36d7b519dd5ff9f3a2bd088290f65f346f5f8f7}
+  '@levicape/fourtwo-pulumi@0.7.0-main.14':
+    resolution: {integrity: sha512-pv6kCgOcIJwNRdpzR4lP3M+pomkwbppcZH3YpgqUKgLtEus9wdqKDBiwYPnHU6igpaBJpCkXXirfNLILL4r1Sw==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.7.0-main.14/44e8bb1ea9156b9ab0649ce7816d30f2ab1819c3}
     engines: {node: '22'}
 
-  '@levicape/fourtwo@0.6.4-main.13':
-    resolution: {integrity: sha512-9yauYwaF2zm6tMaFbvfBxVjgw0OREAGK61X9VsravYJVgZ8eyWEbzFSQqFOsjlBSWZrgDfRwwdbKz9ZA3XZtbw==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.6.4-main.13/f5e1f4541538bd0dfb3e6ace187cfee78dce47a0}
+  '@levicape/fourtwo@0.7.0-main.14':
+    resolution: {integrity: sha512-Zhj/iCU7WgUJpgpvDoPltNDayj9NDOHhm1/H7GWIMXOHbf4E/58hdAfv2NNuKT3i0qzClEU3wxq+oUkoIsx8BA==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.7.0-main.14/e6e88940f45a7ab52f1678a6b9415c25521c0342}
     engines: {node: '22'}
     hasBin: true
 
-  '@levicape/paloma@0.1.2-main.4':
-    resolution: {integrity: sha512-aZKumQnR55w5DvOeiH++ZykjM5gNEhRzz7v6vICncQp9GaRVvqmQZh4VcccA/nvC1BQBjZ7V+BeX+0buMT7ImQ==, tarball: https://npm.pkg.github.com/download/@levicape/paloma/0.1.2-main.4/60b1ed8162c2f90770a1a05da5c15c1cb734d8b1}
+  '@levicape/paloma@0.2.0-main.6':
+    resolution: {integrity: sha512-ZCna6pYEz9swxbmDc8pKn/Ho/kVJeS5hL9z5osTcILtoNdGrHtmKvIXEjwHKPZHNvV6CnNDSigJsyzEFyW2OZA==, tarball: https://npm.pkg.github.com/download/@levicape/paloma/0.2.0-main.6/f379e6d3b9532fb01611cd87be3107481bfec99e}
     engines: {node: '22'}
     hasBin: true
 
@@ -2780,6 +2780,29 @@ packages:
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
 
+  db0@0.2.3:
+    resolution: {integrity: sha512-PunuHESDNefmwVy1LDpY663uWwKt2ogLGoB6NOz2sflGREWqDreMwDgF8gfkXxgNXW+dqviyiJGm924H1BaGiw==}
+    peerDependencies:
+      '@electric-sql/pglite': '*'
+      '@libsql/client': '*'
+      better-sqlite3: '*'
+      drizzle-orm: '*'
+      mysql2: '*'
+      sqlite3: '*'
+    peerDependenciesMeta:
+      '@electric-sql/pglite':
+        optional: true
+      '@libsql/client':
+        optional: true
+      better-sqlite3:
+        optional: true
+      drizzle-orm:
+        optional: true
+      mysql2:
+        optional: true
+      sqlite3:
+        optional: true
+
   debug@2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
     peerDependencies:
@@ -2840,6 +2863,9 @@ packages:
 
   deps-regex@0.2.0:
     resolution: {integrity: sha512-PwuBojGMQAYbWkMXOY9Pd/NWCDNHVH12pnS7WHqZkTSeMESe4hwnKKRp0yR87g37113x4JPbo/oIvXY+s/f56Q==}
+
+  destr@2.0.3:
+    resolution: {integrity: sha512-2N3BOUU4gYMpTP24s5rF5iP7BDr7uNTCs4ozw3kf/eKfvWSIu93GEBi5m427YoyJoeOzQ5smuu4nNAPGb8idSQ==}
 
   destroy@1.2.0:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
@@ -4081,6 +4107,9 @@ packages:
   path-type@5.0.0:
     resolution: {integrity: sha512-5HviZNaZcfqP95rwpv+1HDgUamezbqdSYTyzjTvwtJSnIH+3vnbmWsItli8OFEndS984VT55M3jduxZbX351gg==}
     engines: {node: '>=12'}
+
+  pathe@2.0.2:
+    resolution: {integrity: sha512-15Ztpk+nov8DR524R4BF7uEuzESgzUEAV4Ah7CUMNGXdE5ELuvxElxGXndBl32vMSsWa1jpNf22Z+Er3sKwq+w==}
 
   pg-cloudflare@1.1.1:
     resolution: {integrity: sha512-xWPagP/4B6BgFO+EKz3JONXv3YDgvkbVrGw2mTo3D6tVDQRh1e7cqVGvyR3BE+eQgAvx1XhW/iEASj4/jCWl3Q==}
@@ -6247,10 +6276,12 @@ snapshots:
     optionalDependencies:
       re2-wasm: 1.0.2
 
-  '@levicape/fourtwo-builders@0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)':
+  '@levicape/fourtwo-builders@0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)':
     dependencies:
-      '@levicape/fourtwo': 0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
+      '@levicape/fourtwo': 0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)
     transitivePeerDependencies:
+      - '@middy/core'
+      - bufferutil
       - mysql
       - mysql2
       - pg
@@ -6259,8 +6290,9 @@ snapshots:
       - sqlite3
       - supports-color
       - tedious
+      - utf-8-validate
 
-  '@levicape/fourtwo-pulumi@0.6.4-main.13(typescript@5.7.3)':
+  '@levicape/fourtwo-pulumi@0.7.0-main.14(typescript@5.7.3)':
     dependencies:
       '@kubernetes-models/postgres-operator': 0.4.2
       '@pulumi/aws': 6.67.0(typescript@5.7.3)
@@ -6280,22 +6312,35 @@ snapshots:
       - ts-node
       - typescript
 
-  '@levicape/fourtwo@0.6.4-main.13(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)':
+  '@levicape/fourtwo@0.7.0-main.14(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))(projen@0.71.163)':
     dependencies:
+      '@aws-lambda-powertools/logger': 2.13.1
       '@aws/codecatalyst-workflows-sdk': 0.1.5-preview.6(projen@0.71.163)
+      '@effect/platform': 0.75.1(effect@3.12.7)
+      '@effect/platform-node': 0.71.1(@effect/platform@0.75.1(effect@3.12.7))(effect@3.12.7)
+      '@loglayer/transport-aws-lambda-powertools': 2.0.6(@aws-lambda-powertools/logger@2.13.1)
+      '@loglayer/transport-consola': 1.0.14(consola@3.4.0)
       '@stricli/core': 1.1.1
       aws4fetch: 1.0.20
       better-sqlite3: 11.6.0
+      consola: 3.4.0
+      effect: 3.12.7
       enquirer: 2.4.1
       fast-xml-parser: 4.5.1
       ini: 5.0.0
       js-yaml: 4.1.0
       knex: 3.1.0(better-sqlite3@11.6.0)(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))
+      loglayer: 5.5.1
       pretty-ms: 9.2.0
+      serialize-error: 12.0.0
+      std-env: 3.8.0
+      ulidx: 2.4.1
       verror: 1.10.1
       yaml: 2.7.0
       zod: 3.24.1
     transitivePeerDependencies:
+      - '@middy/core'
+      - bufferutil
       - mysql
       - mysql2
       - pg
@@ -6304,14 +6349,32 @@ snapshots:
       - sqlite3
       - supports-color
       - tedious
+      - utf-8-validate
 
-  '@levicape/paloma@0.1.2-main.4(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))':
+  '@levicape/paloma@0.2.0-main.6(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))':
     dependencies:
+      '@aws-lambda-powertools/logger': 2.13.1
+      '@loglayer/transport-aws-lambda-powertools': 2.0.6(@aws-lambda-powertools/logger@2.13.1)
+      '@loglayer/transport-consola': 1.0.14(consola@3.4.0)
       '@stricli/core': 1.1.1
       better-sqlite3: 11.6.0
+      consola: 3.4.0
+      db0: 0.2.3(better-sqlite3@11.6.0)
+      destr: 2.0.3
+      effect: 3.12.7
       knex: 3.1.0(better-sqlite3@11.6.0)(pg-native@3.2.0)(pg@8.13.1(pg-native@3.2.0))
       ksuid: 3.0.0
+      loglayer: 5.5.1
+      pathe: 2.0.2
+      serialize-error: 12.0.0
+      std-env: 3.8.0
+      ulidx: 2.4.1
+      verror: 1.10.1
     transitivePeerDependencies:
+      - '@electric-sql/pglite'
+      - '@libsql/client'
+      - '@middy/core'
+      - drizzle-orm
       - mysql
       - mysql2
       - pg
@@ -7898,6 +7961,10 @@ snapshots:
 
   csstype@3.1.3: {}
 
+  db0@0.2.3(better-sqlite3@11.6.0):
+    optionalDependencies:
+      better-sqlite3: 11.6.0
+
   debug@2.6.9:
     dependencies:
       ms: 2.0.0
@@ -7957,6 +8024,8 @@ snapshots:
   depd@2.0.0: {}
 
   deps-regex@0.2.0: {}
+
+  destr@2.0.3: {}
 
   destroy@1.2.0: {}
 
@@ -9250,6 +9319,8 @@ snapshots:
   path-type@4.0.0: {}
 
   path-type@5.0.0: {}
+
+  pathe@2.0.2: {}
 
   pg-cloudflare@1.1.1:
     optional: true

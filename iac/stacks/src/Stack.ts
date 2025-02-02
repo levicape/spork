@@ -36,7 +36,7 @@ type DereferencedOutput<T extends DereferenceConfig> = {
 	};
 };
 
-export const deref = async <T extends DereferenceConfig>(
+export const $deref = async <T extends DereferenceConfig>(
 	config: T,
 ): Promise<DereferencedOutput<T>[string]> => {
 	const dereferencedRoots = {} as DereferencedOutput<T>;

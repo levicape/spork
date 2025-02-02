@@ -5,7 +5,7 @@ import { LogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
 import { env } from "std-env";
 import { ulid } from "ulidx";
-import { LoggingContext } from "./LoggingContext.mjs";
+import { LoggingContext, LogstreamPassthrough } from "./LoggingContext.mjs";
 
 let logLevel: (typeof LogLevel)[keyof typeof LogLevel];
 try {
@@ -18,7 +18,7 @@ const rootloglayer = Effect.succeed(
 	new LogLayer({
 		transport: new PowertoolsTransport({
 			logger: new Logger({
-				serviceName: env.AWS_CLOUDMAP_SERVICE_NAME,
+				serviceName: env.AWS_CLOUDMAP_SERVICE_NAME ?? env.PULUMI__NAME,
 				logLevel,
 			}),
 		}),
@@ -35,7 +35,7 @@ const rootloglayer = Effect.succeed(
 			},
 		],
 	}).withContext({
-		rootId: ulid(),
+		rootId: ulid().slice(-16),
 	}),
 );
 
@@ -47,7 +47,7 @@ export const withAwsPowertoolsLogger = (props: {
 		props,
 		logger: Effect.gen(function* () {
 			const logger = yield* yield* Effect.cached(rootloglayer);
-			const loggerId = ulid().slice(-16);
+			const loggerId = ulid().slice(-8);
 			let child = props.prefix
 				? logger.withPrefix(props.prefix)
 				: logger.child();
@@ -56,4 +56,5 @@ export const withAwsPowertoolsLogger = (props: {
 				loggerId,
 			});
 		}),
+		stream: LogstreamPassthrough,
 	});

@@ -33,14 +33,14 @@ import { Output, all, getStack } from "@pulumi/pulumi";
 import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
 import { stringify } from "yaml";
 import type { z } from "zod";
-import { deref } from "../Stack";
+import { $deref } from "../Stack";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
-import { SporkPanelHttpStackExportsZod } from "./exports";
+import { SporkHttpStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork" as const;
-const ARTIFACT_ROOT = "spork-http" as const;
-const HANDLER = "spork-http/module/lambda/HttpHandler.handler";
+const DESCRIPTION = "Spork HTTP api" as const;
+const HANDLER = "module/lambda/HttpHandler.handler";
 const LLRT_ARCH: string | undefined = process.env["LLRT_ARCH"]; //"lambda-arm64-full-sdk";
 
 const CI = {
@@ -76,13 +76,19 @@ export = async () => {
 	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 	// Stack references
 	const { codestar: __codestar, datalayer: __datalayer } =
-		await deref(STACKREF_CONFIG);
+		await $deref(STACKREF_CONFIG);
 
 	// Object Store
 	const s3 = (() => {
 		const bucket = (name: string) => {
-			const bucket = new Bucket(_(name), {
+			const bucket = new Bucket(_(`${name}-store`), {
 				acl: "private",
+				tags: {
+					Name: _(`${name}-store`),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
+					Key: name,
+				},
 			});
 
 			new BucketServerSideEncryptionConfigurationV2(_(`${name}-encryption`), {
@@ -130,7 +136,7 @@ export = async () => {
 			return bucket;
 		};
 		return {
-			artifactStore: bucket("artifact-store"),
+			artifactStore: bucket("artifact"),
 			build: bucket("build"),
 			deploy: bucket("deploy"),
 		};
@@ -138,12 +144,22 @@ export = async () => {
 
 	// Logging
 	const cloudwatch = (() => {
-		const loggroup = new LogGroup(_("loggroup"), {
-			retentionInDays: 365,
-		});
+		const loggroup = (name: string) => {
+			const loggroup = new LogGroup(_(`${name}-logs`), {
+				retentionInDays: context.environment.isProd ? 180 : 14,
+				tags: {
+					Name: _(`${name}-logs`),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
+				},
+			});
+
+			return { loggroup };
+		};
 
 		return {
-			loggroup,
+			build: loggroup("build"),
+			function: loggroup("function"),
 		};
 	})();
 
@@ -151,7 +167,7 @@ export = async () => {
 	const handler = await (async ({ datalayer, codestar }, cloudwatch) => {
 		const role = datalayer.iam.roles.lambda.name;
 		const roleArn = datalayer.iam.roles.lambda.arn;
-		const loggroup = cloudwatch.loggroup;
+		const loggroup = cloudwatch.function.loggroup;
 
 		const lambdaPolicyDocument = all([loggroup.arn]).apply(([loggroupArn]) => {
 			return {
@@ -251,12 +267,16 @@ export = async () => {
 			}),
 			contentType: "application/zip",
 			key: "http.zip",
+			tags: {
+				Name: _(`zip`),
+				StackRef: STACKREF_ROOT,
+			},
 		});
 
 		const lambda = new LambdaFn(
 			_("function"),
 			{
-				description: `(${getStack()}) Lambda function for @${PACKAGE_NAME}:${STACKREF_ROOT}}`,
+				description: `(${PACKAGE_NAME}) "${DESCRIPTION ?? `HTTP lambda`}" in #${stage}`,
 				role: roleArn,
 				architectures: ["arm64"],
 				memorySize: Number.parseInt(context.environment.isProd ? "512" : "256"),
@@ -278,8 +298,8 @@ export = async () => {
 				},
 				loggingConfig: {
 					logFormat: "JSON",
-					logGroup: cloudwatch.loggroup.name,
-					applicationLogLevel: "DEBUG",
+					logGroup: loggroup.name,
+					applicationLogLevel: context.environment.isProd ? "INFO" : "DEBUG",
 				},
 				environment: all([cloudmapEnvironment]).apply(([cloudmapEnv]) => {
 					return {
@@ -290,6 +310,12 @@ export = async () => {
 						},
 					};
 				}),
+				tags: {
+					Name: _("function"),
+					StackRef: STACKREF_ROOT,
+					Handler: "Http",
+					PackageName: PACKAGE_NAME,
+				},
 			},
 			{
 				dependsOn: [zip],
@@ -303,13 +329,14 @@ export = async () => {
 				.reduce((acc, current) => [...acc, ...current], []) ?? [];
 
 		const version = new Version(_("version"), {
+			description: `(${PACKAGE_NAME}) version for "${stage}"`,
 			functionName: lambda.name,
-			description: `(${getStack()}) Version ${stage} for @${PACKAGE_NAME}:${STACKREF_ROOT}`,
 		});
 
 		const alias = new Alias(
 			_("alias"),
 			{
+				description: `(${PACKAGE_NAME}) alias`,
 				name: stage,
 				functionName: lambda.name,
 				functionVersion: version.version,
@@ -342,6 +369,11 @@ export = async () => {
 				deploymentStyle: {
 					deploymentOption: "WITH_TRAFFIC_CONTROL",
 					deploymentType: "BLUE_GREEN",
+				},
+				tags: {
+					Name: _("deployment-group"),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
 				},
 			},
 			{
@@ -376,7 +408,7 @@ export = async () => {
 		const { namespace } = cloudmap;
 		const cloudMapService = new Service(_("service"), {
 			name: handler.http.name.apply((name) => _(`service-${name.slice(-10)}`)),
-			description: `(${getStack()}) Service mesh service for ${PACKAGE_NAME}@${STACKREF_ROOT}`,
+			description: `(${PACKAGE_NAME}) "${DESCRIPTION}" in #${stage}`,
 			dnsConfig: {
 				namespaceId: namespace.id,
 				routingPolicy: "WEIGHTED",
@@ -387,6 +419,11 @@ export = async () => {
 					},
 				],
 			},
+			tags: {
+				Name: _("service"),
+				StackRef: STACKREF_ROOT,
+				PackageName: PACKAGE_NAME,
+			},
 		});
 
 		const cloudMapInstance = new Instance(_("instance"), {
@@ -395,8 +432,11 @@ export = async () => {
 			attributes: {
 				AWS_INSTANCE_CNAME: handler.http.url,
 				LAMBDA_FUNCTION_ARN: handler.http.arn,
-				STACK_NAME: _("").slice(0, -1),
+				STACK_NAME: getStack(),
+				STACKREF_ROOT,
+				CONTEXT_PREFIX: context.prefix,
 				CI_ENVIRONMENT: stage,
+				PACKAGE_NAME,
 			},
 		});
 
@@ -433,11 +473,17 @@ export = async () => {
 		};
 
 		const project = (() => {
+			const PIPELINE_STAGE = "httphandler" as const;
+			const EXTRACT_ACTION = "extractimage" as const;
+			const UPDATE_ACTION = "updatelambda" as const;
+
 			const stages = [
 				{
+					stage: PIPELINE_STAGE,
+					action: EXTRACT_ACTION,
 					artifact: {
-						name: "httphandler_extractimage",
-						baseDirectory: ".extractimage" as string | undefined,
+						name: `${PIPELINE_STAGE}_${EXTRACT_ACTION}`,
+						baseDirectory: `.${EXTRACT_ACTION}` as string | undefined,
 						files: ["**/*"] as string[],
 					},
 					variables: {
@@ -462,7 +508,7 @@ export = async () => {
 					] as string[],
 					environment: {
 						type: "ARM_CONTAINER",
-						computeType: "BUILD_GENERAL1_MEDIUM",
+						computeType: "BUILD_GENERAL1_SMALL",
 						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
@@ -517,7 +563,7 @@ export = async () => {
 										"--detach",
 										"--entrypoint deploy",
 										`--env DEPLOY_FILTER=${PACKAGE_NAME}`,
-										`--env DEPLOY_OUTPUT=/tmp/${ARTIFACT_ROOT}`,
+										`--env DEPLOY_OUTPUT=/tmp/httphandler`,
 									],
 									"$SOURCE_IMAGE_URI",
 								],
@@ -530,12 +576,12 @@ export = async () => {
 								`docker container logs $(cat .container)`,
 							]),
 							"mkdir -p $CODEBUILD_SRC_DIR/.extractimage || true",
-							`docker cp $(cat .container):/tmp/${ARTIFACT_ROOT} $CODEBUILD_SRC_DIR/.extractimage`,
-							"ls -al $CODEBUILD_SRC_DIR/.extractimage || true",
-							`ls -al $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT} || true`,
+							`docker cp $(cat .container):/tmp/httphandler $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}`,
+							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
+							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler || true`,
 							"corepack -g install pnpm@9 || true",
-							`pnpm -C $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT} install --offline --prod --ignore-scripts --node-linker=hoisted || true`,
-							`ls -al $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT}/node_modules || true`,
+							`pnpm -C $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler install --offline --prod --ignore-scripts --node-linker=hoisted || true`,
+							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler/node_modules || true`,
 							// bootstrap binary
 							...(LLRT_ARCH
 								? [
@@ -557,9 +603,9 @@ export = async () => {
 											`sleep ${i}s`,
 											`docker container logs $(cat .container)`,
 										]),
-										`docker cp $(cat .container):/tmp/bootstrap $CODEBUILD_SRC_DIR/.extractimage/bootstrap`,
-										"ls -al $CODEBUILD_SRC_DIR/.extractimage || true",
-										`ls -al $CODEBUILD_SRC_DIR/.extractimage/${ARTIFACT_ROOT} || true`,
+										`docker cp $(cat .container):/tmp/bootstrap $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/bootstrap`,
+										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
+										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler || true`,
 									]
 								: []),
 							`NODE_NO_WARNINGS=1 node -e '(${
@@ -579,8 +625,10 @@ export = async () => {
 					},
 				},
 				{
+					stage: PIPELINE_STAGE,
+					action: UPDATE_ACTION,
 					artifact: {
-						name: "httphandler_updatelambda",
+						name: `${PIPELINE_STAGE}_${UPDATE_ACTION}`,
 						baseDirectory: undefined as string | undefined,
 						files: ["appspec.yml", "appspec.zip"] as string[],
 					},
@@ -650,7 +698,7 @@ export = async () => {
 							[
 								"aws lambda update-function-configuration",
 								"--function-name $LAMBDA_FUNCTION_NAME",
-								`--handler ${HANDLER}`,
+								`--handler httphandler/${HANDLER}`,
 							].join(" "),
 							"echo $DeployKey",
 							[
@@ -700,7 +748,15 @@ export = async () => {
 
 			const entries = Object.fromEntries(
 				stages.map(
-					({ artifact, environment, variables, phases, exportedVariables }) => {
+					({
+						stage,
+						action,
+						artifact,
+						environment,
+						variables,
+						phases,
+						exportedVariables,
+					}) => {
 						const artifacts = new CodeBuildBuildspecArtifactsBuilder()
 							.setFiles(artifact.files)
 							.setName(artifact.name);
@@ -730,28 +786,44 @@ export = async () => {
 								.build(),
 						);
 
-						const upload = new BucketObjectv2(_(`buildspec-${artifact.name}`), {
+						const upload = new BucketObjectv2(_(`${artifact.name}-buildspec`), {
 							bucket: s3.build.bucket,
 							content,
 							key: `${artifact.name}/Buildspec.yml`,
 						});
 
 						const project = new Project(
-							_(`project-${artifact.name}`),
+							_(`${artifact.name}`),
 							{
-								description: `(${getStack()}) CodeBuild project: ${
-									artifact.name
-								} @ ${PACKAGE_NAME}`,
+								description: `(${PACKAGE_NAME}) Deploy "${stage}" pipeline stage: "${action}"`,
 								buildTimeout: 14,
 								serviceRole: farRole.arn,
 								artifacts: {
 									type: "CODEPIPELINE",
 									artifactIdentifier: artifact.name,
 								},
+								logsConfig: {
+									cloudwatchLogs: {
+										groupName: cloudwatch.build.loggroup.name,
+										streamName: `${artifact.name}`,
+									},
+									// s3Logs: {
+									// 	status: "ENABLED",
+									// 	location: s3.build.bucket,
+									// },
+								},
 								environment,
 								source: {
 									type: "CODEPIPELINE",
 									buildspec: content,
+								},
+								tags: {
+									Name: _(artifact.name),
+									StackRef: STACKREF_ROOT,
+									PackageName: PACKAGE_NAME,
+									Handler: "http",
+									DeployStage: stage,
+									Action: action,
 								},
 							},
 							{
@@ -766,6 +838,9 @@ export = async () => {
 						return [
 							artifact.name,
 							{
+								stage,
+								action,
+								artifactName: artifact.name,
 								project,
 								buildspec: {
 									content,
@@ -780,6 +855,9 @@ export = async () => {
 			return entries as Record<
 				(typeof stages)[number]["artifact"]["name"],
 				{
+					stage: string;
+					action: string;
+					artifactName: string;
 					project: Project;
 					buildspec: {
 						content: string;
@@ -796,7 +874,7 @@ export = async () => {
 
 	const codepipeline = (() => {
 		const pipeline = new Pipeline(
-			_("pipeline-deploy"),
+			_("deploy"),
 			{
 				pipelineType: "V2",
 				roleArn: farRole.arn,
@@ -842,7 +920,9 @@ export = async () => {
 								provider: "CodeBuild",
 								version: "1",
 								inputArtifacts: ["source_image"],
-								outputArtifacts: ["httphandler_extractimage"],
+								outputArtifacts: [
+									codebuild.httphandler_extractimage.artifactName,
+								],
 								configuration: all([
 									__codestar.ecr.repository.arn,
 									__codestar.ecr.repository.name,
@@ -908,7 +988,9 @@ export = async () => {
 								owner: "AWS",
 								provider: "S3",
 								version: "1",
-								inputArtifacts: ["httphandler_extractimage"],
+								inputArtifacts: [
+									codebuild.httphandler_extractimage.artifactName,
+								],
 								configuration: all([s3.deploy.bucket]).apply(
 									([BucketName]) => ({
 										BucketName,
@@ -925,8 +1007,12 @@ export = async () => {
 								owner: "AWS",
 								provider: "CodeBuild",
 								version: "1",
-								inputArtifacts: ["httphandler_extractimage"],
-								outputArtifacts: ["httphandler_updatelambda"],
+								inputArtifacts: [
+									codebuild.httphandler_extractimage.artifactName,
+								],
+								outputArtifacts: [
+									codebuild.httphandler_updatelambda.artifactName,
+								],
 								configuration: all([
 									codebuild.httphandler_updatelambda.project.name,
 									handler.http.name,
@@ -989,7 +1075,9 @@ export = async () => {
 								owner: "AWS",
 								provider: "CodeDeploy",
 								version: "1",
-								inputArtifacts: ["httphandler_updatelambda"],
+								inputArtifacts: [
+									codebuild.httphandler_updatelambda.artifactName,
+								],
 								configuration: all([
 									__codestar.codedeploy.application.name,
 									handler.codedeploy.deploymentGroup.deploymentGroupName,
@@ -1003,6 +1091,11 @@ export = async () => {
 						],
 					},
 				],
+				tags: {
+					Name: _("deploy"),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
+				},
 			},
 			{
 				dependsOn: [handler.codedeploy.deploymentGroup],
@@ -1023,8 +1116,8 @@ export = async () => {
 	const eventbridge = (() => {
 		const { name: codestarRepositoryName } = __codestar.ecr.repository;
 
-		const rule = new EventRule(_("event-rule-ecr-push"), {
-			description: `(${getStack()}) ECR push event rule for ${PACKAGE_NAME}:${STACKREF_ROOT}`,
+		const rule = new EventRule(_("on-ecr-push"), {
+			description: `(${PACKAGE_NAME}) ECR image deploy pipeline trigger for tag "${stage}"`,
 			state: "ENABLED",
 			eventPattern: JSON.stringify({
 				source: ["aws.ecr"],
@@ -1036,8 +1129,13 @@ export = async () => {
 					"image-tag": [stage],
 				},
 			}),
+			tags: {
+				Name: _(`on-ecr-push`),
+				StackRef: STACKREF_ROOT,
+			},
 		});
-		const pipeline = new EventTarget(_("event-target-pipeline"), {
+
+		const pipeline = new EventTarget(_("on-ecr-push-deploy"), {
 			rule: rule.name,
 			arn: codepipeline.pipeline.arn,
 			roleArn: farRole.arn,
@@ -1070,11 +1168,24 @@ export = async () => {
 		) as Record<keyof typeof s3, Output<{ bucket: string; region: string }>>,
 	);
 
-	const cloudwatchOutput = Output.create(cloudwatch).apply((cloudwatch) => ({
-		loggroup: all([cloudwatch.loggroup.arn]).apply(([loggroupArn]) => ({
-			arn: loggroupArn,
-		})),
-	}));
+	const cloudwatchOutput = Output.create(
+		Object.fromEntries(
+			Object.entries(cloudwatch).map(([key, { loggroup }]) => {
+				return [
+					key,
+					all([loggroup.name, loggroup.arn]).apply(([name, arn]) => ({
+						logGroup: {
+							name,
+							arn,
+						},
+					})),
+				];
+			}),
+		) as Record<
+			keyof typeof cloudwatch,
+			Output<{ logGroup: { name: string; arn: string } }>
+		>,
+	);
 
 	const codebuildProjectsOutput = Output.create(
 		Object.fromEntries(
@@ -1231,37 +1342,37 @@ export = async () => {
 		eventbridgeRulesOutput,
 	]).apply(
 		([
-			spork_panel_http_s3,
-			spork_panel_http_cloudwatch,
-			spork_panel_http_lambda,
-			spork_panel_http_cloudmap,
-			spork_panel_http_codebuild,
-			spork_panel_http_codepipeline,
-			spork_panel_http_eventbridge,
+			spork_http_s3,
+			spork_http_cloudwatch,
+			spork_http_lambda,
+			spork_http_cloudmap,
+			spork_http_codebuild,
+			spork_http_codepipeline,
+			spork_http_eventbridge,
 		]) => {
 			const exported = {
-				spork_panel_http_imports: {
+				spork_http_imports: {
 					spork: {
 						codestar: __codestar,
 						datalayer: __datalayer,
 					},
 				},
-				spork_panel_http_s3,
-				spork_panel_http_cloudwatch,
-				spork_panel_http_lambda,
-				spork_panel_http_cloudmap,
-				spork_panel_http_codebuild,
-				spork_panel_http_codepipeline,
-				spork_panel_http_eventbridge,
-			} satisfies z.infer<typeof SporkPanelHttpStackExportsZod> & {
-				spork_panel_http_imports: {
+				spork_http_s3,
+				spork_http_cloudwatch,
+				spork_http_lambda,
+				spork_http_cloudmap,
+				spork_http_codebuild,
+				spork_http_codepipeline,
+				spork_http_eventbridge,
+			} satisfies z.infer<typeof SporkHttpStackExportsZod> & {
+				spork_http_imports: {
 					spork: {
 						codestar: typeof __codestar;
 						datalayer: typeof __datalayer;
 					};
 				};
 			};
-			const validate = SporkPanelHttpStackExportsZod.safeParse(exported);
+			const validate = SporkHttpStackExportsZod.safeParse(exported);
 			if (!validate.success) {
 				process.stderr.write(
 					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
