@@ -4,8 +4,8 @@
   "author": "Pedro Cardona",
   "config": {
     "packagemanager": "pnpm",
-    "packagebin": "corepack pnpm",
-    "packageexecutor": "corepack pnpm exec",
+    "packageexecutor": "pnpm exec",
+    "packagescript": "pnpm run",
     "outpaths": "./output",
     "lintpaths": "./server ./src ./server.ts",
     "server": "./server.ts",
@@ -15,6 +15,8 @@
     "webhttpmodule": "./server.js"
   },
   "dependencies": {
+    "@aws-lambda-powertools/logger": "catalog:log-awspowertools",
+    "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
     "@loglayer/transport-consola": "catalog:log-loglayer",
     "consola": "catalog:log-consola",
     "effect": "catalog:effect",
@@ -58,15 +60,14 @@
           "staticwww:build"
         ]
       },
-      "webssr:build": {
+      "webhttp:dev": {
         "dependsOn": [
-          "staticwww:build",
           "webhttp:build"
         ]
       },
-      "webhttp:dev": {
+      "webhttp:preview": {
         "dependsOn": [
-          "webssr:build"
+          "webhttp:build"
         ]
       },
       "dx:lint": {
@@ -102,24 +103,13 @@
       "nx:compile": {
         "dependsOn": [
           "build:tsc",
-          "build:staticwww",
-          "build:webhttp",
-          "build:webssr"
+          "staticwww:build",
+          "webhttp:build"
         ]
       },
       "nx:test": {
         "dependsOn": [
           "dx:noop"
-        ]
-      },
-      "http:build": {
-        "dependsOn": [
-          "staticwww:build"
-        ]
-      },
-      "http:preview": {
-        "dependsOn": [
-          "webssr:build"
         ]
       }
     }
@@ -130,13 +120,13 @@
     "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
     "clean:module": "rm -rf $npm_package_config_outpaths || true",
-    "dev": "$npm_package_config_packageexecutor nx dev:webhttp",
+    "dev": "$npm_package_config_packageexecutor nx webhttp:dev",
     "dx:noop": "true",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
     "dx:prepublish": "$npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
-    "dx:test": "$npm_package_config_packagebin run clean && $npm_package_config_packagebin run build && $npm_package_config_packagebin run test",
+    "dx:test": "$npm_package_config_packagescript clean && $npm_package_config_packagescript build && $npm_package_config_packagescript test",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -148,7 +138,7 @@
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
-    "preview": "$npm_package_config_packageexecutor nx preview:webhttp",
+    "preview": "$npm_package_config_packageexecutor nx webhttp:preview",
     "staticwww:build": "$npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput --ssrManifest",
     "staticwww:dev": "$npm_package_config_packageexecutor vite --cors --debug --host --port $PORT",
     "staticwww:preview": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --cors --debug --host --port $PORT",

@@ -2,11 +2,15 @@
   "name": "@levicape/spork-examples-basic",
   "version": "0.0.0-local.0",
   "config": {
-    "packagebin": "corepack pnpm",
     "packagemanager": "pnpm",
-    "packageexecutor": "corepack pnpm exec",
+    "packageexecutor": "pnpm exec",
+    "outpath": "./module",
+    "srcpaths": "./src",
     "lintpaths": "./src",
-    "outpaths": "./module"
+    "i18n": "./src/_i18n",
+    "protocols": "./src/_protocols",
+    "models": "./src/_models",
+    "server": "module/app/PanelHonoApp.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "catalog:protobuf",
@@ -22,6 +26,10 @@
     "syncpack": "catalog:package",
     "typescript": "catalog:dev"
   },
+  "files": [
+    "module",
+    "output"
+  ],
   "nx": {
     "targets": {
       "build:module": {
@@ -89,25 +97,33 @@
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
-    "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
+    "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose --no-cloud",
     "clean:modules": "rm -rf $npm_package_config_modulepath",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
-    "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
-    "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
-    "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
+    "dx:test": "$npm_package_config_packagescript clean && $npm_package_config_packagescript build && $npm_package_config_packagescript test",
+    "generate:i18n": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../i18n\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact module --destination $npm_package_config_i18n --clean",
+    "generate:models": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../models\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact module --destination $npm_package_config_models --clean",
+    "generate:protocols": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../protocols\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact gen --destination $npm_package_config_protocols --clean",
+    "http:start": "$npm_package_config_packageexecutor spork server start $npm_package_config_server --port $PORT --import server",
+    "http:watch": "rm nohup.out || true; nohup $npm_package_config_packageexecutor tsc -w & echo $! > .pidfile.tsc && pnpm run http:start --watch 'module'; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
+    "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_srcpaths",
+    "lint:format": "$npm_package_config_packageexecutor biome format --write $npm_package_config_srcpaths",
+    "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_srcpaths",
+    "lint:write": "$npm_package_config_packageexecutor biome check --write $npm_package_config_srcpaths",
     "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
     "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
     "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
-    "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
+    "precommit": "$npm_package_config_packageexecutor nx dx:prepublish  --verbose --no-cloud",
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "start": "$npm_package_config_packageexecutor spork server start $npm_package_config_server --port $PORT",
-    "test": "$npm_package_config_packageexecutor nx nx:test --no-cloud --verbose"
+    "test": "$npm_package_config_packageexecutor nx nx:test --verbose --no-cloud",
+    "test:module": "echo 'node --test  \"module/**/*.test.js\"'"
   },
   "type": "module"
 }

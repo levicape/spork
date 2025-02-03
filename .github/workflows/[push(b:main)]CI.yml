@@ -18,10 +18,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-      - name: Setup Node 22.13.1
+      - name: Setup Node 22.12.0
         uses: actions/setup-node@v4
         with:
-          node-version: 22.13.1
+          node-version: 22.12.0
           registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
@@ -64,10 +64,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-      - name: Setup Node 22.13.1
+      - name: Setup Node 22.12.0
         uses: actions/setup-node@v4
         with:
-          node-version: 22.13.1
+          node-version: 22.12.0
           registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
@@ -103,7 +103,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"9fb83272e08961ca42f29a02fdc7db8c95401529b2e12110691092818f0cb69a"}
-#**:_$~- {"$$":"footer","started":"2025-02-02T21:09:16.715Z","now":"2025-02-02T21:09:16.721Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"c2a3927ac00f1236db19e6caeceb57fc45beedeaad96c40ec062f4be03b6463b"}
+#**:_$~- {"$$":"footer","started":"2025-02-03T09:23:26.996Z","now":"2025-02-03T09:23:27.013Z","elapsed":"17ms"}
 # END OF GENERATED FILE
 

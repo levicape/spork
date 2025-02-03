@@ -48,7 +48,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.13.1
+              Value: 22.12.0
             - Name: NODE_AUTH_TOKEN
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
             - Name: NPM_REGISTRY_PROTOCOL
@@ -177,7 +177,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.13.1
+              Value: 22.12.0
             - Name: NODE_AUTH_TOKEN
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
             - Name: NPM_REGISTRY_PROTOCOL
@@ -255,7 +255,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.13.1
+              Value: 22.12.0
             - Name: NODE_AUTH_TOKEN
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
             - Name: NPM_REGISTRY_PROTOCOL
@@ -340,7 +340,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.13.1
+              Value: 22.12.0
             - Name: NODE_AUTH_TOKEN
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
             - Name: NPM_REGISTRY_PROTOCOL
@@ -478,7 +478,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.13.1
+              Value: 22.12.0
             - Name: NODE_AUTH_TOKEN
               Value: ${Secrets.GITHUB_LEVICAPE_PAT}
             - Name: NPM_REGISTRY_PROTOCOL
@@ -554,7 +554,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)][schedule(0_0_*_*_?_*)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"33f3633a561d7c22e21a38534fd0b93a01aa0ea4a2dc15f173195d6dcbe5a7e0"}
-#**:_$~- {"$$":"footer","started":"2025-02-02T21:09:16.706Z","now":"2025-02-02T21:09:16.717Z","elapsed":"11ms"}
+#**:_$~- {"$$":"body","hashed":"73a50720e5709945a6c7f76ea6afa94c286f5f7d4687eaa722bb8ba8a0877e04"}
+#**:_$~- {"$$":"footer","started":"2025-02-03T09:23:27.241Z","now":"2025-02-03T09:23:27.251Z","elapsed":"10ms"}
 # END OF GENERATED FILE
 

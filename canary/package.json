@@ -3,8 +3,8 @@
   "version": "0.0.0-local.0",
   "config": {
     "packagemanager": "pnpm",
-    "packagebin": "corepack pnpm",
-    "packageexecutor": "corepack pnpm exec",
+    "packageexecutor": "pnpm exec",
+    "packagescript": "pnpm run",
     "lintpaths": "./src",
     "outpaths": "./module"
   },

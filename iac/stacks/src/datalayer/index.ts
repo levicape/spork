@@ -6,7 +6,7 @@ import { MountTarget } from "@pulumi/aws/efs/mountTarget";
 import { Role } from "@pulumi/aws/iam/role";
 import { PrivateDnsNamespace } from "@pulumi/aws/servicediscovery/privateDnsNamespace";
 import { Vpc } from "@pulumi/awsx/ec2/vpc";
-import { all, getStack } from "@pulumi/pulumi";
+import { all } from "@pulumi/pulumi";
 import type { z } from "zod";
 import { SporkDatalayerStackExportsZod } from "./exports";
 

@@ -1,3 +1,4 @@
+import { inspect } from "node:util";
 import {
 	CodeBuildBuildspecArtifactsBuilder,
 	CodeBuildBuildspecBuilder,
@@ -29,12 +30,13 @@ import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock"
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { Instance } from "@pulumi/aws/servicediscovery/instance";
 import { Service } from "@pulumi/aws/servicediscovery/service";
-import { Output, all, getStack } from "@pulumi/pulumi";
+import { Output, all, getStack, log } from "@pulumi/pulumi";
 import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
+import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
 import type { LambdaRouteResource, Route } from "../RouteMap";
-import { $deref } from "../Stack";
+import { $deref, type DereferencedOutput } from "../Stack";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
 import type { WWWRootRoute } from "../wwwroot/routes";
@@ -71,14 +73,24 @@ const STACKREF_CONFIG = {
 	},
 };
 
+const ENVIRONMENT = (
+	$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
+) => {
+	const { datalayer } = $refs;
+
+	return {
+		SPORK_DATALAYER_PROPS: datalayer.props,
+	};
+};
+
 export = async () => {
 	const context = await Context.fromConfig();
 	const _ = (name: string) => `${context.prefix}-${name}`;
 	const stage = CI.CI_ENVIRONMENT;
 	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 	// Stack references
-	const { codestar: __codestar, datalayer: __datalayer } =
-		await $deref(STACKREF_CONFIG);
+	const dereferenced$ = await $deref(STACKREF_CONFIG);
+	const { codestar: __codestar, datalayer: __datalayer } = dereferenced$;
 
 	// Object Store
 	const s3 = (() => {
@@ -309,6 +321,57 @@ export = async () => {
 							...cloudmapEnv,
 							NODE_ENV: "production",
 							LOG_LEVEL: "5",
+							...(ENVIRONMENT !== undefined && typeof ENVIRONMENT === "function"
+								? Object.fromEntries(
+										Object.entries(ENVIRONMENT(dereferenced$))
+											.filter(([_, value]) => value !== undefined)
+											.filter(
+												([_, value]) =>
+													typeof value !== "function" &&
+													typeof value !== "symbol",
+											)
+											.map(([key, value]) => {
+												log.debug(
+													inspect({
+														LambdaFn: {
+															environment: {
+																key,
+																value,
+															},
+														},
+													}),
+												);
+
+												if (typeof value === "object") {
+													return [
+														key,
+														Buffer.from(JSON.stringify(value)).toString(
+															"base64",
+														),
+													];
+												}
+												try {
+													return [key, String(value)];
+												} catch (e) {
+													log.warn(
+														inspect(
+															{
+																LambdaFn: {
+																	environment: {
+																		key,
+																		value,
+																		error: serializeError(e),
+																	},
+																},
+															},
+															{ depth: null },
+														),
+													);
+													return [key, undefined];
+												}
+											}),
+									)
+								: {}),
 						},
 					};
 				}),
@@ -581,8 +644,6 @@ export = async () => {
 							`docker cp $(cat .container):/tmp/httphandler $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler || true`,
-							"corepack -g install pnpm@9 || true",
-							`pnpm -C $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler install --offline --prod --ignore-scripts --node-linker=hoisted || true`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler/node_modules || true`,
 							// bootstrap binary
 							...(LLRT_ARCH

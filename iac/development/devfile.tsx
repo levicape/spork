@@ -11,7 +11,7 @@ import {
 } from "@levicape/fourtwo/x/devfile";
 
 const APPLICATION_NAME = "spork";
-const NODE_VERSION = "22.13.1";
+const NODE_VERSION = "22.12.0";
 const PNPM_VERSION = "9.15.4";
 const MAKE_DEPENDENCIES = [
 	"g++",

@@ -17,9 +17,9 @@ import {
 import { ulid } from "ulidx";
 import { createServer as createViteServer } from "vite";
 import {
-	ConsolaLogger,
-	withConsolaLogger,
-} from "./server/logging/ConsolaLogger.mts";
+	LoggingContext,
+	withStructuredLogging,
+} from "./server/logging/LoggingContext.mjs";
 
 declare global {
 	namespace Express {
@@ -38,8 +38,7 @@ type RenderFunction = (props: { url: string }) => Promise<{
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const server = Effect.gen(function* () {
-	const consola = yield* ConsolaLogger;
-	const logger = yield* consola.logger;
+	const logger = yield* (yield* LoggingContext).logger;
 	logger
 		.withMetadata({
 			isDevelopment,
@@ -217,5 +216,7 @@ const server = Effect.gen(function* () {
 	app.listen(process.env.PORT ?? 5555);
 });
 
-const context = Context.empty().pipe(withConsolaLogger({ prefix: "server" }));
+const context = Context.empty().pipe(
+	withStructuredLogging({ prefix: "server" }),
+);
 Effect.runFork(Effect.provide(server, context));

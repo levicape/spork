@@ -25,11 +25,11 @@ commands:
   - id: pnpm
     exec:
       component: source
-      commandLine: sudo corepack install -g 9 || true; corepack install -g 9 || true
+      commandLine: sudo corepack install -g 9.15.4 || true; corepack install -g 9.15.4 || true
   - id: node
     exec:
       component: source
-      commandLine: sudo pnpx n 22 -y || true; pnpx n 22 -y || true
+      commandLine: sudo pnpx n 22.11.0 -y || true; pnpx n 22.11.0 -y || true
   - id: codecatalyst-workflow-cli
     exec:
       component: source

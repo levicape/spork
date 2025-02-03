@@ -24,11 +24,7 @@ import { BucketWebsiteConfigurationV2 } from "@pulumi/aws/s3/bucketWebsiteConfig
 import { type Output, all } from "@pulumi/pulumi";
 import { stringify } from "yaml";
 import type { z } from "zod";
-import type {
-	LambdaRouteResource,
-	Route,
-	WebsiteManifest,
-} from "../../../RouteMap";
+import type { WebsiteManifest } from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
@@ -216,57 +212,60 @@ export = async () => {
 		};
 	})();
 
-	let manifest = (() => {
-		const {
-			stage,
-			environment: { isProd },
-			frontend,
-		} = context;
+	// Website Manifest
+	if (routemap) {
+		(() => {
+			const {
+				stage,
+				environment: { isProd },
+				frontend,
+			} = context;
 
-		let content: Output<{ WebsiteComponent: WebsiteManifest }> | undefined;
-		content = all([s3.staticwww.website?.websiteEndpoint ?? ""]).apply(
-			([url]) => {
-				const { dns } = frontend ?? {};
-				const { hostnames } = dns ?? {};
-				return {
-					WebsiteComponent: {
-						manifest: {
-							ok: true,
-							routes: routemap,
-							frontend: {
-								...(isProd
-									? {}
-									: {
-											website: {
-												url,
-												protocol: "http",
-											},
-										}),
-								hostnames: hostnames ?? [],
+			let content: Output<{ WebsiteComponent: WebsiteManifest }> | undefined;
+			content = all([s3.staticwww.website?.websiteEndpoint ?? ""]).apply(
+				([url]) => {
+					const { dns } = frontend ?? {};
+					const { hostnames } = dns ?? {};
+					return {
+						WebsiteComponent: {
+							manifest: {
+								ok: true,
+								routes: routemap,
+								frontend: {
+									...(isProd
+										? {}
+										: {
+												website: {
+													url,
+													protocol: "http",
+												},
+											}),
+									hostnames: hostnames ?? [],
+								},
+								version: {
+									sequence: Date.now().toString(),
+									stage,
+								},
 							},
-							version: {
-								sequence: Date.now().toString(),
-								stage,
-							},
-						},
-					} satisfies WebsiteManifest,
-				};
-			},
-		);
+						} satisfies WebsiteManifest,
+					};
+				},
+			);
 
-		const upload = new BucketObjectv2(_("manifest-upload"), {
-			bucket: s3.build.bucket.bucket,
-			content: content.apply((c) => JSON.stringify(c, null, 2)),
-			key: MANIFEST_PATH,
-		});
+			const upload = new BucketObjectv2(_("manifest-upload"), {
+				bucket: s3.staticwww.bucket.bucket,
+				content: content.apply((c) => JSON.stringify(c, null, 2)),
+				key: MANIFEST_PATH,
+			});
 
-		return {
-			routemap: {
-				content,
-				upload,
-			},
-		};
-	})();
+			return {
+				routemap: {
+					content,
+					upload,
+				},
+			};
+		})();
+	}
 
 	const codebuild = (() => {
 		const deployStage = "staticwww";
@@ -310,17 +309,17 @@ export = async () => {
 									"--entrypoint",
 									"deploy",
 									`-e DEPLOY_FILTER=${PACKAGE_NAME}`,
-									`-e DEPLOY_OUTPUT=/tmp/web`,
+									`-e DEPLOY_OUTPUT=/tmp/${deployAction}`,
 									"$SOURCE_IMAGE_URI",
 									"> .container",
 								].join(" "),
 								"docker ps -al",
-								"cat .container",
-								"sleep 10s",
-								`docker container logs $(cat .container)`,
-								"sleep 10s",
-								`docker container logs $(cat .container)`,
-								`docker cp $(cat .container):/tmp/web $CODEBUILD_SRC_DIR/.${deployAction}`,
+								...[2, 6, 2].flatMap((i) => [
+									`cat .container`,
+									`sleep ${i}s`,
+									`docker container logs $(cat .container)`,
+								]),
+								`docker cp $(cat .container):/tmp/${deployAction} $CODEBUILD_SRC_DIR/.${deployAction}`,
 								`ls -al $CODEBUILD_SRC_DIR/.${deployAction} || true`,
 								`ls -al $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY} || true`,
 								`du -sh $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY} || true`,
@@ -355,7 +354,7 @@ export = async () => {
 					},
 					environment: {
 						type: "ARM_CONTAINER",
-						computeType: "BUILD_GENERAL1_MEDIUM",
+						computeType: "BUILD_GENERAL1_SMALL",
 						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
@@ -402,11 +401,7 @@ export = async () => {
 					},
 				},
 				{
-					dependsOn: [
-						buildspec.upload,
-						s3.staticwww.bucket,
-						// manifest.upload
-					],
+					dependsOn: [buildspec.upload, s3.staticwww.bucket],
 				},
 			);
 

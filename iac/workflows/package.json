@@ -3,7 +3,7 @@
   "version": "0.0.0-local.0",
   "config": {
     "packagemanager": "pnpm",
-    "packageexecutor": "corepack pnpm --workspace-root exec",
+    "packageexecutor": "pnpm --workspace-root exec",
     "binpath": "fourtwo",
     "ccpath": "./iac/workflows/codecatalyst",
     "ghapath": "./iac/workflows/github"
