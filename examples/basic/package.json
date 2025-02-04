@@ -10,7 +10,9 @@
     "i18n": "./src/_i18n",
     "protocols": "./src/_protocols",
     "models": "./src/_models",
-    "server": "module/app/PanelHonoApp.mjs"
+    "server": "module/app/HonoHttpSpork.mjs",
+    "lambdahttp": "module/lambda/HttpHandler.mjs",
+    "esbuild": "module/lambda/HttpHandler.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "catalog:protobuf",
@@ -22,6 +24,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
     "@types/node": "catalog:types",
+    "esbuild": "catalog:build-esbuild",
     "publint": "catalog:package",
     "syncpack": "catalog:package",
     "typescript": "catalog:dev"
@@ -32,6 +35,11 @@
   ],
   "nx": {
     "targets": {
+      "build:esbuild": {
+        "dependsOn": [
+          "build:module"
+        ]
+      },
       "build:module": {
         "dependsOn": [
           "build:tsc"
@@ -96,6 +104,7 @@
   "repository": "github:levicape/spork",
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile",
+    "build:esbuild": "[ \"$ESBUILD_DISABLED\" = \"1\" ] && echo 'ESBUILD_DISABLED is set to 1. Skipping esbuild' || $npm_package_config_packageexecutor esbuild $npm_package_config_esbuild --outdir=output/esbuild/node --outbase=module --platform=node --target=es2023 --format=esm --bundle --minify --external:@aws-sdk --external:@smithy",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose --no-cloud",
     "clean:modules": "rm -rf $npm_package_config_modulepath",

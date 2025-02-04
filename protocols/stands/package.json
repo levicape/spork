@@ -9,12 +9,9 @@
   "dependencies": {
     "@bufbuild/buf": "catalog:protobuf",
     "@bufbuild/protobuf": "catalog:protobuf",
-    "ts-proto": "catalog:protobuf",
-    "typescript": "catalog:dev"
+    "ts-proto": "catalog:protobuf"
   },
   "devDependencies": {
-    "@biomejs/biome": "catalog:lint",
-    "ci": "catalog:package",
     "publint": "catalog:package",
     "syncpack": "catalog:package"
   },

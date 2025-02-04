@@ -15,7 +15,11 @@
     "clipath": "./module/cli/bin.mjs",
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
-    "server": "module/app/router/hono/HonoHttpSpork.mjs"
+    "server": "module/app/router/hono/HonoHttpSpork.mjs",
+    "esbuildpaths": "module/lambda/HttpHandler.mjs",
+    "esbuildplatform": "node",
+    "esbuildpackages": "bundle",
+    "esbuildargs": "--external:better-sqlite3 --external:sqlite3 --external:tedious --external:mysql --external:mysql2 --external:oracledb --external:knex"
   },
   "dependencies": {
     "@aws-lambda-powertools/logger": "catalog:log-awspowertools",
@@ -50,6 +54,7 @@
     "@types/node": "catalog:types",
     "@types/verror": "catalog:types",
     "depcheck": "catalog:package",
+    "esbuild": "catalog:build-esbuild",
     "expect": "catalog:test",
     "nx": "catalog:project-nx",
     "publint": "catalog:package",
@@ -90,11 +95,17 @@
   "files": [
     "module",
     "iac",
-    "protocols"
+    "protocols",
+    "output"
   ],
   "license": "AGPL-3.0-only",
   "nx": {
     "targets": {
+      "build:esbuild": {
+        "dependsOn": [
+          "build:module"
+        ]
+      },
       "build:module": {
         "dependsOn": [
           "build:tsc"
@@ -142,6 +153,7 @@
       "nx:compile": {
         "dependsOn": [
           "build:module",
+          "build:esbuild",
           "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile",
           "@levicape/spork-manifest-ui:nx:compile"
@@ -193,6 +205,7 @@
   "repository": "github:levicape/spork",
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile",
+    "build:esbuild": "[ \"$ESBUILD_DISABLED\" = \"1\" ] && echo 'ESBUILD_DISABLED is set to 1. Skipping esbuild' || $npm_package_config_packageexecutor esbuild $npm_package_config_esbuildpaths --outdir=output/esbuild/$npm_package_config_esbuildplatform --outbase=module --platform=$npm_package_config_esbuildplatform --target=es2023 --format=esm --bundle --minify --packages=$npm_package_config_esbuildpackages --external:@aws-sdk --external:@smithy $npm_package_config_esbuildargs",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose",
     "clean:module": "rm -rf $npm_package_config_outpaths",
@@ -211,7 +224,7 @@
     "dx:test": "$npm_package_config_packagescript clean && $npm_package_config_packagescript build && $npm_package_config_packagescript test",
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
     "http:dev": "rm nohup.out || true; nohup $npm_package_config_packageexecutor tsc -w & echo $! > .pidfile.tsc && pnpm run http:start --watch module; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
-    "http:start": "node $npm_package_config_clipath server start $npm_package_config_server --port $PORT --import server",
+    "http:start": "node $npm_package_config_clipath server start $npm_package_config_server --port ${PORT:-64128} --import server",
     "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
     "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
@@ -226,7 +239,7 @@
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
-    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test,prepublish --parallel=1 --verbose --no-cloud"
+    "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test--parallel=1 --verbose --no-cloud && $npm_package_config_packageexecutor nx run-many -t package:deps,prepublish --parallel=1 --verbose --no-cloud"
   },
   "type": "module",
   "types": "module/index.d.mts"

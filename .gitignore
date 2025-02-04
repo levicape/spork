@@ -142,6 +142,9 @@ gen
 **/gen
 build
 module
+**/module
+output
+**/output
 **/_protocols
 _protocols
 **/_models

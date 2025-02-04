@@ -39,10 +39,11 @@ catalogs:
     "aws4fetch": "^1.0.20"
     "pino-lambda": "^4.4.1"
   build:
-    "esbuild": "^0.24.2"
     "folder-hash": "^4.0.4"
     "nexe": "4.0.0-rc.6"
     "node-gyp": "^11.0.0"
+  build-esbuild:
+    "esbuild": "^0.24.2"
   cli:
     "@stricli/core": "^1.1.1"
     "enquirer": "^2.4.1"

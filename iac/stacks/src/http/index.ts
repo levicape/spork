@@ -44,8 +44,12 @@ import { SporkHttpStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork" as const;
 const DESCRIPTION = "Spork HTTP api" as const;
-const HANDLER = "module/lambda/HttpHandler.handler";
 const LLRT_ARCH: string | undefined = process.env["LLRT_ARCH"]; //"lambda-arm64-full-sdk";
+const LLRT_PLATFORM: "node" | "browser" | undefined = LLRT_ARCH
+	? "node"
+	: undefined;
+const OUTPUT_DIRECTORY = `output/esbuild`;
+const HANDLER = `${LLRT_ARCH ? `${OUTPUT_DIRECTORY}/${LLRT_PLATFORM}` : "module"}/lambda/HttpHandler.handler`;
 
 const CI = {
 	CI_ENVIRONMENT: process.env.CI_ENVIRONMENT ?? "unknown",
@@ -287,13 +291,14 @@ export = async () => {
 			},
 		});
 
+		const memorySize = context.environment.isProd ? 512 : 256;
 		const lambda = new LambdaFn(
 			_("function"),
 			{
 				description: `(${PACKAGE_NAME}) "${DESCRIPTION ?? `HTTP lambda`}" in #${stage}`,
 				role: roleArn,
 				architectures: ["arm64"],
-				memorySize: Number.parseInt(context.environment.isProd ? "512" : "256"),
+				memorySize,
 				timeout: 18,
 				packageType: "Zip",
 				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
@@ -321,6 +326,12 @@ export = async () => {
 							...cloudmapEnv,
 							NODE_ENV: "production",
 							LOG_LEVEL: "5",
+							...(LLRT_PLATFORM
+								? {
+										LLRT_PLATFORM,
+										LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
+									}
+								: {}),
 							...(ENVIRONMENT !== undefined && typeof ENVIRONMENT === "function"
 								? Object.fromEntries(
 										Object.entries(ENVIRONMENT(dereferenced$))
@@ -628,7 +639,7 @@ export = async () => {
 										"--detach",
 										"--entrypoint deploy",
 										`--env DEPLOY_FILTER=${PACKAGE_NAME}`,
-										`--env DEPLOY_OUTPUT=/tmp/httphandler`,
+										`--env DEPLOY_OUTPUT=/tmp/${PIPELINE_STAGE}`,
 									],
 									"$SOURCE_IMAGE_URI",
 								],
@@ -640,14 +651,15 @@ export = async () => {
 								`sleep ${i}s`,
 								`docker container logs $(cat .container)`,
 							]),
-							"mkdir -p $CODEBUILD_SRC_DIR/.extractimage || true",
-							`docker cp $(cat .container):/tmp/httphandler $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}`,
+							`mkdir -p $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
+							`docker cp $(cat .container):/tmp/${PIPELINE_STAGE} $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
-							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler || true`,
-							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler/node_modules || true`,
+							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
+							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/node_modules || true`,
 							// bootstrap binary
 							...(LLRT_ARCH
 								? [
+										`echo 'LLRT_ARCH: ${LLRT_ARCH}, extracting bootstrap'`,
 										[
 											...[
 												"docker run",
@@ -668,9 +680,14 @@ export = async () => {
 										]),
 										`docker cp $(cat .container):/tmp/bootstrap $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/bootstrap`,
 										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
-										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/httphandler || true`,
+										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
+										`du -sh $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/${OUTPUT_DIRECTORY} || true`,
 									]
-								: []),
+								: [
+										`echo 'No LLRT_ARCH specified, removing ${OUTPUT_DIRECTORY}'`,
+										`rm -rf $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/${OUTPUT_DIRECTORY} || true`,
+										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
+									]),
 							`NODE_NO_WARNINGS=1 node -e '(${
 								// biome-ignore lint/complexity/useArrowFunction:
 								function () {

@@ -1,3 +1,6 @@
+ignore-patterns:
+- "output"
+json: true
 ignores: 
 - "@bufbuild/protobuf"
 - "@levicape/*"

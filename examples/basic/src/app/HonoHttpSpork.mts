@@ -4,13 +4,13 @@ import {
 	HonoHttpMiddlewareStandard,
 	HonoHttpServerApp,
 	HonoHttpServerBuilder,
+} from "@levicape/spork/router/hono";
+import {
 	Jwt,
 	JwtLayer,
-} from "@levicape/spork";
-import {
 	LoggingContext,
 	withStructuredLogging,
-} from "@levicape/spork/server/logging";
+} from "@levicape/spork/server";
 import { Context, Effect, pipe } from "effect";
 import type { Effect as IEffect } from "effect/Effect";
 import type { Context as HonoContext } from "hono";
@@ -56,7 +56,6 @@ export const BasicExampleRouter = BasicExampleApp.route(
 			}),
 		),
 	);
-
 export const server = HonoHttpServerBuilder({
 	app: pipe(
 		Effect.provide(
@@ -72,7 +71,15 @@ export const server = HonoHttpServerBuilder({
 								jwtTools,
 							}),
 						}),
-						(app) => Effect.succeed(app.route("/", BasicExampleRouter)),
+						(app) =>
+							Effect.succeed(
+								app.route(
+									"/",
+									(new Hono() as SporkHonoApp).get(async (c) => {
+										return c.json({ message: "Hello, World!" });
+									}),
+								),
+							),
 					);
 				}),
 				JwtLayer,
