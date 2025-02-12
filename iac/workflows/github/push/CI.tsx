@@ -69,19 +69,26 @@ export default async () => (
 									<GithubStepX
 										name="Compile"
 										run={[
-											"pnpx nx run-many -t build --parallel=1 --verbose --no-cloud",
+											"pnpm exec nx run-many -t build --parallel=1 --verbose --no-cloud",
 										]}
 									/>
 									<GithubStepX
 										name="Lint"
 										run={[
-											"pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud",
+											"pnpm exec nx run-many -t lint --parallel=1 --verbose --no-cloud",
 										]}
 									/>
 									<GithubStepX
 										name="Test"
 										run={[
-											"pnpx nx run-many -t test --parallel=1 --verbose --no-cloud",
+											"pnpm exec nx run-many -t test --parallel=1 --verbose --no-cloud",
+										]}
+									/>
+									<GithubStepX
+										name="Clean cache"
+										run={[
+											"pnpm store prune || true",
+											"corepack cache clean || true",
 										]}
 									/>
 								</>

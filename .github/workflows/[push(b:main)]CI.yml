@@ -51,11 +51,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm install;
       - name: Compile
-        run: pnpx nx run-many -t build --parallel=1 --verbose --no-cloud;
+        run: pnpm exec nx run-many -t build --parallel=1 --verbose --no-cloud;
       - name: Lint
-        run: pnpx nx run-many -t lint --parallel=1 --verbose --no-cloud;
+        run: pnpm exec nx run-many -t lint --parallel=1 --verbose --no-cloud;
       - name: Test
-        run: pnpx nx run-many -t test --parallel=1 --verbose --no-cloud;
+        run: pnpm exec nx run-many -t test --parallel=1 --verbose --no-cloud;
+      - name: Clean cache
+        run: |-
+          pnpm store prune || true;
+          corepack cache clean || true;
   build-image:
     name: Build Docker Image
     runs-on: ubuntu-latest
@@ -103,7 +107,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"c2a3927ac00f1236db19e6caeceb57fc45beedeaad96c40ec062f4be03b6463b"}
-#**:_$~- {"$$":"footer","started":"2025-02-03T09:23:26.996Z","now":"2025-02-03T09:23:27.013Z","elapsed":"17ms"}
+#**:_$~- {"$$":"body","hashed":"403964535d22d969b43222f582d5e9284230ffb79f3f886310455c7fb59f852b"}
+#**:_$~- {"$$":"footer","started":"2025-02-05T00:12:02.958Z","now":"2025-02-05T00:12:02.965Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 

@@ -1,7 +1,7 @@
 import { Config } from "effect";
 import { env } from "std-env";
 
-export class ServerJwtContext {
+export class ServerJwtConfig {
 	static ACCOUNTS_KEYS__REGION = "ACCOUNTS_KEYS__REGION" as const;
 	static ACCOUNTS_KEYS__JWT_CURRENT_PRIVATE_PARAMETER_NAME =
 		"ACCOUNTS_KEYS__JWT_CURRENT_PRIVATE_PARAMETER_NAME" as const;
@@ -15,7 +15,7 @@ export class ServerJwtContext {
 	) {}
 }
 
-export const SporkServerJwtContext = Config.map(
+export const SporkServerJwtConfig = Config.map(
 	Config.all([
 		Config.nested(
 			Config.all([
@@ -29,7 +29,7 @@ export const SporkServerJwtContext = Config.map(
 		),
 	]),
 	([[region, jwtPrivateKeyParameterName, jwtPublicKeyParameterName]]) =>
-		new ServerJwtContext(
+		new ServerJwtConfig(
 			region,
 			jwtPrivateKeyParameterName,
 			jwtPublicKeyParameterName,

@@ -35,7 +35,7 @@
     "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
     "@loglayer/transport-consola": "catalog:log-loglayer",
     "@stricli/core": "catalog:cli",
-    "chokidar": "catalog:server",
+    "chokidar": "catalog:fs",
     "consola": "catalog:log-consola",
     "effect": "catalog:effect",
     "hono-rate-limiter": "catalog:hono",
@@ -66,31 +66,8 @@
     "node": "22.12.0"
   },
   "exports": {
-    ".": "./module/app/index.mjs",
-    "./domains": "./module/app/domains/index.mjs",
-    "./domains/service": "./module/app/domains/service/index.mjs",
-    "./domains/wellknown": "./module/app/domains/wellknown/index.mjs",
-    "./router": "./module/app/router/index.mjs",
-    "./router/hono": "./module/app/router/hono/index.mjs",
-    "./router/hono/guard": "./module/app/router/hono/guard/index.mjs",
-    "./router/hono/guard/security": "./module/app/router/hono/guard/security/index.mjs",
-    "./server": "./module/app/server/index.mjs",
-    "./server/context": "./module/app/server/context/index.mjs",
-    "./server/client": "./module/app/server/client/index.mjs",
-    "./server/client/kv": "./module/app/server/client/kv/index.mjs",
-    "./server/client/kv/aws": "./module/app/server/client/kv/aws/index.mjs",
-    "./server/client/table": "./module/app/server/client/table/index.mjs",
-    "./server/client/table/aws": "./module/app/server/client/table/aws/index.mjs",
-    "./server/client/table/postgres": "./module/app/server/client/table/postgres/index.mjs",
-    "./server/client/queue": "./module/app/server/client/queue/index.mjs",
-    "./server/client/queue/aws": "./module/app/server/client/queue/aws/index.mjs",
-    "./server/client/queue/artemis": "./module/app/server/client/queue/artemis/index.mjs",
-    "./server/exceptions": "./module/app/server/exceptions/index.mjs",
-    "./server/logging": "./module/app/server/logging/index.mjs",
-    "./server/security": "./module/app/server/security/index.mjs",
-    "./lambda": "./module/lambda/index.mjs",
-    "./cli": "./module/cli/index.mjs",
-    "./ci": "./module/ci/index.mjs"
+    "./*": "./module/app/*.mjs",
+    "./lambda/*": "./module/lambda/*.mjs"
   },
   "files": [
     "module",
@@ -241,6 +218,5 @@
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
     "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test--parallel=1 --verbose --no-cloud && $npm_package_config_packageexecutor nx run-many -t package:deps,prepublish --parallel=1 --verbose --no-cloud"
   },
-  "type": "module",
-  "types": "module/index.d.mts"
+  "type": "module"
 }

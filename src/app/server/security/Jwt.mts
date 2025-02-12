@@ -7,10 +7,10 @@ import type { IKeyValueStore } from "../client/kv/IKeyValueStore.js";
 import { MemoryKV } from "../client/kv/IKeyValueStore.mock.js";
 import { SecretsManager } from "../client/kv/aws/SecretsManager.js";
 import {
-	type ServerJwtContext,
-	SporkServerJwtContext,
-} from "../context/ServerJwtContext.mjs";
-import { LoggingContext } from "../index.mjs";
+	type ServerJwtConfig,
+	SporkServerJwtConfig,
+} from "../config/ServerJwtConfig.mjs";
+import { LoggingContext } from "../logging/LoggingContext.mjs";
 import { LoginToken } from "./model/LoginToken.js";
 import type { SecurityAudience } from "./model/Security.js";
 
@@ -27,7 +27,7 @@ export class JwtTools {
 	verifyKey?: JwtToolsKey;
 
 	static SUPPORTED_PROTOCOLS = {
-		ssm: ({ region }: ServerJwtContext) => {
+		ssm: ({ region }: ServerJwtConfig) => {
 			if (region !== null) {
 				return new SecretsManager(region);
 			}
@@ -37,7 +37,7 @@ export class JwtTools {
 
 	constructor(
 		private logger: ILogLayer,
-		private context: ServerJwtContext,
+		private context: ServerJwtConfig,
 	) {}
 
 	connect = (key: string): IKeyValueStore<string> => {
@@ -66,7 +66,7 @@ export class JwtTools {
 		return manager ?? new MemoryKV();
 	};
 
-	initialize = async (context?: ServerJwtContext): Promise<void> => {
+	initialize = async (context?: ServerJwtConfig): Promise<void> => {
 		if (context) {
 			this.context = context;
 		}
@@ -179,7 +179,7 @@ export const JwtLayer = Layer.effect(
 	Effect.gen(function* () {
 		const console = yield* LoggingContext;
 		const logger = yield* console.logger;
-		const context = yield* SporkServerJwtContext;
+		const context = yield* SporkServerJwtConfig;
 		logger.withMetadata({ JwtLayer: { context } }).debug("JwtLayer");
 
 		const jwtTools = new JwtTools(logger, context);

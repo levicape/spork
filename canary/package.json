@@ -22,10 +22,11 @@
     "typescript": "catalog:dev"
   },
   "exports": {
-    ".": "./module/index.mjs"
+    "./*": "./module/*.mjs"
   },
   "files": [
-    "module"
+    "module",
+    "output"
   ],
   "nx": {
     "targets": {
@@ -119,6 +120,5 @@
     "test": "$npm_package_config_packageexecutor nx nx:test --no-cloud --verbose",
     "test:basic": "node --experimental-strip-types module/basic/server.canary.mjs"
   },
-  "type": "module",
-  "types": "module/index.d.mts"
+  "type": "module"
 }

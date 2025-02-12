@@ -428,6 +428,16 @@ export = async () => {
 			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
 			cors: {
 				allowMethods: ["*"],
+				allowOrigins: context.environment.isProd ? hostnames : ["*"],
+				maxAge: 86400,
+			},
+		});
+
+		const latestUrl = new FunctionUrl(_("url-latest"), {
+			functionName: lambda.name,
+			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
+			cors: {
+				allowMethods: ["*"],
 				allowOrigins: hostnames,
 				maxAge: 86400,
 			},
@@ -450,6 +460,12 @@ export = async () => {
 					Name: _("deployment-group"),
 					StackRef: STACKREF_ROOT,
 					PackageName: PACKAGE_NAME,
+					Kind: "HttpHandler",
+					LambdaArn: lambda.arn,
+					LambdaFunction: lambda.name,
+					LambdaAlias: alias.name,
+					LambdaVersion: version.version,
+					LambdaUrl: url.functionUrl,
 				},
 			},
 			{
@@ -472,6 +488,7 @@ export = async () => {
 				qualifier: url.qualifier,
 				alias,
 				version,
+				$latest: latestUrl,
 			},
 			codedeploy: {
 				deploymentGroup,

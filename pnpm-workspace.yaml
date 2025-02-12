@@ -6,7 +6,7 @@ packages:
   - 'packages/*'
   - 'protocols/*'
 catalog:
-  "@levicape/paloma": "0.2.0-main.6"
+  "@levicape/paloma": "0.3.0-main.7"
   "@levicape/fourtwo": "0.7.1-main.15"
   "@levicape/fourtwo-pulumi": "0.7.1-main.15"
   "@levicape/fourtwo-builders": "0.7.1-main.15"
@@ -39,6 +39,7 @@ catalogs:
     "aws4fetch": "^1.0.20"
     "pino-lambda": "^4.4.1"
   build:
+    "esbuild": "^0.24.2"
     "folder-hash": "^4.0.4"
     "nexe": "4.0.0-rc.6"
     "node-gyp": "^11.0.0"
@@ -73,6 +74,12 @@ catalogs:
     "slonik": "^46.4.0"
   database-sqlite:
     "better-sqlite3": "^11.8.1"
+  data-column-arrow:
+    "@apache-arrow/esnext-esm": "^19.0.0"
+    "@apache-arrow/ts": "^19.0.0"
+    "arquero": "^8.0.0"
+  data-row-avro:
+    "avsc": "^5.7.7"
   dev:
     "typescript": "^5.7.3"
     "tsx": "^4.19.2"
@@ -83,6 +90,10 @@ catalogs:
   error:
     "serialize-error": "^12.0.0"
     "verror": "^1.10.0"
+  fs:
+    "chokidar": "^4.0.3"
+    "fs-extra": "^11.3.0"
+    "klaw": "^4.1.0"
   http:
     "cookie": "^1.0.2"
     "cookie-signature": "^1.2.2"
@@ -122,6 +133,8 @@ catalogs:
     "depcheck": "^1.4.7"
     "publint": "^0.3.2"
     "syncpack": "^13.0.1"
+  parse-csv:
+    "csv": "^6.3.11"
   parse-json:
     "destr": "^2.0.3"
   parse-path:
@@ -147,7 +160,6 @@ catalogs:
   server:
     "@stricjs/cluster": "^2.0.0"
     "@stricjs/utils": "^2.0.7"
-    "chokidar": "^4.0.3"
     "hookable": "^5.5.3"
     "lru-cache": "^11.0.2"
     "node-html-parser": "^7.0.1"
@@ -162,9 +174,11 @@ catalogs:
     "@types/cookie-signature": "^1.1.2"
     "@types/express": "^4.17"
     "@types/folder-hash": "^4.0.4"
+    "@types/fs-extra": "^11.0.4"
     "@types/ini": "^4.1.1"
     "@types/js-yaml": "^4.0.9"
     "@types/jsonwebtoken": "^9.0.7"
+    "@types/klaw": "^3.0.6"
     "@types/module-alias": "^2.0.4"
     "@types/node": "^22.13.1"
     "@types/qrcode": "^1.5.5"
