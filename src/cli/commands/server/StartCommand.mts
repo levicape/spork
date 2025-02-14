@@ -3,15 +3,13 @@ import { watch } from "chokidar";
 import { Deferred, Duration, Effect, Exit } from "effect";
 import { makeSemaphore } from "effect/Effect";
 import type { RuntimeFiber } from "effect/Fiber";
-import type { Hono } from "hono";
 import { serializeError } from "serialize-error";
 import VError from "verror";
-import type { HonoHttpServerExports } from "../../../app/router/hono/HonoHttpServerBuilder.mjs";
+import type { SporkServerStartImportExpects } from "../../../app/router/hono/HonoHttpServerBuilder.mjs";
 import type { SporkCliAppProps } from "../../SporkCliApp.mjs";
 
 type Flags = {
 	readonly port: number;
-	readonly import: string;
 	readonly watch?: string;
 };
 
@@ -20,10 +18,7 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 		buildCommand({
 			loader: async () => {
 				const nowunix = Date.now();
-				return async (
-					{ port, import: import_, watch: watchpath }: Flags,
-					target: string,
-				) => {
+				return async ({ port, watch: watchpath }: Flags, target: string) => {
 					const path = `${process.cwd()}/${target}`;
 					const logger = props.service.logger.withContext({
 						parent: ["server"],
@@ -36,7 +31,6 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 								path,
 								args: {
 									port,
-									import: import_,
 									watch: watchpath,
 									target,
 								},
@@ -49,34 +43,41 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 						let signal = yield* Deferred.make<boolean, Error>();
 
 						let lifecycle = Effect.tryPromise({
-							try: async (): ReturnType<HonoHttpServerExports<Hono>> => {
+							try: async (): Promise<SporkServerStartImportExpects> => {
 								const uncachepath = `${path}?${Date.now()}`;
 								const module = await import(uncachepath);
-								if (!module[import_]) {
+								if (!module["server"]) {
+									logger
+										.withMetadata({
+											StartCommand: {
+												path: uncachepath,
+												module,
+											},
+										})
+										.error(
+											"Exports not found. Please ensure the module exports 'server'",
+										);
 									throw new VError(
 										{
 											info: {
 												path: uncachepath,
-												import: import_,
 												module,
 											},
 										},
-										"Export not found",
+										"Exports not found. Please ensure the module exports 'server'",
 									);
 								}
-								const HonoHttpServer: HonoHttpServerExports<Hono> =
-									module[import_];
+								const HonoHttpServer: SporkServerStartImportExpects = module;
 
 								logger
 									.withMetadata({
 										StartCommand: {
 											path: uncachepath,
-											import: import_,
 											HonoHttpServer,
 										},
 									})
 									.debug("Imported module");
-								return await HonoHttpServer();
+								return Promise.resolve(HonoHttpServer);
 							},
 							catch: (error: unknown) => {
 								logger
@@ -85,13 +86,12 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 											error: serializeError(error),
 										},
 									})
-									.error("Failed to start server");
+									.error("Failed to import server module");
 								return Promise.reject(error);
 							},
 						}).pipe(
-							Effect.flatMap((builder) => {
+							Effect.flatMap(({ server }) => {
 								return Effect.gen(function* () {
-									const server = yield* builder;
 									yield* Effect.tryPromise({
 										try: async () => {
 											await server.serve({
@@ -120,11 +120,10 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 
 									yield* Deferred.succeed(ready, true);
 
-									const app = yield* server.app;
 									logger
 										.withMetadata({
 											StartCommand: {
-												routes: app.routes
+												routes: server.app.routes
 													?.filter(
 														(route: { path: string }) => route.path !== "/*",
 													)
@@ -237,13 +236,6 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 							return Number(port);
 						},
 						optional: false,
-					},
-					import: {
-						brief:
-							'Export to use from target file. (Defaults to --import "default")',
-						kind: "parsed",
-						default: "default",
-						parse: String,
 					},
 					watch: {
 						brief: "Watch directory for changes",

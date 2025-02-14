@@ -3,6 +3,7 @@ import { Hono, type MiddlewareHandler } from "hono";
 import { serviceHonoRouter } from "../../domains/service/ServiceHonoRouter.js";
 import { wellknownHonoRouter } from "../../domains/wellknown/WellknownHonoRouter.mjs";
 import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
+import type { SporkHonoApp } from "./HonoHttpServerBuilder.mjs";
 import type { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
 import { Hono404Handler } from "./middleware/exception/Hono404Handler.js";
 import { HonoExceptionMiddleware } from "./middleware/exception/HonoExceptionMiddleware.mjs";
@@ -30,3 +31,5 @@ export const HonoHttpApp = <
 			.route("/.well-known/", wellknownHonoRouter)
 			.route("/!/v1/Service/", serviceHonoRouter);
 	});
+
+export const SporkHono = () => new Hono() as unknown as SporkHonoApp;

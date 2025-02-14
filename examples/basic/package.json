@@ -11,13 +11,11 @@
     "protocols": "./src/_protocols",
     "models": "./src/_models",
     "server": "module/app/HonoHttpSpork.mjs",
-    "lambdahttp": "module/lambda/HttpHandler.mjs",
-    "esbuild": "module/lambda/HttpHandler.mjs"
+    "esbuild": "module/app/HonoHttpSpork.mjs"
   },
   "dependencies": {
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/spork": "workspace:",
-    "effect": "catalog:effect",
     "hono": "catalog:hono",
     "ts-proto": "catalog:protobuf"
   },

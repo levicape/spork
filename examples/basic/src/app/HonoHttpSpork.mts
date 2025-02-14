@@ -1,91 +1,43 @@
-import {
-	HonoHttpApp,
-	HonoHttpServerApp,
-	HonoHttpServerBuilder,
-} from "@levicape/spork/hono";
+import { SporkHono, SporkHonoHttpServer } from "@levicape/spork/hono";
 import { HonoGuardAuthentication } from "@levicape/spork/hono/guard";
-import { HonoHttpMiddlewareStandard } from "@levicape/spork/hono/middleware";
-import {
-	LoggingContext,
-	withStructuredLogging,
-} from "@levicape/spork/server/logging/LoggingContext";
-import { Jwt, JwtLayer } from "@levicape/spork/server/security/Jwt";
-import { Context, Effect, pipe } from "effect";
-import type { Effect as IEffect } from "effect/Effect";
 import type { Context as HonoContext } from "hono";
-import { Hono } from "hono";
 
-type SporkHonoApp = IEffect.Success<ReturnType<typeof HonoHttpApp>>;
-const hono = () => new Hono() as unknown as SporkHonoApp;
-export const BasicExampleApp = hono();
-
-export const BasicExampleRouter = BasicExampleApp.route(
-	"/",
-	hono().use(
-		HonoGuardAuthentication(async ({ principal }) => {
-			return principal.$case === "user";
-		}),
-	),
-)
-	.route(
-		"/",
-		hono().use(
-			HonoGuardAuthentication(async ({ principal }) => {
-				return principal.$case !== "anonymous";
-			}),
-		),
-	)
-	.route(
-		"/",
-		hono()
-			.use(
+export const { server, handler } = await SporkHonoHttpServer((app) =>
+	app
+		.route(
+			"/user",
+			SporkHono().use(
 				HonoGuardAuthentication(async ({ principal }) => {
-					return principal.$case === "anonymous";
+					return principal.$case === "user";
 				}),
-			)
-			.get("/anonymous", async (c: HonoContext) => {
-				c.json({ message: "Hello, anonymous!" });
-			}),
-	)
-	.route(
-		"/",
-		hono().use(
-			HonoGuardAuthentication(async ({ principal }) => {
-				return principal.$case !== "admin";
-			}),
-		),
-	);
-export const server = HonoHttpServerBuilder({
-	app: pipe(
-		Effect.provide(
-			Effect.provide(
-				Effect.gen(function* () {
-					const consola = yield* LoggingContext;
-					const logger = yield* consola.logger;
-					const { jwtTools } = yield* Jwt;
-					return yield* Effect.flatMap(
-						HonoHttpApp({
-							middleware: HonoHttpMiddlewareStandard({
-								logger,
-								jwtTools,
-							}),
-						}),
-						(app) =>
-							Effect.succeed(
-								app.route(
-									"/",
-									(new Hono() as SporkHonoApp).get(async (c) => {
-										return c.json({ message: "Hello, World!" });
-									}),
-								),
-							),
-					);
-				}),
-				JwtLayer,
 			),
-			Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
+		)
+		.route(
+			"/",
+			SporkHono().use(
+				HonoGuardAuthentication(async ({ principal }) => {
+					return principal.$case !== "anonymous";
+				}),
+			),
+		)
+		.route(
+			"/",
+			SporkHono()
+				.use(
+					HonoGuardAuthentication(async ({ principal }) => {
+						return principal.$case === "anonymous";
+					}),
+				)
+				.get("/anonymous", async (c: HonoContext) => {
+					c.json({ message: "Hello, anonymous!" });
+				}),
+		)
+		.route(
+			"/not-admin",
+			SporkHono().use(
+				HonoGuardAuthentication(async ({ principal }) => {
+					return principal.$case !== "admin";
+				}),
+			),
 		),
-	),
-});
-
-export const app = HonoHttpServerApp(server);
+);
