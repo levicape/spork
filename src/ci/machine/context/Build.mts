@@ -1,17 +1,14 @@
-import {
-	getBuildkiteArtifacts,
-	getBuildkiteBuildNumber,
-	isBuildkite,
-} from "../executor/Buildkite.mjs";
-import { isGithubAction } from "../executor/GithubActions.mjs";
+import { githubActions } from "../executor/GithubActions.mjs";
 import { getEnv } from "./Environment.mjs";
+
+const isBuildkite = false;
 
 export function getBuildId(): string | undefined {
 	if (isBuildkite) {
 		return getEnv("BUILDKITE_BUILD_ID");
 	}
 
-	if (isGithubAction) {
+	if (githubActions.isActive()) {
 		return getEnv("GITHUB_RUN_ID");
 	}
 
@@ -23,7 +20,7 @@ export function getBuildNumber(): number | undefined {
 		return Number.parseInt(getEnv("BUILDKITE_BUILD_NUMBER") ?? "");
 	}
 
-	if (isGithubAction) {
+	if (githubActions.isActive()) {
 		return Number.parseInt(getEnv("GITHUB_RUN_ID") || "");
 	}
 
@@ -37,7 +34,7 @@ export function getBuildUrl(): URL | undefined {
 		return new URL(`#${jobId}`, buildUrl);
 	}
 
-	if (isGithubAction) {
+	if (githubActions.isActive()) {
 		const baseUrl = getEnv("GITHUB_SERVER_URL", false) || "https://github.com";
 		const repository = getEnv("GITHUB_REPOSITORY");
 		const runId = getEnv("GITHUB_RUN_ID");
@@ -57,7 +54,7 @@ export function getBuildLabel(): string | undefined {
 		}
 	}
 
-	if (isGithubAction) {
+	if (githubActions.isActive()) {
 		const label = getEnv("GITHUB_WORKFLOW", false);
 		if (label) {
 			return label;
@@ -68,10 +65,10 @@ export function getBuildLabel(): string | undefined {
 }
 
 export async function getBuildArtifacts() {
-	const buildId = await getBuildkiteBuildNumber();
-	if (buildId) {
-		return getBuildkiteArtifacts(buildId.toString());
-	}
+	// const buildId = await getBuildkiteBuildNumber();
+	// if (buildId) {
+	// 	return getBuildkiteArtifacts(buildId.toString());
+	// }
 
 	return [];
 }

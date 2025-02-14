@@ -17,6 +17,9 @@
     "@pulumi/pulumi": "catalog:pulumi",
     "destr": "catalog:parse-json",
     "serialize-error": "catalog:error",
+    "ts-node": "catalog:dev",
+    "tslib": "catalog:dev",
+    "typescript": "catalog:dev",
     "verror": "catalog:error",
     "yaml": "catalog:core",
     "zod": "catalog:core"

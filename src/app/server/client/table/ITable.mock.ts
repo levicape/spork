@@ -39,8 +39,8 @@ export class MemoryTable<T, K> implements ITable<T, K> {
 				const entries = Object.entries(map);
 				for (let i = 0; i < entries.length; i++) {
 					const entry = entries[i];
-					const key = entry[0];
-					const value = entry[1];
+					const key = entry?.[0] as string;
+					const value = entry?.[1] as K;
 					if (key.startsWith(partitionKey)) {
 						yield value as unknown as T;
 					}

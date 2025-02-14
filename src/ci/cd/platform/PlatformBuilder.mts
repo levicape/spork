@@ -102,7 +102,7 @@ export class PlatformBuilder<Step> {
 			getTestAgent: () => Platform.getTestAgent(platform, this.options!),
 			getBuildImageStep: () =>
 				// biome-ignore lint/style/noNonNullAssertion:
-				Platform.getBuildImageStep(platform, this.options!) as Step,
+				Platform.getBuildImageStep(platform, this.options!),
 			getDependsOn: (step?: string) =>
 				PlatformTargets.getDependsOn(platform, step, this.options),
 			// biome-ignore lint/style/noNonNullAssertion:

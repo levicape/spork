@@ -70,6 +70,16 @@ export class PostgresTable<
 		this.reader = reader;
 
 		if (reads === undefined || writes === undefined) {
+			this.reads = {
+				query: async () => {
+					return { rows: [] };
+				},
+			} as unknown as DatabasePool;
+			this.writes = {
+				query: async () => {
+					return { rows: [] };
+				},
+			} as unknown as DatabasePool;
 			this.init = (role) => {
 				const auth = role === "writer" ? writer : reader;
 				const connection: string = role === "writer" ? master : replica;
@@ -95,7 +105,7 @@ export class PostgresTable<
 					},
 				);
 			};
-			this.initialize().then(() => {
+			this.initialize().then((r) => {
 				// Logger.debug({
 				// 	PostgresTable: {
 				// 		master: this.master,
@@ -110,6 +120,7 @@ export class PostgresTable<
 		} else {
 			this.reads = reads;
 			this.writes = writes;
+			this.init = async () => reads;
 		}
 	}
 

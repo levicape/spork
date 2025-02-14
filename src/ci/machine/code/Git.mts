@@ -4,8 +4,9 @@ import { executeSync } from "../Execute.mjs";
 import { getEnv } from "../context/Environment.mjs";
 import { readFile } from "../context/Filesystem.mjs";
 import { curl } from "../context/Process.mjs";
-import { isBuildkite } from "../executor/Buildkite.mjs";
-import { getGithubApiUrl, isGithubAction } from "../executor/GithubActions.mjs";
+import { getGithubApiUrl, githubActions } from "../executor/GithubActions.mjs";
+
+const isBuildkite = false;
 
 let __branch: string | undefined;
 export const getBranch = (cwd?: string) => {
@@ -19,7 +20,7 @@ export const getBranch = (cwd?: string) => {
 					}
 				}
 
-				if (isGithubAction) {
+				if (githubActions.isActive()) {
 					const ref = getEnv("GITHUB_REF_NAME", false);
 					if (ref) {
 						return ref;
@@ -53,7 +54,7 @@ export const getCommit = (cwd?: string) => {
 					}
 				}
 
-				if (isGithubAction) {
+				if (githubActions.isActive()) {
 					const commit = getEnv("GITHUB_SHA", false);
 					if (commit) {
 						return commit;
@@ -115,7 +116,7 @@ export const getMainBranch = (cwd?: string) => {
 					}
 				}
 
-				if (isGithubAction) {
+				if (githubActions.isActive()) {
 					const headRef = getEnv("GITHUB_HEAD_REF", false);
 					if (headRef) {
 						return headRef;
@@ -145,7 +146,7 @@ export const isPullRequest = () => {
 				return !!getEnv("BUILDKITE_PULL_REQUEST", false);
 			}
 
-			if (isGithubAction) {
+			if (githubActions.isActive()) {
 				const pullRequest =
 					getEnv("GITHUB_EVENT_NAME", false) === "pull_request";
 				if (pullRequest && getEnv("GITHUB_HEAD_REF", false)) {
@@ -168,7 +169,7 @@ export const getTargetBranch = () => {
 					return getEnv("BUILDKITE_PULL_REQUEST_BASE_BRANCH", false);
 				}
 
-				if (isGithubAction) {
+				if (githubActions.isActive()) {
 					return getEnv("GITHUB_BASE_REF", false);
 				}
 			}
@@ -196,7 +197,7 @@ export const isFork = (cwd?: string) => {
 				return !!repository && repository !== getEnv("BUILDKITE_REPO", false);
 			}
 
-			if (isGithubAction) {
+			if (githubActions.isActive()) {
 				const eventPath = getEnv("GITHUB_EVENT_PATH", false);
 				if (eventPath && existsSync(eventPath)) {
 					const event = JSON.parse(readFile(eventPath, { cache: true }));
@@ -257,7 +258,7 @@ export const getRepository = (cwd?: string) => {
 	if (__repository === undefined) {
 		__repository = (() => {
 			if (!cwd) {
-				if (isGithubAction) {
+				if (githubActions.isActive()) {
 					const repository = getEnv("GITHUB_REPOSITORY", false);
 					if (repository) {
 						return repository;
@@ -291,7 +292,7 @@ export const getPullRequest = () => {
 				}
 			}
 
-			if (isGithubAction) {
+			if (githubActions.isActive()) {
 				const eventPath = getEnv("GITHUB_EVENT_PATH", false);
 				if (eventPath && existsSync(eventPath)) {
 					const event = JSON.parse(readFile(eventPath, { cache: true }));
@@ -370,7 +371,7 @@ export function getRepositoryUrl(cwd?: string): URL | undefined {
 			}
 		}
 
-		if (isGithubAction) {
+		if (githubActions.isActive()) {
 			const serverUrl =
 				getEnv("GITHUB_SERVER_URL", false) || "https://github.com";
 			const repository = getEnv("GITHUB_REPOSITORY", false);

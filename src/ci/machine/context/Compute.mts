@@ -1,10 +1,11 @@
 import { userInfo } from "node:os";
-import { isBuildkite } from "../executor/Buildkite.mjs";
-import { isGithubAction } from "../executor/GithubActions.mjs";
+import { githubActions, isGithubAction } from "../executor/GithubActions.mjs";
 import { getEnv } from "./Environment.mjs";
 
+const isBuildkite = false;
+
 export const isCI =
-	getEnv("CI", false) === "true" || isBuildkite || isGithubAction;
+	getEnv("CI", false) === "true" || isBuildkite || githubActions.isActive();
 
 export function getUsername() {
 	const { username } = userInfo();

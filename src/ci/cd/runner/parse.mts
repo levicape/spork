@@ -1,5 +1,4 @@
 import { getWindowsExitReason } from "../../machine/context/Process.mjs";
-import { isBuildkite } from "../../machine/executor/Buildkite.mjs";
 
 export function unescapeGitHubAction(string: string) {
 	return string
@@ -47,16 +46,14 @@ export function parseDuration(duration: string): number | undefined {
 		return undefined;
 	}
 	const [, value, unit] = match;
-	return Number.parseFloat(value) * (unit === "ms" ? 1 : 1000);
+	return Number.parseFloat(value ?? "-1000") * (unit === "ms" ? 1 : 1000);
 }
 
 export function getExitCode(outcome: "pass" | "fail" | "cancel") {
 	if (outcome === "pass") {
 		return 0;
 	}
-	if (!isBuildkite) {
-		return 1;
-	}
+
 	// On Buildkite, you can define a `soft_fail` property to differentiate
 	// from failing tests and the runner itself failing.
 	if (outcome === "fail") {

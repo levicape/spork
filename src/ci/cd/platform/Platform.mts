@@ -1,10 +1,6 @@
 import { getBuildNumber } from "../../machine/context/Build.mjs";
 import type { Abi, Agent, Arch, Os } from "../agent/Agent.mjs";
 import { Pipeline, type PipelineOptions } from "../pipeline/Pipeline.mjs";
-import {
-	BuildkiteContext,
-	type BuildkiteStep,
-} from "../pipeline/buildkite/BuildkiteContext.mjs";
 import { TargetBuilder } from "../target/TargetBuilder.mjs";
 import { PlatformBuilder } from "./PlatformBuilder.mjs";
 
@@ -55,7 +51,7 @@ export class Platform {
 
 	static getPlatformLabel = (platform: Platform): string => {
 		const { os, arch, baseline, distro, release } = platform;
-		let label = `${BuildkiteContext.getEmoji(distro || os)} ${release} ${arch}`;
+		let label = `${distro || os} ${release} ${arch}`;
 		if (baseline) {
 			label += "-baseline";
 		}
@@ -72,7 +68,7 @@ export class Platform {
 
 	static getImageLabel = (platform: Platform): string => {
 		const { os, arch, distro, release } = platform;
-		return `${BuildkiteContext.getEmoji(distro || os)} ${release} ${arch}`;
+		return `${distro || os} ${release} ${arch}`;
 	};
 
 	/**
@@ -166,12 +162,12 @@ export class Platform {
 
 	/**
 	 * @param {Platform} platform
-	 * @returns {BuildkiteStep}
+	 * @returns {Step}
 	 */
-	static getBuildImageStep = (
+	static getBuildImageStep = <Step,>(
 		platform: Platform,
 		options: PipelineOptions,
-	): BuildkiteStep => {
+	): Step => {
 		const { publishImages } = options;
 		const { os, arch, distro, release, getImageKey, getImageLabel } =
 			new PlatformBuilder()
@@ -193,6 +189,6 @@ export class Platform {
 			},
 			retry: Pipeline.getRetry(),
 			command: `node ./scripts/machine.mjs ${action} --ci --cloud=aws --os=${os} --arch=${arch} --distro=${distro} --distro-version=${release}`,
-		};
+		} as Step;
 	};
 }

@@ -1,7 +1,6 @@
 import { hostname } from "node:os";
 import { executeSync } from "../Execute.mjs";
-import { isBuildkite } from "../executor/Buildkite.mjs";
-import { isGithubAction } from "../executor/GithubActions.mjs";
+import { githubActions } from "../executor/GithubActions.mjs";
 import { getEnv } from "./Environment.mjs";
 
 export function getPublicIp(): string | undefined {
@@ -16,14 +15,7 @@ export function getPublicIp(): string | undefined {
 }
 
 export function getHostname(): string {
-	if (isBuildkite) {
-		const agent = getEnv("BUILDKITE_AGENT_NAME", false);
-		if (agent) {
-			return agent;
-		}
-	}
-
-	if (isGithubAction) {
+	if (githubActions.isActive()) {
 		const runner = getEnv("RUNNER_NAME", false);
 		if (runner) {
 			return runner;

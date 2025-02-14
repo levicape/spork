@@ -25,8 +25,8 @@ import { isLinux, isMacOS, isWindows } from "./System.mjs";
 
 class PError extends Error {
 	constructor(
-		public message: string,
-		public cause: { cause?: unknown },
+		public override message: string,
+		public override cause: { cause?: unknown },
 	) {
 		super(message);
 	}

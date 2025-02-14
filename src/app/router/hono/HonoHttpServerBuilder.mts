@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { Context, Effect } from "effect";
+import { Context, Effect, pipe } from "effect";
 import type { Hono } from "hono";
 import { serializeError } from "serialize-error";
 import { process } from "std-env";
@@ -7,6 +7,10 @@ import {
 	LoggingContext,
 	withStructuredLogging,
 } from "../../server/logging/LoggingContext.mjs";
+import { Jwt, JwtLayer } from "../../server/security/Jwt.mjs";
+import { HonoHttpApp } from "./HonoHttpApp.mjs";
+import { HonoHttpServerApp } from "./HonoHttpServer.mjs";
+import { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
 
 export type HonoHttpServerBuilderProps<App extends Hono> = {
 	app: Effect.Effect<App, unknown>;
@@ -157,3 +161,47 @@ export const HonoHttpServerBuilder =
 			),
 		);
 	};
+
+export type SporkHonoApp = Effect.Effect.Success<
+	ReturnType<typeof HonoHttpApp>
+>;
+/**
+ * SporkHonoHttpServer is a function that configures a Hono instance, and prepares it for use with `spork server start`.
+ *
+ * @param app A configured Hono instance. Add your routes to this app.
+ * @see SporkHonoApp
+ * @returns
+ */
+export const SporkHonoHttpServer = (
+	app: <App extends Hono>(app: SporkHonoApp) => App,
+) => {
+	return HonoHttpServerApp(
+		HonoHttpServerBuilder({
+			app: pipe(
+				Effect.provide(
+					Effect.provide(
+						Effect.gen(function* () {
+							const consola = yield* LoggingContext;
+							const logger = yield* consola.logger;
+							const { jwtTools } = yield* Jwt;
+							return yield* Effect.flatMap(
+								HonoHttpApp({
+									middleware: HonoHttpMiddlewareStandard({
+										logger,
+										jwtTools,
+									}),
+								}),
+								(spork) => Effect.succeed(app(spork)),
+							);
+						}),
+						JwtLayer,
+					),
+					Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
+				),
+			),
+		}),
+	);
+};
+
+export * from "./HonoHttpApp.mjs";
+export * from "./HonoHttpServer.mjs";

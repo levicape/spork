@@ -1,6 +1,7 @@
 import { executeSync } from "./Execute.mjs";
 import { getEnv, setEnv } from "./context/Environment.mjs";
-import { isBuildkite } from "./executor/Buildkite.mjs";
+
+const isBuildkite = false;
 
 export function getSecret(
 	name: string,
@@ -15,7 +16,10 @@ export function getSecret(
 	}
 
 	if (isBuildkite) {
-		const command = ["buildkite-agent", "secret", "get", name];
+		const command = ["buildkite-agent", "secret", "get", name] as [
+			string,
+			...string[],
+		];
 		if (options.redact === false) {
 			command.push("--skip-redaction");
 		}

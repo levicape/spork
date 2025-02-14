@@ -1,7 +1,7 @@
 export class Pipeline {
 	/**
 	 * @param {number} [limit]
-	 * @link https://buildkite.com/docs/pipelines/command-step#retry-attributes
+	 *
 	 */
 	static getRetry = (limit = 0) => {
 		return {

@@ -49,7 +49,7 @@ const LLRT_PLATFORM: "node" | "browser" | undefined = LLRT_ARCH
 	? "node"
 	: undefined;
 const OUTPUT_DIRECTORY = `output/esbuild`;
-const HANDLER = `${LLRT_ARCH ? `${OUTPUT_DIRECTORY}/${LLRT_PLATFORM}` : "module"}/lambda/HttpHandler.handler`;
+const HANDLER = `${LLRT_ARCH ? `${OUTPUT_DIRECTORY}/${LLRT_PLATFORM}` : "module"}/lambda/ExampleHttpHandler.handler`;
 
 const CI = {
 	CI_ENVIRONMENT: process.env.CI_ENVIRONMENT ?? "unknown",

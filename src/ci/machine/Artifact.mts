@@ -1,6 +1,7 @@
 import { relative } from "node:path";
 import { executeSafe } from "./Execute.mjs";
-import { isBuildkite } from "./executor/Buildkite.mjs";
+
+const isBuildkite = false;
 
 export async function uploadArtifact(filename: string, cwd?: string) {
 	if (isBuildkite) {

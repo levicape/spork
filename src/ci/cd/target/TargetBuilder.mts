@@ -67,8 +67,6 @@ export class TargetBuilder<Step> {
 			getBuildToolchain: () => Target.getBuildToolchain(target),
 			// biome-ignore lint/style/noNonNullAssertion:
 			getBuildAgent: () => Target.getBuildAgent(target, this.options!),
-			// biome-ignore lint/style/noNonNullAssertion:
-			getZigAgent: () => Target.getZigAgent(target, this.options!),
 			getParallelism: () => Target.getParallelism(target),
 		};
 	}

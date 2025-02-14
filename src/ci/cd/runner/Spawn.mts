@@ -1,14 +1,7 @@
 import { type StdioOptions, spawn } from "node:child_process";
-import { appendFile, mkdtempSync, rmSync } from "node:fs";
-import { userInfo } from "node:os";
-import { dirname, join, relative } from "node:path";
-import { tmpdir } from "../../machine/context/Filesystem.mjs";
+import { appendFile, rmSync } from "node:fs";
 import { isWindows } from "../../machine/context/System.mjs";
-import { type RunnerOptions, getRunnerOptions } from "./RunnerOptions.mjs";
-import { Test, type TestResult } from "./Test.mjs";
-import { parseTestStdout } from "./output.mjs";
-import { getWindowsExitReason, parseDuration } from "./parse.mjs";
-import { addPath } from "./path.mjs";
+import { getWindowsExitReason } from "./parse.mjs";
 
 export interface SpawnResult {
 	ok: boolean;
@@ -40,141 +33,6 @@ export interface SpawnOptions {
 }
 
 export class Spawn {
-	static spawnBun = async (
-		execPath: string,
-		{ args, cwd, timeout, env, stdout, stderr }: SpawnOptions,
-	): Promise<SpawnResult> => {
-		// @ts-ignore
-		const path = addPath(dirname(execPath), process.env.PATH);
-		const tmpdirPath = mkdtempSync(join(tmpdir(), "buntmp-"));
-		const { username, homedir } = userInfo();
-		const bunEnv = {
-			...process.env,
-			PATH: path as string | undefined,
-			Path: undefined as string | undefined,
-			TEMP: undefined as string | undefined,
-			TMPDIR: tmpdirPath,
-			USER: username,
-			HOME: homedir,
-			FORCE_COLOR: "1",
-			BUN_FEATURE_FLAG_INTERNAL_FOR_TESTING: "1",
-			BUN_DEBUG_QUIET_LOGS: "1",
-			BUN_GARBAGE_COLLECTOR_LEVEL: "1",
-			BUN_JSC_randomIntegrityAuditRate: "1.0",
-			BUN_ENABLE_CRASH_REPORTING: "0", // change this to '1' if https://github.com/oven-sh/bun/issues/13012 is implemented
-			BUN_RUNTIME_TRANSPILER_CACHE_PATH: "0",
-			BUN_INSTALL_CACHE_DIR: tmpdirPath,
-			SHELLOPTS: isWindows ? "igncr" : undefined, // ignore "\r" on Windows
-			// Used in Node.js tests.
-			TEST_TMPDIR: tmpdirPath,
-		};
-		if (env) {
-			Object.assign(bunEnv, env);
-		}
-		if (isWindows) {
-			bunEnv.PATH = undefined;
-			bunEnv.Path = path;
-			for (const tmpdir of ["TMPDIR", "TEMP", "TEMPDIR", "TMP"]) {
-				// @ts-ignore
-				delete bunEnv[tmpdir];
-			}
-			bunEnv.TEMP = tmpdirPath;
-		}
-		try {
-			return await Spawn.spawnSafe({
-				command: execPath,
-				args,
-				cwd,
-				timeout,
-				env: bunEnv,
-				stdout,
-				stderr,
-			});
-		} finally {
-			try {
-				rmSync(tmpdirPath, { recursive: true, force: true });
-			} catch (error) {
-				console.warn(error);
-			}
-		}
-	};
-	static spawnBunInstall = async (
-		execPath: string,
-		options: Pick<RunnerOptions, "cwd" | "timeouts">,
-	): Promise<TestResult> => {
-		const {
-			timeouts: { testTimeout },
-			cwd,
-		} = options;
-		const { ok, error, stdout, duration } = await Spawn.spawnBun(execPath, {
-			args: ["install"],
-			timeout: testTimeout,
-			cwd,
-		});
-		const relativePath = relative(cwd, options.cwd);
-		const testPath = join(relativePath, "package.json");
-		const status = ok ? "pass" : "fail";
-		return {
-			testPath,
-			ok,
-			status,
-			error: error ?? "",
-			tests: [
-				{
-					file: testPath,
-					test: "bun install",
-					status,
-					duration: parseDuration(duration),
-				},
-			],
-			stdout,
-			stdoutPreview: stdout,
-		};
-	};
-	static spawnBunTest = async (
-		execPath: string,
-		testPath: string,
-		options: Pick<RunnerOptions, "cwd"> & { args?: string[] },
-	) => {
-		const timeout = Test.getTestTimeout(testPath);
-		const perTestTimeout = Math.ceil(timeout / 2);
-		const absPath = join(options.cwd, testPath);
-		const isReallyTest =
-			Test.isTestStrict(testPath) || absPath.includes("vendor");
-		const args = options.args ?? [];
-		const { ok, error, stdout } = await Spawn.spawnBun(execPath, {
-			args: isReallyTest
-				? ["test", ...args, `--timeout=${perTestTimeout}`, absPath]
-				: [...args, absPath],
-			cwd: options.cwd,
-			timeout: isReallyTest ? timeout : 30_000,
-			env: {
-				GITHUB_ACTIONS: "true", // always true so annotations are parsed
-			},
-			stdout: (data) => {
-				appendFile(`/tmp/spork-runner.stdout.log`, data as string, () => {});
-			},
-			stderr: (data) => {
-				appendFile(`/tmp/spork-runner.stderr.log`, data as string, () => {});
-			},
-		});
-		const {
-			tests,
-			errors,
-			stdout: stdoutPreview,
-		} = parseTestStdout(stdout, testPath);
-		return {
-			testPath,
-			ok,
-			status: ok ? "pass" : "fail",
-			error,
-			errors,
-			tests,
-			stdout,
-			stdoutPreview,
-		};
-	};
-
 	static cleanLogs = async () => {
 		try {
 			rmSync(`/tmp/spork-runner.stdout.log`, { recursive: true, force: true });
@@ -376,7 +234,9 @@ export class Spawn {
 			(error = /panic: (.*) at address/i.exec(buffererror))
 		) {
 			const [, message] = error || [];
-			error = message ? message.split("\n")[0].toLowerCase() : "crash";
+			error = message
+				? (message.split("\n")?.[0] ?? "").toLowerCase()
+				: "crash";
 			error =
 				error.indexOf("\\n") !== -1
 					? error.substring(0, error.indexOf("\\n"))

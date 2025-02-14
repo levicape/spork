@@ -21,8 +21,8 @@ interface CurlResult {
 }
 class PError extends Error {
 	constructor(
-		public message: string,
-		public cause: { cause?: unknown },
+		public override message: string,
+		public override cause: { cause?: unknown },
 	) {
 		super(message);
 	}

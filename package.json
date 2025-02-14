@@ -16,7 +16,7 @@
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
     "server": "module/app/router/hono/HonoHttpSpork.mjs",
-    "esbuildpaths": "module/lambda/HttpHandler.mjs",
+    "esbuildpaths": "module/lambda/ExampleHttpHandler.mjs",
     "esbuildplatform": "node",
     "esbuildpackages": "bundle",
     "esbuildargs": "--external:better-sqlite3 --external:sqlite3 --external:tedious --external:mysql --external:mysql2 --external:oracledb --external:knex"
@@ -67,7 +67,10 @@
   },
   "exports": {
     "./*": "./module/app/*.mjs",
-    "./lambda/*": "./module/lambda/*.mjs"
+    "./hono": "./module/app/router/hono/HonoHttpServerBuilder.mjs",
+    "./hono/guard": "./module/app/router/hono/guard/HonoHttpGuard.mjs",
+    "./hono/middleware": "./module/app/router/hono/middleware/HonoHttpMiddleware.mjs",
+    "./hono/*": "./module/app/router/hono/*.mjs"
   },
   "files": [
     "module",

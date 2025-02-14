@@ -206,12 +206,18 @@ export const HonoBearerAuth = (
 				} else if (typeof options.token === "string") {
 					equal = await timingSafeEqual(
 						options.token,
-						match[1],
+						match[1] ?? String(Date.now()),
 						options.hashFunction,
 					);
 				} else if (Array.isArray(options.token) && options.token.length > 0) {
 					for (const token of options.token) {
-						if (await timingSafeEqual(token, match[1], options.hashFunction)) {
+						if (
+							await timingSafeEqual(
+								token,
+								match[1] ?? String(Date.now()),
+								options.hashFunction,
+							)
+						) {
 							equal = true;
 							break;
 						}

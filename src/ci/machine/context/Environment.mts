@@ -1,5 +1,4 @@
 import { appendFileSync } from "node:fs";
-import { stripAnsi } from "../../cd/runner/parse.mjs";
 import {
 	getBranch,
 	getCommit,
@@ -13,15 +12,10 @@ import {
 	isMergeQueue,
 	isPullRequest,
 } from "../code/Git.mjs";
-import { isBuildkite } from "../executor/Buildkite.mjs";
-import { isGithubAction } from "../executor/GithubActions.mjs";
+import { githubActions, isGithubAction } from "../executor/GithubActions.mjs";
+import { localExecutor } from "../executor/Local.mjs";
 import { getTailscaleIp } from "../executor/Tailscale.mjs";
-import {
-	getBuildArtifacts,
-	getBuildId,
-	getBuildLabel,
-	getBuildUrl,
-} from "./Build.mjs";
+import { getBuildId, getBuildLabel, getBuildUrl } from "./Build.mjs";
 import { getUsername, isCI } from "./Compute.mjs";
 import { tmpdir } from "./Filesystem.mjs";
 import { getHostname, getPublicIp } from "./Network.mjs";
@@ -34,6 +28,21 @@ import {
 	isLinux,
 } from "./System.mjs";
 import { getDistro, getDistroVersion } from "./Version.mjs";
+
+export const MachineContextEnvironmentExecutor = [
+	githubActions,
+	localExecutor,
+].find((executor) => executor.isActive);
+
+export interface MachineExecutor {
+	name: string;
+	isActive(): boolean;
+	startGroup(title: string): void;
+	endGroup(): void;
+	inspect(object: unknown): void;
+	environment(): Record<string, unknown>;
+}
+// & MachineCodeGitExecutor
 
 export function getEnv<Required extends boolean>(
 	name: string | number,
@@ -62,13 +71,7 @@ export function setEnv(name: string, value: string | undefined) {
 }
 
 export async function startGroup(title: string, fn: () => unknown) {
-	if (isGithubAction) {
-		console.log(`::group::${stripAnsi(title)}`);
-	} else if (isBuildkite) {
-		console.log(`--- ${title}`);
-	} else {
-		console.group(title);
-	}
+	MachineContextEnvironmentExecutor?.startGroup(title);
 
 	if (typeof fn === "function") {
 		let result: unknown;
@@ -92,25 +95,11 @@ export async function startGroup(title: string, fn: () => unknown) {
 }
 
 export function endGroup() {
-	if (isGithubAction) {
-		console.log("::endgroup::");
-	} else {
-		console.groupEnd();
-	}
+	MachineContextEnvironmentExecutor?.endGroup();
 }
 
 export function print(object: unknown) {
-	if (isBuildkite) {
-		if (object instanceof Object) {
-			Object.entries(object).forEach(([k, v]) => {
-				console.log(`${k}: ${v}`);
-			});
-		} else {
-			console.log(object);
-		}
-	} else {
-		console.dir(object, { depth: null });
-	}
+	MachineContextEnvironmentExecutor?.inspect(object);
 }
 
 export function printEnvironment() {
@@ -171,12 +160,8 @@ export function printEnvironment() {
 					"Build ID": getBuildId(),
 					"Build Label": getBuildLabel(),
 					"Build URL": getBuildUrl(),
-					Buildkite: isBuildkite
-						? {
-								"Build Artifacts": getBuildArtifacts(),
-							}
-						: undefined,
 				},
+				Environment: MachineContextEnvironmentExecutor?.environment(),
 			});
 		});
 	}

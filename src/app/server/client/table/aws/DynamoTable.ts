@@ -6,6 +6,7 @@ import {
 	type QueryCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 import type { NativeScalarAttributeValue } from "@aws-sdk/util-dynamodb";
+import VError from "verror";
 import type { IRow, ITable } from "../../table/ITable.js";
 
 // Logger.log({
@@ -50,7 +51,10 @@ export class DynamoTable<
 	}
 
 	private get client(): DynamoDBDocument {
-		return DynamoTable.clients[this.region];
+		if (DynamoTable.clients[this.region] === undefined) {
+			throw new VError(`Client not initialized for region ${this.region}`);
+		}
+		return DynamoTable.clients[this.region] as DynamoDBDocument;
 	}
 
 	forGsi = (gsi: string) => {

@@ -3,18 +3,14 @@
 
 import {
 	GithubJobBuilder,
-	GithubWorkflowExpressions,
-} from "@levicape/fourtwo/ci/cd/pipeline/github";
-import {
 	GithubJobX,
 	GithubStepCheckoutX,
-	GithubStepX,
-	GithubWorkflowX,
-} from "@levicape/fourtwo/x/github";
-import {
 	GithubStepNodeInstallX,
 	GithubStepNodeSetupX,
-} from "@levicape/fourtwo/x/github/node";
+	GithubStepX,
+	GithubWorkflowExpressions,
+	GithubWorkflowX,
+} from "@levicape/fourtwo/github";
 
 const {
 	current: { register, context: _$_, env },

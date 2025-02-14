@@ -9,7 +9,7 @@ import { getWindowsExitReason } from "./context/Process.mjs";
 import { isWindows } from "./context/System.mjs";
 
 class PError extends Error {
-	readonly cause?: Error | string;
+	override readonly cause?: Error | string;
 
 	constructor(message: string, { cause }: { cause?: Error | string } = {}) {
 		super(message);
@@ -18,7 +18,7 @@ class PError extends Error {
 }
 
 export async function executeSafe(
-	command: string[],
+	command: [string, ...string[]],
 	options?: SpawnOptions,
 ): Promise<SpawnResult> {
 	const result = await execute(command, options);
@@ -32,12 +32,12 @@ export async function executeSafe(
 }
 
 export function executeSync(
-	command: string[],
+	command: [string, ...string[]],
 	options: SpawnOptions = {},
 ): SpawnResult {
 	const [cmd, ...args] = parseCommand(command, options);
 	const then = Date.now();
-	debugLog("$", cmd, ...args);
+	debugLog("$", cmd ?? "<UNDEFINED>", ...args);
 
 	const spawnOptions = {
 		cwd: options.cwd ?? process.cwd(),
@@ -55,7 +55,7 @@ export function executeSync(
 
 	let result: SpawnSyncReturns<Buffer> | { error: Error };
 	try {
-		result = nodeSpawnSync(cmd, args, spawnOptions);
+		result = nodeSpawnSync(cmd as string, args, spawnOptions);
 	} catch (error) {
 		result = { error: error as Error };
 	}
@@ -114,7 +114,7 @@ export function executeSync(
 }
 
 export function executeSyncSafe(
-	command: string[],
+	command: [string, ...string[]],
 	options: SpawnOptions,
 ): SpawnResult {
 	const result = executeSync(command, options);
@@ -127,11 +127,14 @@ export function executeSyncSafe(
 	return result;
 }
 
-function parseCommand(command: string[], options: SpawnOptions) {
+function parseCommand(
+	command: [string, ...string[]],
+	options: SpawnOptions,
+): [string, ...string[]] {
 	if (options?.privileged) {
-		return [...getPrivilegedCommand(), ...command];
+		return [...getPrivilegedCommand(), ...command] as [string, ...string[]];
 	}
-	return command;
+	return command as [string, ...string[]];
 }
 
 let priviledgedCommand: string[] = [];
@@ -144,21 +147,21 @@ function getPrivilegedCommand(): string[] {
 		return priviledgedCommand;
 	}
 
-	const sudo = ["sudo", "-n"];
+	const sudo = ["sudo", "-n"] as [string, ...string[]];
 	const { error: sudoError } = executeSync([...sudo, "true"]);
 	if (!sudoError) {
 		priviledgedCommand = sudo;
 		return priviledgedCommand;
 	}
 
-	const su = ["su", "-s", "sh", "root", "-c"];
+	const su = ["su", "-s", "sh", "root", "-c"] as [string, ...string[]];
 	const { error: suError } = executeSync([...su, "true"]);
 	if (!suError) {
 		priviledgedCommand = su;
 		return priviledgedCommand;
 	}
 
-	const doas = ["doas", "-u", "root"];
+	const doas = ["doas", "-u", "root"] as [string, ...string[]];
 	const { error: doasError } = executeSync([...doas, "true"]);
 	if (!doasError) {
 		priviledgedCommand = doas;
@@ -169,7 +172,7 @@ function getPrivilegedCommand(): string[] {
 }
 
 export async function execute(
-	command: string[],
+	command: [string, ...string[]],
 	options: SpawnOptions = {},
 ): Promise<SpawnResult> {
 	const [cmd, ...args] = parseCommand(command, options);
