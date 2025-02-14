@@ -5,7 +5,7 @@ services:
     environment:
       LOG_LEVEL: "5"
       PORT: "3201"
-      PROJECT_COMMAND: "http:watch"
+      PROJECT_COMMAND: "http:dev"
       PROJECT_PATH: "."
       # STRUCTURED_LOGGING: "awspowertools"
     ports:

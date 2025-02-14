@@ -1,19 +1,40 @@
 import { serve } from "@hono/node-server";
 import { Context, Effect, pipe } from "effect";
-import type { Hono } from "hono";
+import type { Hono, MiddlewareHandler } from "hono";
+import { handle } from "hono/aws-lambda";
 import { serializeError } from "serialize-error";
-import { process } from "std-env";
+import { env, process } from "std-env";
 import {
 	LoggingContext,
 	withStructuredLogging,
 } from "../../server/logging/LoggingContext.mjs";
 import { Jwt, JwtLayer } from "../../server/security/Jwt.mjs";
 import { HonoHttpApp } from "./HonoHttpApp.mjs";
-import { HonoHttpServerApp } from "./HonoHttpServer.mjs";
-import { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
+import { HonoHttpServerFold } from "./HonoHttpServer.mjs";
+import {
+	HonoHttpMiddlewareStandard,
+	type HonoHttpMiddlewareStandardProps,
+} from "./middleware/HonoHttpMiddleware.mjs";
+
+const { trace } = await Effect.runPromise(
+	Effect.provide(
+		Effect.gen(function* () {
+			const logging = yield* LoggingContext;
+			return {
+				trace: (yield* logging.logger).withContext({
+					$event: "honohttpserver-main",
+				}),
+			};
+		}),
+		Context.empty().pipe(withStructuredLogging({ prefix: "http" })),
+	),
+);
 
 export type HonoHttpServerBuilderProps<App extends Hono> = {
-	app: Effect.Effect<App, unknown>;
+	app: Effect.Effect<
+		{ app: App; handler?: ReturnType<typeof handle> },
+		unknown
+	>;
 	effect?: {
 		context?: Context.Context<unknown>;
 	};
@@ -27,31 +48,9 @@ export type ServeOptions = {
 	port?: number;
 };
 
-// The "spork server start" command expects a HonoHttpServer to be exported from the target file.
-// This can be created using the HonoHttpServerBuilder function, which takes a Hono app and returns a function that can be called to create a server.
-// Example usage:
-// ```typescript
-// import { HonoHttpServerBuilder, HonoHttpServerApp } from "@levicape/spork";
-
-// export const HonoHttpServer = HonoHttpServerBuilder(
-//     HonoHttpServerApp..get("/hello", (c) => { ... });
-// );
-// ```
-export type HonoServerExports<App extends Hono> = {
-	HonoHttpServer: (props?: HonoHttpServerProps) => Promise<
-		Effect.Effect<
-			{
-				app: Effect.Effect<App, unknown>;
-				serve: (options: ServeOptions) => Promise<void>;
-				stop: () => Promise<void>;
-			},
-			unknown
-		>
-	>;
-};
-
-export type HonoHttpServerExports<App extends Hono> =
-	HonoServerExports<App>["HonoHttpServer"];
+export type SporkServerStartImportExpects = Awaited<
+	ReturnType<Awaited<Awaited<typeof SporkHonoHttpServer>>>
+>;
 
 export const HonoHttpServerDefaultProps: () => HonoHttpServerProps = () => ({
 	catchExceptions: true,
@@ -60,6 +59,8 @@ export const HonoHttpServerDefaultProps: () => HonoHttpServerProps = () => ({
 export const HonoHttpServerBuilder =
 	<App extends Hono>({ app, effect }: HonoHttpServerBuilderProps<App>) =>
 	async (props?: HonoHttpServerProps) => {
+		trace.debug("Building server");
+
 		return Effect.provide(
 			Effect.gen(function* () {
 				const consola = yield* LoggingContext;
@@ -71,7 +72,7 @@ export const HonoHttpServerBuilder =
 					...HonoHttpServerDefaultProps(),
 					...(props ?? {}),
 				};
-				let instance = yield* app;
+				const instance = yield* app;
 				if (catchExceptions) {
 					process.on?.("unhandledRejection", (reason: string) => {
 						logger.withMetadata({
@@ -108,51 +109,54 @@ export const HonoHttpServerBuilder =
 					.info("Server built");
 
 				return {
-					app,
-					serve: async ({ port }: ServeOptions) => {
-						server = serve({
-							fetch: instance.fetch,
-							port,
-						});
-
-						while (!server.listening) {
-							await new Promise((resolve) => setTimeout(resolve, 1000));
-						}
-						logger
-							.withMetadata({
-								HonoHttpServerBuilder: {
-									serve: {
-										port,
-									},
-									server: {
-										listening: server.listening,
-									},
-								},
-							})
-
-							.debug("Server started");
-					},
-					stop: async () => {
-						return new Promise<void>((resolve, reject) => {
-							server?.close((error) => {
-								logger
-									.withMetadata({
-										HonoHttpServerBuilder: {
-											server: {
-												listening: server?.listening,
-											},
-											error: serializeError(error),
-										},
-									})
-									.info("Server closed");
-
-								if (error) {
-									reject(error);
-								} else {
-									resolve();
-								}
+					handler: instance.handler,
+					server: {
+						app: instance.app,
+						serve: async ({ port }: ServeOptions) => {
+							server = serve({
+								fetch: instance.app.fetch,
+								port,
 							});
-						});
+
+							while (!server.listening) {
+								await new Promise((resolve) => setTimeout(resolve, 1000));
+							}
+							logger
+								.withMetadata({
+									HonoHttpServerBuilder: {
+										serve: {
+											port,
+										},
+										server: {
+											listening: server.listening,
+										},
+									},
+								})
+
+								.debug("Server started");
+						},
+						stop: async () => {
+							return new Promise<void>((resolve, reject) => {
+								server?.close((error) => {
+									logger
+										.withMetadata({
+											HonoHttpServerBuilder: {
+												server: {
+													listening: server?.listening,
+												},
+												error: serializeError(error),
+											},
+										})
+										.info("Server closed");
+
+									if (error) {
+										reject(error);
+									} else {
+										resolve();
+									}
+								});
+							});
+						},
 					},
 				};
 			}),
@@ -172,34 +176,79 @@ export type SporkHonoApp = Effect.Effect.Success<
  * @see SporkHonoApp
  * @returns
  */
-export const SporkHonoHttpServer = (
-	app: <App extends Hono>(app: SporkHonoApp) => App,
+export const SporkHonoHttpServer = async (
+	app: (app: SporkHonoApp) => Hono,
+	props: {
+		middleware?: (
+			services: HonoHttpMiddlewareStandardProps,
+		) => Array<MiddlewareHandler>;
+	} = {},
 ) => {
-	return HonoHttpServerApp(
-		HonoHttpServerBuilder({
-			app: pipe(
-				Effect.provide(
-					Effect.provide(
-						Effect.gen(function* () {
-							const consola = yield* LoggingContext;
-							const logger = yield* consola.logger;
-							const { jwtTools } = yield* Jwt;
-							return yield* Effect.flatMap(
-								HonoHttpApp({
-									middleware: HonoHttpMiddlewareStandard({
-										logger,
-										jwtTools,
-									}),
+	return await Effect.runPromise(
+		pipe(
+			HonoHttpServerFold(
+				HonoHttpServerBuilder({
+					app: Effect.provide(
+						Effect.provide(
+							pipe(
+								Effect.gen(function* () {
+									const consola = yield* LoggingContext;
+									const logger = yield* consola.logger;
+									const { jwtTools } = yield* Jwt;
+									const middleware =
+										(props.middleware ?? HonoHttpMiddlewareStandard)?.({
+											logger,
+											jwtTools,
+										}) ?? [];
+
+									if (middleware.length > 0) {
+										logger
+											.withMetadata({
+												SporkHonoHttpServer: {
+													middleware: middleware.map((m) => m.name),
+												},
+											})
+											.debug("Middleware added");
+									} else {
+										logger.debug("No middleware added");
+									}
+
+									return yield* Effect.flatMap(
+										HonoHttpApp({
+											middleware,
+										}),
+										(spork) => {
+											const { AWS_LAMBDA_FUNCTION_NAME } = env;
+											const resolvedapp = app(spork);
+											return Effect.succeed({
+												app: resolvedapp,
+												handler:
+													(AWS_LAMBDA_FUNCTION_NAME && handle(resolvedapp)) ||
+													undefined,
+											});
+										},
+									);
 								}),
-								(spork) => Effect.succeed(app(spork)),
-							);
-						}),
-						JwtLayer,
+								Effect.onError((error) => {
+									return Effect.sync(() => {
+										trace
+											.withMetadata({
+												SporkHonoHttpServer: {
+													error: serializeError(error),
+												},
+											})
+											.error("Failed to build app");
+									});
+								}),
+							),
+							JwtLayer,
+						),
+						Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
 					),
-					Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
-				),
+				}),
+				{ trace },
 			),
-		}),
+		),
 	);
 };
 
