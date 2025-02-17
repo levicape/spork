@@ -1,4 +1,3 @@
-name: spork-wwwroot
 description: | 
   WWW stack for Cloudfront CDN and routing configuration
 runtime:

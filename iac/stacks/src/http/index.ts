@@ -99,10 +99,11 @@ export = async () => {
 	// Object Store
 	const s3 = (() => {
 		const bucket = (name: string) => {
-			const bucket = new Bucket(_(`${name}-store`), {
+			const bucket = new Bucket(_(name), {
 				acl: "private",
+				forceDestroy: !context.environment.isProd,
 				tags: {
-					Name: _(`${name}-store`),
+					Name: _(name),
 					StackRef: STACKREF_ROOT,
 					PackageName: PACKAGE_NAME,
 					Key: name,
@@ -145,7 +146,7 @@ export = async () => {
 						status: "Enabled",
 						id: "ExpireObjects",
 						expiration: {
-							days: context.environment.isProd ? 30 : 12,
+							days: context.environment.isProd ? 30 : 8,
 						},
 					},
 				],
@@ -154,9 +155,8 @@ export = async () => {
 			return bucket;
 		};
 		return {
-			artifactStore: bucket("artifact"),
-			build: bucket("build"),
-			deploy: bucket("deploy"),
+			pipeline: bucket("pipeline"),
+			artifacts: bucket("artifacts"),
 		};
 	})();
 
@@ -164,7 +164,7 @@ export = async () => {
 	const cloudwatch = (() => {
 		const loggroup = (name: string) => {
 			const loggroup = new LogGroup(_(`${name}-logs`), {
-				retentionInDays: context.environment.isProd ? 180 : 14,
+				retentionInDays: context.environment.isProd ? 180 : 60,
 				tags: {
 					Name: _(`${name}-logs`),
 					StackRef: STACKREF_ROOT,
@@ -239,7 +239,7 @@ export = async () => {
 		};
 
 		const zip = new BucketObjectv2(_("zip"), {
-			bucket: s3.deploy.bucket,
+			bucket: s3.artifacts.bucket,
 			source: new AssetArchive({
 				"index.js": new StringAsset(
 					`export const handler = (${(
@@ -303,7 +303,7 @@ export = async () => {
 				packageType: "Zip",
 				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
 				handler: "index.handler",
-				s3Bucket: s3.deploy.bucket,
+				s3Bucket: s3.artifacts.bucket,
 				s3Key: zip.key,
 				s3ObjectVersion: zip.versionId,
 				vpcConfig: {
@@ -433,15 +433,18 @@ export = async () => {
 			},
 		});
 
-		const latestUrl = new FunctionUrl(_("url-latest"), {
-			functionName: lambda.name,
-			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
-			cors: {
-				allowMethods: ["*"],
-				allowOrigins: hostnames,
-				maxAge: 86400,
-			},
-		});
+		let latestUrl: FunctionUrl | undefined;
+		if (!context.environment.isProd) {
+			latestUrl = new FunctionUrl(_("url-latest"), {
+				functionName: lambda.name,
+				authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
+				cors: {
+					allowMethods: ["*"],
+					allowOrigins: hostnames,
+					maxAge: 86400,
+				},
+			});
+		}
 
 		const deploymentGroup = new DeploymentGroup(
 			_("deployment-group"),
@@ -631,7 +634,7 @@ export = async () => {
 							},
 							{
 								name: "S3_DEPLOY_BUCKET",
-								value: s3.deploy.bucket,
+								value: s3.artifacts.bucket,
 								type: "PLAINTEXT",
 							},
 							{
@@ -771,7 +774,7 @@ export = async () => {
 							},
 							{
 								name: "S3_DEPLOY_BUCKET",
-								value: s3.deploy.bucket,
+								value: s3.artifacts.bucket,
 								type: "PLAINTEXT",
 							},
 							{
@@ -884,7 +887,7 @@ export = async () => {
 						);
 
 						const upload = new BucketObjectv2(_(`${artifact.name}-buildspec`), {
-							bucket: s3.build.bucket,
+							bucket: s3.artifacts.bucket,
 							content,
 							key: `${artifact.name}/Buildspec.yml`,
 						});
@@ -978,7 +981,7 @@ export = async () => {
 				executionMode: "QUEUED",
 				artifactStores: [
 					{
-						location: s3.artifactStore.bucket,
+						location: s3.pipeline.bucket,
 						type: "S3",
 					},
 				],
@@ -1025,7 +1028,7 @@ export = async () => {
 									__codestar.ecr.repository.name,
 									__codestar.ecr.repository.url,
 									codebuild.httphandler_extractimage.project.name,
-									s3.deploy.bucket,
+									s3.artifacts.bucket,
 								]).apply(
 									([
 										repositoryArn,
@@ -1088,7 +1091,7 @@ export = async () => {
 								inputArtifacts: [
 									codebuild.httphandler_extractimage.artifactName,
 								],
-								configuration: all([s3.deploy.bucket]).apply(
+								configuration: all([s3.artifacts.bucket]).apply(
 									([BucketName]) => ({
 										BucketName,
 										Extract: "false",
@@ -1114,7 +1117,7 @@ export = async () => {
 									codebuild.httphandler_updatelambda.project.name,
 									handler.http.name,
 									handler.http.alias.name,
-									s3.deploy.bucket,
+									s3.artifacts.bucket,
 								]).apply(
 									([
 										projectName,

@@ -11,6 +11,8 @@ import type { z } from "zod";
 import { SporkDatalayerStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork";
+const EFS_ROOT_DIRECTORY = "/paloma";
+const EFS_MOUNT_PATH = "/mnt/efs";
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -104,7 +106,7 @@ export = async () => {
 			{
 				fileSystemId: filesystem.id,
 				rootDirectory: {
-					path: "/paloma",
+					path: EFS_ROOT_DIRECTORY,
 					creationInfo: {
 						ownerGid: 1000,
 						ownerUid: 1000,
@@ -154,15 +156,6 @@ export = async () => {
 			);
 		})();
 
-		//   AwsDynamoDbTable.resourcePolicy(
-		// 	this,
-		// 	`${name}-lambda-data`,
-		// 	[
-		// 	  ["users", accountsTable],
-		// 	],
-		// 	role,
-		//   );
-
 		return {
 			roles: {
 				lambda,
@@ -205,7 +198,7 @@ export = async () => {
 			]) => {
 				const fileSystemConfig = {
 					arn: accessPointArn,
-					localMountPath: "/mnt/efs",
+					localMountPath: EFS_MOUNT_PATH,
 				};
 
 				const vpcConfig = {
@@ -225,6 +218,7 @@ export = async () => {
 				});
 			},
 		))(ec2, efs, iam);
+
 	return all([
 		props,
 		iam.roles.lambda.arn,

@@ -1,5 +1,5 @@
 services:
-  spork-http:
+  http:
     image: "spork"
     entrypoint: project
     environment:

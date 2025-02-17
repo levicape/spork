@@ -118,8 +118,9 @@
           "dx:lint",
           "@levicape/spork-examples-basic:dx:precommit",
           "@levicape/spork-canary:dx:precommit",
-          "@levicape/spork-iac-stacks:dx:precommit",
-          "@levicape/spork-manifest-ui:dx:precommit"
+          "@levicape/spork-magmap-io:dx:precommit",
+          "@levicape/spork-magmap-ui:dx:precommit",
+          "@levicape/spork-iac-stacks:dx:precommit"
         ]
       },
       "dx:test": {
@@ -139,7 +140,8 @@
           "build:esbuild",
           "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile",
-          "@levicape/spork-manifest-ui:nx:compile"
+          "@levicape/spork-magmap-io:nx:compile",
+          "@levicape/spork-magmap-ui:nx:compile"
         ]
       },
       "nx:sync": {
@@ -151,7 +153,8 @@
         "dependsOn": [
           "test:module",
           "@levicape/spork-canary:nx:test",
-          "@levicape/spork-manifest-ui:nx:test"
+          "@levicape/spork-magmap-io:nx:test",
+          "@levicape/spork-magmap-ui:nx:test"
         ]
       },
       "test:module": {

@@ -1,11 +1,11 @@
 import { z } from "zod";
 
-export const SporkManifestWebStackExportsZod = z.object({
-	spork_manifest_web_s3: z.object({
-		artifactStore: z.object({
+export const SporkMagmapWebStackExportsZod = z.object({
+	spork_magmap_web_s3: z.object({
+		pipeline: z.object({
 			bucket: z.string(),
 		}),
-		build: z.object({
+		artifacts: z.object({
 			bucket: z.string(),
 		}),
 		staticwww: z.object({
@@ -18,19 +18,19 @@ export const SporkManifestWebStackExportsZod = z.object({
 			}),
 		}),
 	}),
-	spork_manifest_web_codebuild: z.object({
+	spork_magmap_web_codebuild: z.object({
 		project: z.object({
 			arn: z.string(),
 			name: z.string(),
 		}),
 	}),
-	spork_manifest_web_pipeline: z.object({
+	spork_magmap_web_pipeline: z.object({
 		pipeline: z.object({
 			arn: z.string(),
 			name: z.string(),
 		}),
 	}),
-	spork_manifest_web_eventbridge: z.object({
+	spork_magmap_web_eventbridge: z.object({
 		EcrImageAction: z.object({
 			rule: z.object({
 				arn: z.string(),

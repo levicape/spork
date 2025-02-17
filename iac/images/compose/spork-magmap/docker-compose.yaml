@@ -1,0 +1,46 @@
+services:
+  nginx:
+    image: "nginx:1.27"
+    ports:
+      - "4200:80"
+    volumes:
+      - "./nginx.conf:/etc/nginx/nginx.conf"
+  ui:
+    image: spork
+    entrypoint: project
+    environment:
+      PROJECT_PATH: ./packages/magmap-ui
+      PROJECT_COMMAND: staticwww:dev
+      PORT: "4201"
+      LOG_LEVEL: "5"
+    ports:
+      - "4201:4201"
+    volumes:
+      # iac/images/compose/<$PWD> 
+      - "../../../..:/workspace"
+  http:
+    image: spork
+    entrypoint: project
+    environment:
+      PROJECT_PATH: ./packages/magmap-io
+      PROJECT_COMMAND: http:dev
+      PORT: "4202"
+      LOG_LEVEL: "5"
+    ports:
+      - "4202:4202"
+    volumes:
+
+      - "../../../..:/workspace"
+  http-canary:
+    image: spork
+    entrypoint: project
+    environment:
+      PROJECT_PATH: ./packages/magmap-io
+      PROJECT_COMMAND: http:canary
+      LOG_LEVEL: "5"
+      ROUTEMAP: ${SPORK_ROUTEMAP}
+    depends_on:
+      - http
+    volumes:
+      # iac/images/compose/<$PWD>
+      - "../../../..:/workspace"

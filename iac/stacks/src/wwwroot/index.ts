@@ -64,7 +64,7 @@
 // 				lambda: SporkHttpStackExportsZod.shape.spork_http_lambda,
 // 			},
 // 		},
-// 		["manifest-ui"]: {
+// 		["magmap-ui"]: {
 // 			refs: {
 // 				s3: SporkManifestWebStackExportsZod.shape.spork_manifest_web_s3,
 // 			},

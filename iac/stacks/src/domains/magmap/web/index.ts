@@ -29,9 +29,9 @@ import { $deref, type DereferencedOutput } from "../../../Stack";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkHttpStackExportsZod } from "../../../http/exports";
-import { SporkManifestWebStackExportsZod } from "./exports";
+import { SporkMagmapWebStackExportsZod } from "./exports";
 
-const PACKAGE_NAME = "@levicape/spork-manifest-ui" as const;
+const PACKAGE_NAME = "@levicape/spork-magmap-ui" as const;
 const DEPLOY_DIRECTORY = "output/staticwww" as const;
 const MANIFEST_PATH = "/_web/routemap.json" as const;
 
@@ -76,9 +76,9 @@ export = async () => {
 	const farRole = await getRole({ name: "FourtwoAccessRole" });
 
 	// Stack references
-	const $dereference$ = await $deref(STACKREF_CONFIG);
-	const { codestar, datalayer, http } = $dereference$;
-	const routemap = ROUTE_MAP($dereference$);
+	const dereferenced$ = await $deref(STACKREF_CONFIG);
+	const { codestar, datalayer, http } = dereferenced$;
+	const routemap = ROUTE_MAP(dereferenced$);
 
 	// Object Store
 	const s3 = (() => {
@@ -95,6 +95,7 @@ export = async () => {
 			const { daysToRetain, www } = props;
 			const bucket = new Bucket(_(name), {
 				acl: "private",
+				forceDestroy: !context.environment.isProd,
 				tags: {
 					Name: _(name),
 					StackRef: STACKREF_ROOT,
@@ -206,8 +207,8 @@ export = async () => {
 			};
 		};
 		return {
-			artifactStore: bucket("artifact-store"),
-			build: bucket("build"),
+			pipeline: bucket("pipeline"),
+			artifacts: bucket("artifacts"),
 			staticwww: bucket("staticwww", { www: true }),
 		};
 	})();
@@ -330,7 +331,7 @@ export = async () => {
 			);
 
 			const upload = new BucketObjectv2(_("buildspec-upload"), {
-				bucket: s3.build.bucket.bucket,
+				bucket: s3.artifacts.bucket.bucket,
 				content,
 				key: "Buildspec.yml",
 			});
@@ -426,7 +427,7 @@ export = async () => {
 			executionMode: "QUEUED",
 			artifactStores: [
 				{
-					location: s3.artifactStore.bucket.bucket,
+					location: s3.pipeline.bucket.bucket,
 					type: "S3",
 				},
 			],
@@ -594,8 +595,8 @@ export = async () => {
 	})();
 
 	return all([
-		s3.artifactStore.bucket.bucket,
-		s3.build.bucket.bucket,
+		s3.pipeline.bucket.bucket,
+		s3.artifacts.bucket.bucket,
 		s3.staticwww.bucket.arn,
 		s3.staticwww.bucket.bucket,
 		s3.staticwww.bucket.bucketDomainName,
@@ -611,8 +612,8 @@ export = async () => {
 		eventbridge.EcrImageAction.targets.pipeline.targetId,
 	]).apply(
 		([
-			artifactStoreBucket,
-			buildBucket,
+			pipelineBucket,
+			artifactsBucket,
 			webBucketArn,
 			webBucketName,
 			webBucketDomainName,
@@ -628,19 +629,19 @@ export = async () => {
 			eventTargetId,
 		]) => {
 			const exported = {
-				spork_manifest_web_imports: {
-					fourtwo: {
+				spork_magmap_web_imports: {
+					spork: {
 						codestar,
 						datalayer,
 						http,
 					},
 				},
-				spork_manifest_web_s3: {
-					artifactStore: {
-						bucket: artifactStoreBucket,
+				spork_magmap_web_s3: {
+					pipeline: {
+						bucket: pipelineBucket,
 					},
-					build: {
-						bucket: buildBucket,
+					artifacts: {
+						bucket: artifactsBucket,
 					},
 					staticwww: {
 						bucket: webBucketName,
@@ -652,19 +653,19 @@ export = async () => {
 						},
 					},
 				},
-				spork_manifest_web_codebuild: {
+				spork_magmap_web_codebuild: {
 					project: {
 						arn: codebuildProjectArn,
 						name: codebuildProjectName,
 					},
 				},
-				spork_manifest_web_pipeline: {
+				spork_magmap_web_pipeline: {
 					pipeline: {
 						arn: pipelineArn,
 						name: pipelineName,
 					},
 				},
-				spork_manifest_web_eventbridge: {
+				spork_magmap_web_eventbridge: {
 					EcrImageAction: {
 						rule: {
 							arn: eventRuleArn,
@@ -678,9 +679,9 @@ export = async () => {
 						},
 					},
 				},
-			} satisfies z.infer<typeof SporkManifestWebStackExportsZod> & {
-				spork_manifest_web_imports: {
-					fourtwo: {
+			} satisfies z.infer<typeof SporkMagmapWebStackExportsZod> & {
+				spork_magmap_web_imports: {
+					spork: {
 						codestar: typeof codestar;
 						datalayer: typeof datalayer;
 						http: typeof http;
@@ -688,7 +689,7 @@ export = async () => {
 				};
 			};
 
-			const validate = SporkManifestWebStackExportsZod.safeParse(exported);
+			const validate = SporkMagmapWebStackExportsZod.safeParse(exported);
 			if (!validate.success) {
 				process.stderr.write(
 					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,

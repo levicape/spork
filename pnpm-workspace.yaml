@@ -6,17 +6,17 @@ packages:
   - 'packages/*'
   - 'protocols/*'
 catalog:
-  "@levicape/paloma": "0.3.1-main.8"
-  "@levicape/fourtwo": "0.8.3-main.19"
-  "@levicape/fourtwo-pulumi": "0.8.3-main.19"
-  "@levicape/fourtwo-builders": "0.8.3-main.19"
+  "@levicape/paloma": "0.3.3-main.10"
+  "@levicape/fourtwo": "0.9.0-main.20"
+  "@levicape/fourtwo-pulumi": "0.9.0-main.20"
+  "@levicape/fourtwo-builders": "0.9.0-main.20"
+  "@levicape/spork": "0.5.1-main.8"
 
 
 
 
 
   
-
 
 
 

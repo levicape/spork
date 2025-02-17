@@ -112,15 +112,11 @@ export const SporkHttpStackExportsZod = z.object({
 		}),
 	}),
 	spork_http_s3: z.object({
-		artifactStore: z.object({
+		pipeline: z.object({
 			bucket: z.string(),
 			region: z.string(),
 		}),
-		build: z.object({
-			bucket: z.string(),
-			region: z.string(),
-		}),
-		deploy: z.object({
+		artifacts: z.object({
 			bucket: z.string(),
 			region: z.string(),
 		}),

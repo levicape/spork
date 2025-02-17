@@ -2,6 +2,7 @@ import { Context, Effect, Layer } from "effect";
 import type { JwtPayload } from "jsonwebtoken";
 import * as jwt from "jsonwebtoken";
 import type { ILogLayer } from "loglayer";
+import { deserializeError } from "serialize-error";
 import VError from "verror";
 import type { IKeyValueStore } from "../client/kv/IKeyValueStore.js";
 import { MemoryKV } from "../client/kv/IKeyValueStore.mock.js";
@@ -183,7 +184,14 @@ export const JwtLayer = Layer.effect(
 		logger.withMetadata({ JwtLayer: { context } }).debug("JwtLayer");
 
 		const jwtTools = new JwtTools(logger, context);
-		yield* Effect.promise(() => jwtTools.initialize());
+		try {
+			yield* Effect.promise(() => jwtTools.initialize());
+		} catch (error) {
+			logger
+				.withMetadata({ JwtLayer: { error } })
+				.withError(deserializeError(error))
+				.error("Failed to initialize JwtLayer");
+		}
 		return { jwtTools };
 	}),
 );

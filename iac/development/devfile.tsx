@@ -8,11 +8,11 @@ import {
 	DevfileMetadataX,
 	DevfileSourceComponentX,
 	DevfileX,
-} from "@levicape/fourtwo/x/devfile";
+} from "@levicape/fourtwo/devfile";
 
-const APPLICATION_NAME = "spork";
+const APPLICATION_NAME = "paloma";
 const NODE_VERSION = "22.12.0";
-const PNPM_VERSION = "9.15.4";
+const PNPM_VERSION = "pnpm@9.15.4";
 const MAKE_DEPENDENCIES = [
 	"g++",
 	"make",
@@ -33,6 +33,8 @@ const MAKE_DEPENDENCIES = [
 	"sqlite-devel",
 	"sqlite-libs",
 	"sqlite-tools",
+	"awscli2",
+	"git",
 ].join(" ");
 const CCR_URL =
 	"https://github.com/aws/codecatalyst-runner-cli/releases/latest/download/ccr_Linux_x86_64.tar.gz";
@@ -64,7 +66,7 @@ let data = (
 				id={"make"}
 				exec={{
 					component: "source",
-					commandLine: `sudo yum install -y ${MAKE_DEPENDENCIES} || true;`,
+					commandLine: `sudo yum install -y ${MAKE_DEPENDENCIES} || true`,
 				}}
 			/>,
 			<DevfileCommandX
@@ -100,7 +102,7 @@ let data = (
 				id={"node"}
 				exec={{
 					component: "source",
-					commandLine: sudodo(`pnpx n ${NODE_VERSION} -y || true`),
+					commandLine: sudodo(`pnpx n ${NODE_VERSION} -y`),
 				}}
 			/>,
 			<DevfileCommandX
@@ -124,7 +126,7 @@ let data = (
 							"> /etc/docker/daemon.json'",
 						].join(" "),
 						[
-							"sudo sh -c 'dockerd --storage-opt dm.basesize=60G",
+							"sudo sh -c 'dockerd",
 							"> /var/log/docker-daemon.log 2>&1 &'",
 						].join(" "),
 					].join(" && "),
