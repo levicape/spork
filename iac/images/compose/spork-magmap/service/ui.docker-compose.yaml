@@ -1,0 +1,12 @@
+
+services:
+  ui:
+    image: $ROOT_IMAGE
+    entrypoint: project
+    environment: 
+      PROJECT_PATH: ./packages/magmap-ui
+      PROJECT_COMMAND: staticwww:dev
+      LOG_LEVEL: $LOG_LEVEL
+      PORT: $MAGMAP_UI
+    ports:
+      - $MAGMAP_UI:$MAGMAP_UI

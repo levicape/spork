@@ -1,0 +1,34 @@
+
+services:
+  http:
+    image: $ROOT_IMAGE
+    entrypoint: project
+    environment:
+      LOG_LEVEL: $LOG_LEVEL
+      PROJECT_PATH: ./packages/magmap-io
+      PROJECT_COMMAND: http:dev
+      PORT: $MAGMAP_HTTP
+    ports:
+      - $MAGMAP_HTTP:$MAGMAP_HTTP
+    volumes: &workspace_volumes
+      - ../../../../..:/workspace
+      - .:/service
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:$MAGMAP_HTTP/.well-known/healthcheck"]
+      interval: 3s
+      timeout: 8s
+      retries: 5
+  http-canary:
+    image: $ROOT_IMAGE
+    entrypoint: project
+    environment:
+      LOG_LEVEL: $LOG_LEVEL
+      PROJECT_PATH: ./packages/magmap-io
+      PROJECT_COMMAND: http:canary
+      ATLAS_MODULE: $ATLAS_MODULE
+    depends_on:
+      http:
+        condition: service_healthy
+      ui:
+        condition: service_started
+    volumes: *workspace_volumes

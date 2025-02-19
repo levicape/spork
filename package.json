@@ -38,6 +38,7 @@
     "@stricli/core": "catalog:cli",
     "chokidar": "catalog:fs",
     "consola": "catalog:log-consola",
+    "dotenv": "catalog:runtime-env",
     "effect": "catalog:effect",
     "hono-rate-limiter": "catalog:hono",
     "loglayer": "catalog:log-loglayer",
@@ -45,7 +46,7 @@
     "pino-pretty": "catalog:log-pino",
     "serialize-error": "catalog:error",
     "slonik": "catalog:database-sql",
-    "std-env": "catalog:core",
+    "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
     "ulidx": "catalog:id",
     "verror": "catalog:error"
@@ -120,6 +121,7 @@
           "@levicape/spork-canary:dx:precommit",
           "@levicape/spork-magmap-io:dx:precommit",
           "@levicape/spork-magmap-ui:dx:precommit",
+          "@levicape/spork-atlas:dx:precommit",
           "@levicape/spork-iac-stacks:dx:precommit"
         ]
       },
@@ -141,7 +143,8 @@
           "@levicape/spork-examples-basic:nx:compile",
           "@levicape/spork-canary:nx:compile",
           "@levicape/spork-magmap-io:nx:compile",
-          "@levicape/spork-magmap-ui:nx:compile"
+          "@levicape/spork-magmap-ui:nx:compile",
+          "@levicape/spork-atlas:nx:compile"
         ]
       },
       "nx:sync": {
@@ -154,7 +157,8 @@
           "test:module",
           "@levicape/spork-canary:nx:test",
           "@levicape/spork-magmap-io:nx:test",
-          "@levicape/spork-magmap-ui:nx:test"
+          "@levicape/spork-magmap-ui:nx:test",
+          "@levicape/spork-atlas:nx:compile"
         ]
       },
       "test:module": {
@@ -170,7 +174,7 @@
     "@hono/node-server": "catalog:hono",
     "hono": "catalog:hono",
     "jsonwebtoken": "catalog:crypto",
-    "zod": "catalog:core"
+    "zod": "catalog:schema-zod"
   },
   "pnpm": {
     "supportedArchitectures": {

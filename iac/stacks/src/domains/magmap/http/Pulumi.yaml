@@ -1,0 +1,10 @@
+description: | 
+  Lambda http handler, cloudmap service for magmap@spork.lavicape.cloud
+runtime:
+  name: nodejs
+  options:
+    packagemanager: pnpm
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-typescript

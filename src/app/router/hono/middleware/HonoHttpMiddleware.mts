@@ -6,6 +6,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { timeout } from "hono/timeout";
 import type { ILogLayer } from "loglayer";
 import type { JwtTools } from "../../../server/security/Jwt.mjs";
+import { HonoLoggingContext } from "./log/HonoLoggingContext.mjs";
 import { HonoRequestLogger } from "./log/HonoRequestLogger.mjs";
 import {
 	HonoRequestIdHeader,
@@ -56,6 +57,9 @@ export const HonoHttpRequest = ({
 		HonoRequestIdHeader({
 			requestIdHeader: requestIdHeader ?? HonoRequestIdHeaderStandard(),
 		}),
+		...([logger ? HonoLoggingContext({ logger }) : undefined] as [
+			ReturnType<typeof HonoLoggingContext>,
+		]),
 		...([logger ? HonoRequestLogger({ logger }) : undefined] as [
 			ReturnType<typeof HonoRequestLogger>,
 		]),
@@ -109,13 +113,12 @@ export const HonoHttpMiddlewareStandard = (
 		...HonoHttpRequest({
 			logger,
 		}),
-		// ...(HonoHttpCtxLogger{}),
 		...((jwtTools ? HonoHttpSecurity({ logger, jwtTools }) : []) as ReturnType<
 			typeof HonoHttpSecurity
 		>),
-		// ...HonoHttpResponse({
-		// 	responseTimeHeader: "X-Response-Time",
-		// }),
+		...HonoHttpResponse({
+			responseTimeHeader: "X-Response-Time",
+		}),
 	];
 };
 

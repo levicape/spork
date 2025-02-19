@@ -465,6 +465,23 @@ Actions:
             - Run: cat _pulumi/http.json
             - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/http --shell > $(pwd)/_pulumi/http.sh
             - Run: cat _pulumi/http.sh
+            - Run: 'echo "Deploying: Stack: spork-magmap-http.current. CWD: $(pwd)/iac/stacks/src/domains/magmap/http. Output: _pulumi/domains_magmap_http."'
+            - Run: 'echo "name: spork-magmap-http" >> $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml'
+            - Run: cat $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.*.yaml || true;
+            - Run: /cc/cache/pulumi/bin/pulumi stack init spork-magmap-http.current -C $(pwd)/iac/stacks/src/domains/magmap/http || true
+            - Run: /cc/cache/pulumi/bin/pulumi stack select spork-magmap-http.current -C $(pwd)/iac/stacks/src/domains/magmap/http || true
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: cat $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.*.yaml || true;
+            - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/domains/magmap/http --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi preview --show-replacement-steps --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-preview" -C $(pwd)/iac/stacks/src/domains/magmap/http --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/http --json > $(pwd)/_pulumi/domains_magmap_http.json
+            - Run: cat _pulumi/domains_magmap_http.json
+            - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/http --shell > $(pwd)/_pulumi/domains_magmap_http.sh
+            - Run: cat _pulumi/domains_magmap_http.sh
             - Run: 'echo "Deploying: Stack: spork-magmap-web.current. CWD: $(pwd)/iac/stacks/src/domains/magmap/web. Output: _pulumi/domains_magmap_web."'
             - Run: 'echo "name: spork-magmap-web" >> $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.yaml'
             - Run: cat $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.*.yaml || true;
@@ -488,7 +505,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[pr(OPEN,REVISION)(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"914aac68e3b3759a3129a60d57d4d4b53b31530478459d87c5f2dfc2abc2eebd"}
-#**:_$~- {"$$":"footer","started":"2025-02-17T13:37:32.811Z","now":"2025-02-17T13:37:32.815Z","elapsed":"4ms"}
+#**:_$~- {"$$":"body","hashed":"1f4cdd1a82d766790a5a0785ba1b10cbbb4f758040494b076279d50639fc791e"}
+#**:_$~- {"$$":"footer","started":"2025-02-19T00:13:12.640Z","now":"2025-02-19T00:13:12.644Z","elapsed":"4ms"}
 # END OF GENERATED FILE
 

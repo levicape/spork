@@ -1,12 +1,13 @@
 services:
   http:
-    image: "spork"
+    image: ${ROOT_IMAGE}
     entrypoint: project
     environment:
-      LOG_LEVEL: "5"
-      PORT: "3201"
-      PROJECT_COMMAND: "http:dev"
-      PROJECT_PATH: "."
-      # STRUCTURED_LOGGING: "awspowertools"
+      PROJECT_PATH: .
+      PROJECT_COMMAND: http:dev
+      PORT: "${ROOT_NS}${HTTP_NS}${SPORK_NS}${SPORK_HTTP}"
+      LOG_LEVEL: "${LOG_LEVEL}"
+    depends_on:
+      - routemap
     ports:
-      - "3201:3201"
+      - "${ROOT_NS}${HTTP_NS}${SPORK_NS}${SPORK_HTTP}:${ROOT_NS}${HTTP_NS}${SPORK_NS}${SPORK_HTTP}"

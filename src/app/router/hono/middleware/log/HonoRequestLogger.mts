@@ -1,5 +1,7 @@
 import type { ILogLayer } from "loglayer";
 
+const HEALTHCHECK_SAMPLE_PERCENT = 0.08;
+
 const tryDecode = (
 	str: string,
 	decoder: { (encodedURI: string): string; (arg0: string): string },
@@ -36,37 +38,18 @@ const getPath = (request: { url: string }) => {
 	}
 	return url.slice(start, i);
 };
-function getColorEnabled() {
-	const { process } = globalThis;
-	const isNoColor = process !== undefined ? "NO_COLOR" in process.env : false;
-	return !isNoColor;
-}
-const humanize = (times: string[]) => {
-	const [delimiter, separator] = [",", "."];
-	const orderTimes = times.map((v: string) =>
-		v.replace(/(\d)(?=(\d\d\d)+(?!\d))/g, `$1${delimiter}`),
-	);
-	return orderTimes.join(separator);
-};
 const timed = (start: number) => {
 	const delta = Date.now() - start;
 	return delta;
 };
-const colorStatus = (status: number) => {
-	const colorEnabled = getColorEnabled();
-	if (colorEnabled) {
-		switch ((status / 100) | 0) {
-			case 5:
-				return `\x1B[31m${status}\x1B[0m`;
-			case 4:
-				return `\x1B[33m${status}\x1B[0m`;
-			case 3:
-				return `\x1B[36m${status}\x1B[0m`;
-			case 2:
-				return `\x1B[32m${status}\x1B[0m`;
+const ignore = (method: string, path: string) => {
+	if (method === "GET" && path === "/.well-known/healthcheck") {
+		if (Math.random() < HEALTHCHECK_SAMPLE_PERCENT) {
+			return false;
 		}
+		return true;
 	}
-	return `${status}`;
+	return false;
 };
 function before(fn: ILogLayer["withMetadata"], method: string, path: string) {
 	fn({
@@ -93,8 +76,7 @@ export type HonoRequestLoggerProps = {
 	logger: ILogLayer;
 };
 export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
-	// TODO: use Hono context logger
-	const logger = props.logger;
+	const logger = props.logger.withPrefix("HONO");
 	return async function logger2(
 		c: {
 			req: { raw: { url: string }; method: string };
@@ -104,14 +86,17 @@ export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 	) {
 		const { method } = c.req;
 		const path = getPath(c.req.raw);
-		// TODO: Include request id
-		const log = logger.withPrefix(`[${method}] ${path}`);
+		const ignored = ignore(method, path);
+		if (ignored) {
+			await next();
+			return;
+		}
 
-		before(log.withMetadata.bind(logger), method, path);
+		before(logger.withMetadata.bind(logger), method, path);
 		const start: number = Date.now();
 		await next();
 		after(
-			log.withMetadata.bind(logger),
+			logger.withMetadata.bind(logger),
 			method,
 			path,
 			c.res.status,

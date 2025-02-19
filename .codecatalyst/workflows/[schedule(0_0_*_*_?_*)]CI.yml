@@ -466,6 +466,24 @@ Actions:
             - Run: cat _pulumi/http.json
             - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/http --shell > $(pwd)/_pulumi/http.sh
             - Run: cat _pulumi/http.sh
+            - Run: 'echo "Deploying: Stack: spork-magmap-http.current. CWD: $(pwd)/iac/stacks/src/domains/magmap/http. Output: _pulumi/domains_magmap_http."'
+            - Run: 'echo "name: spork-magmap-http" >> $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml'
+            - Run: cat $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.*.yaml || true;
+            - Run: /cc/cache/pulumi/bin/pulumi stack init spork-magmap-http.current -C $(pwd)/iac/stacks/src/domains/magmap/http || true
+            - Run: /cc/cache/pulumi/bin/pulumi stack select spork-magmap-http.current -C $(pwd)/iac/stacks/src/domains/magmap/http || true
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: cat $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.*.yaml || true;
+            - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/domains/magmap/http --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi preview --show-replacement-steps --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-preview" -C $(pwd)/iac/stacks/src/domains/magmap/http --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi up --yes --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-up" -C $(pwd)/iac/stacks/src/domains/magmap/http --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/http --json > $(pwd)/_pulumi/domains_magmap_http.json
+            - Run: cat _pulumi/domains_magmap_http.json
+            - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/http --shell > $(pwd)/_pulumi/domains_magmap_http.sh
+            - Run: cat _pulumi/domains_magmap_http.sh
             - Run: 'echo "Deploying: Stack: spork-magmap-web.current. CWD: $(pwd)/iac/stacks/src/domains/magmap/web. Output: _pulumi/domains_magmap_web."'
             - Run: 'echo "name: spork-magmap-web" >> $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.yaml'
             - Run: cat $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.*.yaml || true;
@@ -490,7 +508,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[schedule(0_0_*_*_?_*)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"25ea9a13805b0b0dafe96d3a008c4a59274a0055dbf3dcf821255957a9aa23d3"}
-#**:_$~- {"$$":"footer","started":"2025-02-17T13:37:32.787Z","now":"2025-02-17T13:37:32.791Z","elapsed":"4ms"}
+#**:_$~- {"$$":"body","hashed":"aeac2ef7535218edb99dd6a3081d936f4107315a142516602f016c4e22b29770"}
+#**:_$~- {"$$":"footer","started":"2025-02-19T00:13:12.616Z","now":"2025-02-19T00:13:12.620Z","elapsed":"4ms"}
 # END OF GENERATED FILE
 

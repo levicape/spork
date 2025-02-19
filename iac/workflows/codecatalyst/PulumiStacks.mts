@@ -30,6 +30,10 @@ export const CODECATALYST_PULUMI_STACKS: Array<{
 			stack: "http",
 		},
 		{
+			stack: "domains/magmap/http",
+			name: "magmap-http",
+		},
+		{
 			stack: "domains/magmap/web",
 			name: "magmap-web",
 		},
