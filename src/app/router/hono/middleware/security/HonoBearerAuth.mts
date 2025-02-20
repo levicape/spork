@@ -1,8 +1,11 @@
-import { subtle } from "node:crypto";
-import type { Context, MiddlewareHandler, Next } from "hono";
+import type { Context, MiddlewareHandler } from "hono";
+import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { subtle } from "node:crypto";
 import VError from "verror";
+import type { JwtTools } from "../../../../server/security/Jwt.mjs";
+import type { HonoHttpAuthenticationBearerContext } from "./HonoAuthenticationBearer.mjs";
 
 // TODO: Use unenv crypto to support LLRT
 
@@ -10,7 +13,7 @@ type MessageFunction = (
 	c: Context,
 ) => string | object | Promise<string | object>;
 
-type BearerAuthOptions =
+type BearerAuthOptions = (
 	| {
 			token: string | string[];
 			realm?: string;
@@ -33,7 +36,8 @@ type BearerAuthOptions =
 			noAuthenticationHeaderMessage?: string | object | MessageFunction;
 			invalidAuthenticationHeaderMessage?: string | object | MessageFunction;
 			invalidTokenMessage?: string | object | MessageFunction;
-	  };
+	  }
+) & { jwtTools: JwtTools };
 
 const TOKEN_STRINGS = "[A-Za-z0-9._~+/-]+=*";
 const PREFIX = "Bearer";
@@ -98,6 +102,14 @@ const timingSafeEqual = async (
 
 	return sa === sb && a === b;
 };
+
+export type HonoBearerAuthMiddleware = {
+	Variables: {
+		JwtTools: JwtTools;
+		HonoHttpAuthenticationBearerPrincipal: HonoHttpAuthenticationBearerContext["principal"];
+	};
+};
+
 /**
  * Bearer Auth Middleware for Hono.
  *
@@ -130,9 +142,7 @@ const timingSafeEqual = async (
  * })
  * ```
  */
-export const HonoBearerAuth = (
-	options: BearerAuthOptions,
-): MiddlewareHandler => {
+export const HonoBearerAuth = (options: BearerAuthOptions) => {
 	if (!("token" in options || "verifyToken" in options)) {
 		throw new VError('bearer auth middleware requires options for "token"');
 	}
@@ -175,67 +185,70 @@ export const HonoBearerAuth = (
 		throw new HTTPException(status, { res });
 	};
 
-	return async function bearerAuth(c: Context, next: Next) {
-		const headerToken = c.req.header(options.headerName || HEADER);
+	return createMiddleware<HonoBearerAuthMiddleware>(
+		async function BearerAuth(c, next) {
+			const headerToken = c.req.header(options.headerName || HEADER);
+			c.set("JwtTools", options.jwtTools);
 
-		let equal = false;
-		if (!headerToken) {
-			// No Authorization header
-			// await throwHTTPException(
-			//   c,
-			//   401,
-			//   `${wwwAuthenticatePrefix}realm="${realm}"`,
-			//   options.noAuthenticationHeaderMessage || 'Unauthorized'
-			// )
-			if ("verifyToken" in options) {
-				equal = await options.verifyToken(undefined, c);
-			}
-		} else {
-			const match = regexp.exec(headerToken);
-			if (!match) {
-				// Invalid Request
-				await throwHTTPException(
-					c,
-					400,
-					`${wwwAuthenticatePrefix}error="invalid_request"`,
-					options.invalidAuthenticationHeaderMessage || "Bad Request",
-				);
-			} else {
+			let equal = false;
+			if (!headerToken) {
+				// No Authorization header
+				// await throwHTTPException(
+				//   c,
+				//   401,
+				//   `${wwwAuthenticatePrefix}realm="${realm}"`,
+				//   options.noAuthenticationHeaderMessage || 'Unauthorized'
+				// )
 				if ("verifyToken" in options) {
-					equal = await options.verifyToken(match[1], c);
-				} else if (typeof options.token === "string") {
-					equal = await timingSafeEqual(
-						options.token,
-						match[1] ?? String(Date.now()),
-						options.hashFunction,
+					equal = await options.verifyToken(undefined, c);
+				}
+			} else {
+				const match = regexp.exec(headerToken);
+				if (!match) {
+					// Invalid Request
+					await throwHTTPException(
+						c,
+						400,
+						`${wwwAuthenticatePrefix}error="invalid_request"`,
+						options.invalidAuthenticationHeaderMessage || "Bad Request",
 					);
-				} else if (Array.isArray(options.token) && options.token.length > 0) {
-					for (const token of options.token) {
-						if (
-							await timingSafeEqual(
-								token,
-								match[1] ?? String(Date.now()),
-								options.hashFunction,
-							)
-						) {
-							equal = true;
-							break;
+				} else {
+					if ("verifyToken" in options) {
+						equal = await options.verifyToken(match[1], c);
+					} else if (typeof options.token === "string") {
+						equal = await timingSafeEqual(
+							options.token,
+							match[1] ?? String(Date.now()),
+							options.hashFunction,
+						);
+					} else if (Array.isArray(options.token) && options.token.length > 0) {
+						for (const token of options.token) {
+							if (
+								await timingSafeEqual(
+									token,
+									match[1] ?? String(Date.now()),
+									options.hashFunction,
+								)
+							) {
+								equal = true;
+								break;
+							}
 						}
 					}
 				}
 			}
-		}
 
-		if (!equal) {
-			// Invalid Token
-			await throwHTTPException(
-				c,
-				401,
-				`${wwwAuthenticatePrefix}error="invalid_token"`,
-				options.invalidTokenMessage || "Unauthorized",
-			);
-		}
+			if (!equal) {
+				// Invalid Token
+				await throwHTTPException(
+					c,
+					401,
+					`${wwwAuthenticatePrefix}error="invalid_token"`,
+					options.invalidTokenMessage || "Unauthorized",
+				);
+			}
 
-		await next();
-	};
+			await next();
+		},
+	);
 };

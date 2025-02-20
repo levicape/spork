@@ -1,7 +1,8 @@
 import { serve } from "@hono/node-server";
 import { Context, Effect, pipe } from "effect";
-import type { Hono, MiddlewareHandler } from "hono";
+import type { Hono } from "hono";
 import { handle } from "hono/aws-lambda";
+import type { BlankEnv, BlankSchema } from "hono/types";
 import { serializeError } from "serialize-error";
 import { env, process } from "std-env";
 import {
@@ -11,10 +12,7 @@ import {
 import { Jwt, JwtLayer } from "../../server/security/Jwt.mjs";
 import { HonoHttpApp } from "./HonoHttpApp.mjs";
 import { HonoHttpServerFold } from "./HonoHttpServer.mjs";
-import {
-	HonoHttpMiddlewareStandard,
-	type HonoHttpMiddlewareStandardProps,
-} from "./middleware/HonoHttpMiddleware.mjs";
+import { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
 
 const { trace } = await Effect.runPromise(
 	Effect.provide(
@@ -30,9 +28,13 @@ const { trace } = await Effect.runPromise(
 	),
 );
 
-export type HonoHttpServerBuilderProps<App extends Hono> = {
+export type HonoHttpServerBuilderProps<
+	Env extends BlankEnv,
+	Schema extends BlankSchema,
+	BasePath extends string,
+> = {
 	app: Effect.Effect<
-		{ app: App; handler?: ReturnType<typeof handle> },
+		{ app: Hono<Env, Schema, BasePath>; handler?: ReturnType<typeof handle> },
 		unknown
 	>;
 	effect?: {
@@ -57,7 +59,10 @@ export const HonoHttpServerDefaultProps: () => HonoHttpServerProps = () => ({
 });
 
 export const HonoHttpServerBuilder =
-	<App extends Hono>({ app, effect }: HonoHttpServerBuilderProps<App>) =>
+	<Env extends BlankEnv, Schema extends BlankSchema, BasePath extends string>({
+		app,
+		effect,
+	}: HonoHttpServerBuilderProps<Env, Schema, BasePath>) =>
 	async (props?: HonoHttpServerProps) => {
 		trace.debug("Building server");
 
@@ -169,6 +174,10 @@ export const HonoHttpServerBuilder =
 export type SporkHonoApp = Effect.Effect.Success<
 	ReturnType<typeof HonoHttpApp>
 >;
+
+export type ExtractEnv<T> = T extends Hono<infer Env, BlankSchema>
+	? Env
+	: never;
 /**
  * SporkHonoHttpServer is a function that configures a Hono instance, and prepares it for use with `spork server start`.
  *
@@ -176,13 +185,12 @@ export type SporkHonoApp = Effect.Effect.Success<
  * @see SporkHonoApp
  * @returns
  */
-export const SporkHonoHttpServer = async (
-	app: (app: SporkHonoApp) => Hono,
-	props: {
-		middleware?: (
-			services: HonoHttpMiddlewareStandardProps,
-		) => Array<MiddlewareHandler>;
-	} = {},
+export const SporkHonoHttpServer = async <
+	Env extends BlankEnv,
+	Schema extends BlankSchema,
+	BasePath extends string,
+>(
+	app: (app: SporkHonoApp) => Hono<Env, Schema, BasePath>,
 ) => {
 	return await Effect.runPromise(
 		pipe(
@@ -195,11 +203,10 @@ export const SporkHonoHttpServer = async (
 									const consola = yield* LoggingContext;
 									const logger = yield* consola.logger;
 									const { jwtTools } = yield* Jwt;
-									const middleware =
-										(props.middleware ?? HonoHttpMiddlewareStandard)?.({
-											logger,
-											jwtTools,
-										}) ?? [];
+									const middleware = HonoHttpMiddlewareStandard({
+										logger,
+										jwtTools,
+									});
 
 									if (middleware.length > 0) {
 										logger
@@ -219,11 +226,10 @@ export const SporkHonoHttpServer = async (
 										}),
 										(spork) => {
 											const { AWS_LAMBDA_FUNCTION_NAME } = env;
-											const resolvedapp = app(spork);
 											return Effect.succeed({
-												app: resolvedapp,
+												app: app(spork),
 												handler:
-													(AWS_LAMBDA_FUNCTION_NAME && handle(resolvedapp)) ||
+													(AWS_LAMBDA_FUNCTION_NAME && handle(spork)) ||
 													undefined,
 											});
 										},

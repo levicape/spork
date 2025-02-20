@@ -37,15 +37,21 @@ export const HonoHttpAuthenticationBearer = ({
 	const derive = HonoHttpAuthenticationDerive({ logger, jwtTools });
 	logger?.debug("Building HonoHttpAuthenticationBearer");
 	return HonoBearerAuth({
-		verifyToken: async (token, c) => {
+		jwtTools,
+		verifyToken: async function HonoVerifyToken(token, c) {
 			return await derive(token, c);
 		},
 	});
 };
 
-export const HonoHttpAuthenticationDerive =
-	({ logger, jwtTools }: HonoHttpAuthenticationBearerProps) =>
-	async (token: string | undefined, context: Context): Promise<boolean> => {
+export const HonoHttpAuthenticationDerive = ({
+	logger,
+	jwtTools,
+}: HonoHttpAuthenticationBearerProps) =>
+	async function HonoVerifyTokenDerivation(
+		token: string | undefined,
+		context: Context,
+	): Promise<boolean> {
 		let jwt: JwtPayload | undefined;
 		let unparseable = false;
 

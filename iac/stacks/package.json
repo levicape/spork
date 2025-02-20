@@ -27,17 +27,5 @@
   "devDependencies": {
     "@types/node": "catalog:types",
     "typescript": "catalog:dev"
-  },
-  "nx": {
-    "targets": {
-      "nx:compile": {
-        "dependsOn": []
-      },
-      "dx:precommit": {
-        "dependsOn": [
-          "nx:compile"
-        ]
-      }
-    }
   }
 }

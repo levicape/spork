@@ -4,7 +4,12 @@ import {
 	RuntimeContext,
 } from "@levicape/paloma/runtime/server/RuntimeContext";
 import { Effect } from "effect";
+import { hc } from "hono/client";
+import type { MagmapHonoApp } from "../http/HonoApp.mjs";
+import { MagmapRoutemap } from "./Atlas.mjs";
 
+const client = hc<MagmapHonoApp>(MagmapRoutemap["/~/v1/Spork/Magmap"].url());
+const { Magmap } = client["~"].v1.Spork;
 const { trace } = await Effect.runPromise(
 	Effect.provide(
 		Effect.gen(function* () {
@@ -18,6 +23,12 @@ const { trace } = await Effect.runPromise(
 		RuntimeContext,
 	),
 );
+
+trace
+	.withMetadata({
+		Magmap,
+	})
+	.info("Loaded service clients");
 
 export const healthcheck = new Canary(
 	"http-healthcheck",
@@ -52,14 +63,26 @@ export const healthcheck = new Canary(
 		async ({ events }) => {
 			trace.warn("Hello world");
 			trace.metadataOnly([
+				events,
 				{ a: 1, b: "Y" },
+				Magmap.test123.$url({}),
 				{ a: "Z", b: 2 },
 			]);
-			fetch("https://jsonplaceholder.typicode.com/todos/1")
-				.then((response) => response.json())
-				.then((json) => {
-					trace.withMetadata({ json }).info("Fetched");
+			{
+				const response = await client["!"].v1.Service.open.$get({
+					query: "sesame",
 				});
+				const json = await response.json();
+				trace.withMetadata({ json }).info("Fetched");
+			}
+
+			{
+				const response = await client["!"].v1.Service.open.$get({
+					query: "spaghetti" as "sesame",
+				});
+				const json = await response.json();
+				trace.withMetadata({ json }).info("Fetched");
+			}
 		},
 	),
 );

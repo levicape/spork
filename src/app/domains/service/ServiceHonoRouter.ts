@@ -1,13 +1,9 @@
-import { Hono } from "hono";
-import { serviceValidationZodRoute } from "./controller/open/ServiceValidationZodRoute.js";
+import { Hono } from "hono/quick";
+import { pipe } from "../../router/hono/HonoHttpApp.mjs";
+import { ServiceValidationZodRoute } from "./controller/open/ServiceValidationZodRoute.js";
 
 const ServiceHonoRouter = () => {
-	const app = new Hono();
-	const routes = (app: Hono) => {
-		return serviceValidationZodRoute(app);
-	};
-	return routes(app);
+	return pipe(ServiceValidationZodRoute)(new Hono());
 };
 
 export { ServiceHonoRouter };
-export const serviceHonoRouter = ServiceHonoRouter();

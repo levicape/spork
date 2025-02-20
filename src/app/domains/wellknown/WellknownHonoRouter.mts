@@ -1,14 +1,10 @@
-import { Hono } from "hono";
-import { wellknownHealthcheckRoute } from "./controller/healthcheck/WellknownHealthcheckRoute.js";
+import { Hono } from "hono/quick";
+import { pipe } from "../../router/hono/HonoHttpApp.mjs";
+import { WellknownHealthcheckRoute } from "./controller/healthcheck/WellknownHealthcheckRoute.js";
 
 const WellknownHonoRouter = () => {
-	const app = new Hono();
-	const routes = (router: typeof app) => {
-		return wellknownHealthcheckRoute(router);
-	};
-
-	return routes(app);
+	return pipe(WellknownHealthcheckRoute)(new Hono());
 };
 
+export type WellknownHonoApp = ReturnType<typeof WellknownHonoRouter>;
 export { WellknownHonoRouter };
-export const wellknownHonoRouter = WellknownHonoRouter();

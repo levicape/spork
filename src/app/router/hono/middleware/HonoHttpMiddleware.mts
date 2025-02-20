@@ -1,12 +1,11 @@
-import type { Context, MiddlewareHandler, Next } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { compress } from "hono/compress";
+import { createMiddleware } from "hono/factory";
 import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { timeout } from "hono/timeout";
 import type { ILogLayer } from "loglayer";
 import type { JwtTools } from "../../../server/security/Jwt.mjs";
-import { HonoLoggingContext } from "./log/HonoLoggingContext.mjs";
 import { HonoRequestLogger } from "./log/HonoRequestLogger.mjs";
 import {
 	HonoRequestIdHeader,
@@ -19,9 +18,9 @@ import {
 import { HonoHttpAuthenticationBearer } from "./security/HonoAuthenticationBearer.mjs";
 import { HonoAuthenticationKeypair } from "./security/HonoAuthenticationKeypair.mjs";
 
-const noop = async (_: Context, next: Next) => {
+const noop = createMiddleware(async (_, next) => {
 	await next();
-};
+});
 
 export const HonoHttpCore = ({
 	timeoutMs,
@@ -57,9 +56,6 @@ export const HonoHttpRequest = ({
 		HonoRequestIdHeader({
 			requestIdHeader: requestIdHeader ?? HonoRequestIdHeaderStandard(),
 		}),
-		...([logger ? HonoLoggingContext({ logger }) : undefined] as [
-			ReturnType<typeof HonoLoggingContext>,
-		]),
 		...([logger ? HonoRequestLogger({ logger }) : undefined] as [
 			ReturnType<typeof HonoRequestLogger>,
 		]),
@@ -99,7 +95,7 @@ export type HonoHttpMiddlewareStandardProps = HonoHttpSecurityProps &
 
 export const HonoHttpMiddlewareStandard = (
 	props: HonoHttpMiddlewareStandardProps,
-): Array<MiddlewareHandler> => {
+) => {
 	const { logger, jwtTools } = props;
 
 	return [
@@ -119,11 +115,12 @@ export const HonoHttpMiddlewareStandard = (
 		...HonoHttpResponse({
 			responseTimeHeader: "X-Response-Time",
 		}),
-	];
+	] as const;
 };
 
 export * from "./exception/Hono404Handler.js";
 export * from "./exception/HonoExceptionMiddleware.mjs";
+export * from "./log/HonoLoggingContext.mjs";
 export * from "./log/HonoRequestLogger.mjs";
 export * from "./ratelimit/HonoRateLimiter.mjs";
 export * from "./request/HonoCors.mjs";

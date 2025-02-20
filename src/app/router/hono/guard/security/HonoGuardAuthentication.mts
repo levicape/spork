@@ -1,5 +1,6 @@
-import type { MiddlewareHandler } from "hono";
+import { createMiddleware } from "hono/factory";
 import VError from "verror";
+import type { HonoBearerAuthMiddleware } from "../../middleware/HonoHttpMiddleware.mjs";
 import {
 	type HonoHttpAuthenticationBearerContext,
 	HonoHttpAuthenticationBearerPrincipal,
@@ -7,17 +8,15 @@ import {
 
 export const HonoGuardAuthentication = (
 	guard: (context: HonoHttpAuthenticationBearerContext) => Promise<boolean>,
-): MiddlewareHandler => {
-	return async (context, next) => {
-		const principal = context.get(
-			HonoHttpAuthenticationBearerPrincipal,
-		) as HonoHttpAuthenticationBearerContext["principal"];
+) => {
+	return createMiddleware<HonoBearerAuthMiddleware>(async (context, next) => {
+		const principal = context.get(HonoHttpAuthenticationBearerPrincipal);
 		if (principal) {
 			const authenticated = await guard({ principal });
 			if (authenticated) {
 				return next();
 			}
-			context.json(
+			return context.json(
 				{
 					error: {
 						code: "Unauthorized",
@@ -28,5 +27,5 @@ export const HonoGuardAuthentication = (
 		}
 
 		throw new VError("No principal to authenticate");
-	};
+	});
 };

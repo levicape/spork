@@ -21,6 +21,7 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "catalog:",
+    "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
     "zod": "catalog:schema-zod"
   },
@@ -34,6 +35,9 @@
   "engines": {
     "node": "22"
   },
+  "exports": {
+    ".": "./module/Atlas.mjs"
+  },
   "files": [
     "module",
     "output"
@@ -42,9 +46,7 @@
   "nx": {
     "targets": {
       "build:tsc": {
-        "dependsOn": [
-          "@levicape/spork:build:module"
-        ]
+        "dependsOn": []
       },
       "build:module": {
         "dependsOn": [
