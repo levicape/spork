@@ -14,7 +14,7 @@ services:
       - ../../../../..:/workspace
       - .:/service
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:$MAGMAP_HTTP/.well-known/healthcheck"]
+      test: ["CMD", "curl", "-s", "-f", "http://localhost:$MAGMAP_HTTP/.well-known/healthcheck"]
       interval: 3s
       timeout: 8s
       retries: 5
@@ -25,7 +25,7 @@ services:
       LOG_LEVEL: $LOG_LEVEL
       PROJECT_PATH: ./packages/magmap-io
       PROJECT_COMMAND: http:canary
-      ATLAS_MODULE: $ATLAS_MODULE
+      MAGMAP_HTTP: $MAGMAP_HTTP
     depends_on:
       http:
         condition: service_healthy

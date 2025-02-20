@@ -4,26 +4,15 @@ import { z } from "zod";
 
 export const ServiceValidationZodSchema = z.literal("sesame");
 
-export const ServiceValidationZodRoute = () => (app: Hono) => {
+export const ServiceValidationZodRoute = <App extends Hono>(app: App) => {
 	return app.get(
 		"/open",
-		zValidator("query", ServiceValidationZodSchema, (result, c) => {
-			if (!result.success) {
-				return c.json({
-					message: "you shall not pass",
-					result,
-				});
-			}
-
+		zValidator("query", ServiceValidationZodSchema),
+		(c) => {
 			return c.json({
 				message: "you may pass",
-				result,
+				query: c.req.valid("query"),
 			});
-		}),
+		},
 	);
 };
-
-export const serviceValidationZodRoute = ServiceValidationZodRoute();
-export type ServiceValidationZodRouteProtocol = ReturnType<
-	typeof serviceValidationZodRoute
->;

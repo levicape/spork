@@ -422,7 +422,7 @@ Actions:
             - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/codestar
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/codestar
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/codestar
-            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/codestar
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path frontend:stack.dns.hostnames[0] spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/codestar
             - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/codestar
             - Run: cat $(pwd)/iac/stacks/src/codestar/Pulumi.yaml $(pwd)/iac/stacks/src/codestar/Pulumi.*.yaml || true;
             - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/codestar --non-interactive --suppress-progress --diff --json
@@ -439,7 +439,7 @@ Actions:
             - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/datalayer
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/datalayer
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/datalayer
-            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/datalayer
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path frontend:stack.dns.hostnames[0] spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/datalayer
             - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/datalayer
             - Run: cat $(pwd)/iac/stacks/src/datalayer/Pulumi.yaml $(pwd)/iac/stacks/src/datalayer/Pulumi.*.yaml || true;
             - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/datalayer --non-interactive --suppress-progress --diff --json
@@ -456,7 +456,7 @@ Actions:
             - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/http
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/http
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/http
-            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path frontend:stack.dns.hostnames[0] spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/http
             - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/http
             - Run: cat $(pwd)/iac/stacks/src/http/Pulumi.yaml $(pwd)/iac/stacks/src/http/Pulumi.*.yaml || true;
             - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/http --non-interactive --suppress-progress --diff --json
@@ -473,7 +473,7 @@ Actions:
             - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/domains/magmap/http
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/domains/magmap/http
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/domains/magmap/http
-            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/http
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path frontend:stack.dns.hostnames[0] spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/http
             - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/domains/magmap/http
             - Run: cat $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/http/Pulumi.*.yaml || true;
             - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/domains/magmap/http --non-interactive --suppress-progress --diff --json
@@ -490,7 +490,7 @@ Actions:
             - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/domains/magmap/web
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/domains/magmap/web
             - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/domains/magmap/web
-            - Run: /cc/cache/pulumi/bin/pulumi config set --path 'frontend:stack.dns.hostnames[0]' spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/web
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path frontend:stack.dns.hostnames[0] spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/web
             - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/domains/magmap/web
             - Run: cat $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/web/Pulumi.*.yaml || true;
             - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/domains/magmap/web --non-interactive --suppress-progress --diff --json
@@ -499,13 +499,30 @@ Actions:
             - Run: cat _pulumi/domains_magmap_web.json
             - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/web --shell > $(pwd)/_pulumi/domains_magmap_web.sh
             - Run: cat _pulumi/domains_magmap_web.sh
+            - Run: 'echo "Deploying: Stack: spork-magmap-monitor.current. CWD: $(pwd)/iac/stacks/src/domains/magmap/monitor. Output: _pulumi/domains_magmap_monitor."'
+            - Run: 'echo "name: spork-magmap-monitor" >> $(pwd)/iac/stacks/src/domains/magmap/monitor/Pulumi.yaml'
+            - Run: cat $(pwd)/iac/stacks/src/domains/magmap/monitor/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/monitor/Pulumi.*.yaml || true;
+            - Run: /cc/cache/pulumi/bin/pulumi stack init spork-magmap-monitor.current -C $(pwd)/iac/stacks/src/domains/magmap/monitor || true
+            - Run: /cc/cache/pulumi/bin/pulumi stack select spork-magmap-monitor.current -C $(pwd)/iac/stacks/src/domains/magmap/monitor || true
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path aws:skipMetadataApiCheck false -C $(pwd)/iac/stacks/src/domains/magmap/monitor
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.isProd false -C $(pwd)/iac/stacks/src/domains/magmap/monitor
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path context:stack.environment.features aws -C $(pwd)/iac/stacks/src/domains/magmap/monitor
+            - Run: /cc/cache/pulumi/bin/pulumi config set --path frontend:stack.dns.hostnames[0] spork.cloud.$FRONTEND_HOSTNAME -C $(pwd)/iac/stacks/src/domains/magmap/monitor
+            - Run: /cc/cache/pulumi/bin/pulumi stack change-secrets-provider $AWS_PROVIDER_KEY -C $(pwd)/iac/stacks/src/domains/magmap/monitor
+            - Run: cat $(pwd)/iac/stacks/src/domains/magmap/monitor/Pulumi.yaml $(pwd)/iac/stacks/src/domains/magmap/monitor/Pulumi.*.yaml || true;
+            - Run: /cc/cache/pulumi/bin/pulumi refresh --yes --skip-preview --clear-pending-creates --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-refresh" -C $(pwd)/iac/stacks/src/domains/magmap/monitor --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi preview --show-replacement-steps --message "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}-preview" -C $(pwd)/iac/stacks/src/domains/magmap/monitor --non-interactive --suppress-progress --diff --json
+            - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/monitor --json > $(pwd)/_pulumi/domains_magmap_monitor.json
+            - Run: cat _pulumi/domains_magmap_monitor.json
+            - Run: /cc/cache/pulumi/bin/pulumi stack output -C $(pwd)/iac/stacks/src/domains/magmap/monitor --shell > $(pwd)/_pulumi/domains_magmap_monitor.sh
+            - Run: cat _pulumi/domains_magmap_monitor.sh
             - Run: du -sh _pulumi
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[pr(OPEN,REVISION)(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"1f4cdd1a82d766790a5a0785ba1b10cbbb4f758040494b076279d50639fc791e"}
-#**:_$~- {"$$":"footer","started":"2025-02-19T00:13:12.640Z","now":"2025-02-19T00:13:12.644Z","elapsed":"4ms"}
+#**:_$~- {"$$":"body","hashed":"5ec56440771dce316af4283af36072cf1bffa05c334bc34fca9e53aace0be793"}
+#**:_$~- {"$$":"footer","started":"2025-02-19T08:16:34.372Z","now":"2025-02-19T08:16:34.376Z","elapsed":"4ms"}
 # END OF GENERATED FILE
 

@@ -1,12 +1,12 @@
-import type { MiddlewareHandler } from "hono";
-export const HonoAuthenticationKeypair = (): MiddlewareHandler => {
+import { createMiddleware } from "hono/factory";
+export const HonoAuthenticationKeypair = () => {
 	const thetoken = encodeURIComponent(
 		"porfavorabracadabraAAAa012392ssSWWWSSwwFFHHTYCEEFGWFBEFBWFBCDewd",
 	);
 
-	return async (_, next) => {
+	return createMiddleware(async function AuthenticationKeypair(_, next) {
 		await next();
-	};
+	});
 };
 
 // async function principalFromBearerToken({ jwt, bearer, headers }) {

@@ -1,20 +1,20 @@
-import { SporkHono, SporkHonoHttpServer } from "@levicape/spork/hono";
+import { SporkHonoHttpServer } from "@levicape/spork/hono";
 import { HonoGuardAuthentication } from "@levicape/spork/hono/guard";
 import type { Context as HonoContext } from "hono";
+import { Hono } from "hono/quick";
 
 export const { server, handler } = await SporkHonoHttpServer((app) =>
 	app
-		.route(
+
+		.get(
 			"/user",
-			SporkHono().use(
-				HonoGuardAuthentication(async ({ principal }) => {
-					return principal.$case === "user";
-				}),
-			),
+			HonoGuardAuthentication(async ({ principal }) => {
+				return principal.$case === "user";
+			}),
 		)
 		.route(
 			"/",
-			SporkHono().use(
+			new Hono().use(
 				HonoGuardAuthentication(async ({ principal }) => {
 					return principal.$case !== "anonymous";
 				}),
@@ -22,7 +22,7 @@ export const { server, handler } = await SporkHonoHttpServer((app) =>
 		)
 		.route(
 			"/",
-			SporkHono()
+			new Hono()
 				.use(
 					HonoGuardAuthentication(async ({ principal }) => {
 						return principal.$case === "anonymous";
@@ -34,10 +34,12 @@ export const { server, handler } = await SporkHonoHttpServer((app) =>
 		)
 		.route(
 			"/not-admin",
-			SporkHono().use(
+			new Hono().use(
 				HonoGuardAuthentication(async ({ principal }) => {
 					return principal.$case !== "admin";
 				}),
 			),
 		),
 );
+
+export type HonoHttpSpork = typeof server.app;

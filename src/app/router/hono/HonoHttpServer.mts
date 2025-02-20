@@ -1,11 +1,16 @@
 import { Effect } from "effect";
+import type { BlankEnv, BlankSchema } from "hono/types";
 import type { ILogLayer } from "loglayer";
 import { deserializeError, serializeError } from "serialize-error";
 import VError from "verror";
 import type { HonoHttpServerBuilder } from "./HonoHttpServerBuilder.mjs";
 
-export const HonoHttpServerFold = (
-	server: ReturnType<typeof HonoHttpServerBuilder>,
+export const HonoHttpServerFold = <
+	Env extends BlankEnv,
+	Schema extends BlankSchema,
+	BasePath extends string,
+>(
+	server: ReturnType<typeof HonoHttpServerBuilder<Env, Schema, BasePath>>,
 	{ trace }: { trace: ILogLayer },
 ) => {
 	return Effect.gen(function* () {

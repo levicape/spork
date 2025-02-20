@@ -10,7 +10,7 @@ catalog:
   "@levicape/fourtwo": "0.9.0-main.20"
   "@levicape/fourtwo-pulumi": "0.9.0-main.20"
   "@levicape/fourtwo-builders": "0.9.0-main.20"
-  "@levicape/spork": "0.5.1-main.8"
+  "@levicape/spork": "0.5.2-main.9"
 
 
 
@@ -82,6 +82,8 @@ catalogs:
   error:
     "serialize-error": "^12.0.0"
     "verror": "^1.10.0"
+  format-time:
+    "pretty-ms": "^9.2.0"
   fs:
     "chokidar": "^4.0.3"
     "fs-extra": "^11.3.0"
@@ -139,8 +141,6 @@ catalogs:
     "long": "^5.2.3"
   parse-path:
     "pathe": "^2.0.2"
-  parse-time:
-    "pretty-ms": "^9.2.0"
   parse-xml:
     "fast-xml-parser": "^4.5.0"
   parse-yaml:

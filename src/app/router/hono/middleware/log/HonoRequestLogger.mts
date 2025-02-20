@@ -1,3 +1,4 @@
+import { createMiddleware } from "hono/factory";
 import type { ILogLayer } from "loglayer";
 
 const HEALTHCHECK_SAMPLE_PERCENT = 0.08;
@@ -77,13 +78,7 @@ export type HonoRequestLoggerProps = {
 };
 export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 	const logger = props.logger.withPrefix("HONO");
-	return async function logger2(
-		c: {
-			req: { raw: { url: string }; method: string };
-			res: { status: number | undefined };
-		},
-		next: () => unknown,
-	) {
+	return createMiddleware(async function RequestLogger(c, next) {
 		const { method } = c.req;
 		const path = getPath(c.req.raw);
 		const ignored = ignore(method, path);
@@ -102,5 +97,5 @@ export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 			c.res.status,
 			timed(start),
 		);
-	};
+	});
 };

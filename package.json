@@ -54,6 +54,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
     "@levicape/fourtwo": "catalog:",
+    "@levicape/spork-atlas": "workspace:",
     "@types/jsonwebtoken": "catalog:types",
     "@types/node": "catalog:types",
     "@types/verror": "catalog:types",
@@ -97,7 +98,8 @@
       },
       "build:tsc": {
         "dependsOn": [
-          "generate:protocols"
+          "generate:protocols",
+          "@levicape/spork-atlas:build:module"
         ]
       },
       "dx:lint": {
@@ -121,8 +123,7 @@
           "@levicape/spork-canary:dx:precommit",
           "@levicape/spork-magmap-io:dx:precommit",
           "@levicape/spork-magmap-ui:dx:precommit",
-          "@levicape/spork-atlas:dx:precommit",
-          "@levicape/spork-iac-stacks:dx:precommit"
+          "@levicape/spork-atlas:dx:precommit"
         ]
       },
       "dx:test": {
@@ -158,7 +159,7 @@
           "@levicape/spork-canary:nx:test",
           "@levicape/spork-magmap-io:nx:test",
           "@levicape/spork-magmap-ui:nx:test",
-          "@levicape/spork-atlas:nx:compile"
+          "@levicape/spork-atlas:nx:test"
         ]
       },
       "test:module": {

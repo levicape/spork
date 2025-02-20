@@ -123,11 +123,19 @@ export const StartCommand = async (props: SporkCliAppProps) => {
 									logger
 										.withMetadata({
 											StartCommand: {
-												routes: server.app.routes
-													?.filter(
-														(route: { path: string }) => route.path !== "/*",
-													)
-													.map((route) => `${route.method} ${route.path}`),
+												routes: [
+													...new Set(
+														server.app.routes
+															?.filter(
+																(route: { path: string }) =>
+																	route.path !== "/*",
+															)
+															.map(
+																(route: { method: string; path: string }) =>
+																	`${route.method} ${route.path}`,
+															),
+													),
+												],
 											},
 										})
 										.info("Routes");

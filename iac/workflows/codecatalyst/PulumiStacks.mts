@@ -37,5 +37,9 @@ export const CODECATALYST_PULUMI_STACKS: Array<{
 			stack: "domains/magmap/web",
 			name: "magmap-web",
 		},
+		{
+			stack: "domains/magmap/monitor",
+			name: "magmap-monitor",
+		},
 	] as const
 ).map((stack) => ({ ...stack, output: stack.stack.replaceAll("/", "_") }));
