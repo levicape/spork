@@ -8,7 +8,7 @@ services:
   caddy:
     image: "caddy:2.9"
     depends_on:
-      - atlas
+      - caddy-atlas
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -20,14 +20,16 @@ services:
       - $PWD/conf:/etc/caddy
       - caddy_data:/data
       - caddy_config:/config
-  atlas:
+  caddy-atlas:
       image: $ROOT_IMAGE
       entrypoint: launcher
-      command: iac/images/compose/$COMPOSE_PROJECT_NAME/service/atlas.mts
+      command: pnpm exec nx run-many -t atlas:caddy
       environment: 
         LOG_LEVEL: $LOG_LEVEL
+        STRUCTURED_LOGGING: $STRUCTURED_LOGGING
         ATLAS_CADDYFILE: /conf/Caddyfile
+        MAGMAP_HTTP: $MAGMAP_HTTP
+        MAGMAP_UI: $MAGMAP_UI
       volumes: 
         - $PWD/../conf:/conf
-        - $PWD:/service
 

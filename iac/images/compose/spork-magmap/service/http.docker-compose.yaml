@@ -3,16 +3,16 @@ services:
   http:
     image: $ROOT_IMAGE
     entrypoint: project
-    environment:
+    environment:      
       LOG_LEVEL: $LOG_LEVEL
+      STRUCTURED_LOGGING: $STRUCTURED_LOGGING
       PROJECT_PATH: ./packages/magmap-io
       PROJECT_COMMAND: http:dev
       PORT: $MAGMAP_HTTP
-    ports:
-      - $MAGMAP_HTTP:$MAGMAP_HTTP
     volumes: &workspace_volumes
       - ../../../../..:/workspace
-      - .:/service
+    ports:
+      - $MAGMAP_HTTP:$MAGMAP_HTTP
     healthcheck:
       test: ["CMD", "curl", "-s", "-f", "http://localhost:$MAGMAP_HTTP/.well-known/healthcheck"]
       interval: 3s
@@ -23,12 +23,12 @@ services:
     entrypoint: project
     environment:
       LOG_LEVEL: $LOG_LEVEL
+      STRUCTURED_LOGGING: $STRUCTURED_LOGGING
       PROJECT_PATH: ./packages/magmap-io
       PROJECT_COMMAND: http:canary
       MAGMAP_HTTP: $MAGMAP_HTTP
+      MAGMAP_UI: $MAGMAP_UI
+    volumes: *workspace_volumes
     depends_on:
       http:
         condition: service_healthy
-      ui:
-        condition: service_started
-    volumes: *workspace_volumes

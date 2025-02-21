@@ -1,7 +1,5 @@
 import { Effect } from "effect";
 import { useCallback, useMemo, useState } from "react";
-import viteLogo from "/vite.svg";
-import reactLogo from "./assets/react.svg";
 import "./App.css";
 
 export const App = () => {

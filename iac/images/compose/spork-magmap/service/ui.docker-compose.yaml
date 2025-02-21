@@ -4,9 +4,33 @@ services:
     image: $ROOT_IMAGE
     entrypoint: project
     environment: 
+      LOG_LEVEL: $LOG_LEVEL
+      STRUCTURED_LOGGING: $STRUCTURED_LOGGING
       PROJECT_PATH: ./packages/magmap-ui
       PROJECT_COMMAND: staticwww:dev
-      LOG_LEVEL: $LOG_LEVEL
       PORT: $MAGMAP_UI
+    volumes: &workspace_volumes
+      - ../../../../..:/workspace
     ports:
       - $MAGMAP_UI:$MAGMAP_UI
+    healthcheck:
+      test: ["CMD", "curl", "-s", "-f", "http://localhost:$MAGMAP_UI/"]
+      interval: 3s
+      timeout: 8s
+      retries: 5
+  ui-canary:
+    image: $ROOT_IMAGE
+    entrypoint: project
+    environment:
+      LOG_LEVEL: $LOG_LEVEL
+      STRUCTURED_LOGGING: $STRUCTURED_LOGGING
+      PROJECT_PATH: ./packages/magmap-ui
+      PROJECT_COMMAND: staticwww:canary
+      MAGMAP_HTTP: $MAGMAP_HTTP
+      MAGMAP_UI: $MAGMAP_UI
+    volumes: *workspace_volumes
+    depends_on:
+      http:
+        condition: service_healthy
+      ui:
+        condition: service_healthy
