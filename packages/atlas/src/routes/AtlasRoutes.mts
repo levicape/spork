@@ -1,4 +1,3 @@
-import { env } from "std-env";
 import { z } from "zod";
 
 export type RouteProtocol = "http" | "https" | "ws" | "wss";

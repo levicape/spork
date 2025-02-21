@@ -8,6 +8,7 @@
     "packageexecutor": "pnpm exec",
     "packagescript": "pnpm run",
     "binspork": "node node_modules/@levicape/spork/module/cli/bin.mjs",
+    "binatlas": "node module/canary/Atlas.mjs",
     "outpath": "./module",
     "srcpaths": "./src",
     "lintpaths": "./src",
@@ -44,6 +45,12 @@
   "license": "AGPL-3.0-only",
   "nx": {
     "targets": {
+      "atlas": {
+        "dependsOn": [
+          "build:module",
+          "@levicape/spork-atlas:build:module"
+        ]
+      },
       "build:module": {
         "dependsOn": [
           "build:tsc"
@@ -107,6 +114,7 @@
   },
   "repository": "github:levicape/spork",
   "scripts": {
+    "atlas": "$npm_package_config_binatlas",
     "build": "$npm_package_config_packageexecutor nx nx:compile",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose --no-cloud",

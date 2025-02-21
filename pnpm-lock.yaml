@@ -87,6 +87,9 @@ catalogs:
     chokidar:
       specifier: ^4.0.3
       version: 4.0.3
+    fs-extra:
+      specifier: ^11.3.0
+      version: 11.3.0
   hono:
     '@hono/node-server':
       specifier: ^1.13.7
@@ -192,9 +195,6 @@ catalogs:
       specifier: ^3.147.0
       version: 3.147.0
   runtime-env:
-    dotenv:
-      specifier: ^16.4.7
-      version: 16.4.7
     std-env:
       specifier: ^3.8.0
       version: 3.8.0
@@ -210,6 +210,9 @@ catalogs:
     '@types/express':
       specifier: ^4.17
       version: 4.17.21
+    '@types/fs-extra':
+      specifier: ^11.0.4
+      version: 11.0.4
     '@types/jsonwebtoken':
       specifier: ^9.0.8
       version: 9.0.8
@@ -302,9 +305,6 @@ importers:
       consola:
         specifier: catalog:log-consola
         version: 3.4.0
-      dotenv:
-        specifier: catalog:runtime-env
-        version: 16.4.7
       effect:
         specifier: catalog:effect
         version: 3.13.0
@@ -537,12 +537,21 @@ importers:
       '@levicape/spork':
         specifier: 'catalog:'
         version: 0.5.2-main.9(@bufbuild/protobuf@2.2.3)(@hono/node-server@1.13.7(hono@4.7.1))(hono@4.7.1)(jsonwebtoken@9.0.2)(pg-native@3.2.0)(zod@3.24.1)
+      fs-extra:
+        specifier: catalog:fs
+        version: 11.3.0
+      serialize-error:
+        specifier: catalog:error
+        version: 12.0.0
       std-env:
         specifier: catalog:runtime-env
         version: 3.8.0
       ts-proto:
         specifier: catalog:protobuf
         version: 2.6.1
+      verror:
+        specifier: catalog:error
+        version: 1.10.1
       zod:
         specifier: catalog:schema-zod
         version: 3.24.1
@@ -550,6 +559,9 @@ importers:
       '@biomejs/biome':
         specifier: catalog:lint
         version: 1.9.4
+      '@types/fs-extra':
+        specifier: catalog:types
+        version: 11.0.4
       '@types/node':
         specifier: catalog:types
         version: 22.13.4
@@ -2702,6 +2714,9 @@ packages:
   '@types/express@4.17.21':
     resolution: {integrity: sha512-ejlPM315qwLpaQlQDTjPdsUFSc6ZsP4AN6AlWnogPjQ7CVi7PYF3YVz+CY3jE2pwYf7E/7HlDAN0rV2GxTG0HQ==}
 
+  '@types/fs-extra@11.0.4':
+    resolution: {integrity: sha512-yTbItCNreRooED33qjunPthRcSjERP1r4MqCZc7wv0u2sUkzTFp45tgUfS5+r7FrZPdmCCNflLhVSP/o+SemsQ==}
+
   '@types/google-protobuf@3.15.12':
     resolution: {integrity: sha512-40um9QqwHjRS92qnOaDpL7RmDK15NuZYo9HihiJRbYkMQZlWnuH8AdvbMy8/o6lgLmKbDUKa+OALCltHdbOTpQ==}
 
@@ -2719,6 +2734,9 @@ packages:
 
   '@types/istanbul-reports@3.0.4':
     resolution: {integrity: sha512-pk2B1NWalF9toCRu6gjBzR69syFjP4Od8WRAX+0mmf9lAjCRicLOWc+ZrxZHx/0XRjotgkF9t6iaMJ+aXcOdZQ==}
+
+  '@types/jsonfile@6.1.4':
+    resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
 
   '@types/jsonwebtoken@9.0.8':
     resolution: {integrity: sha512-7fx54m60nLFUVYlxAB1xpe9CBWX2vSrk50Y6ogRJ1v5xxtba7qXTg5BgYDN5dq+yuQQ9HaVlHJyAAt1/mxryFg==}
@@ -8310,6 +8328,11 @@ snapshots:
       '@types/qs': 6.9.18
       '@types/serve-static': 1.15.7
 
+  '@types/fs-extra@11.0.4':
+    dependencies:
+      '@types/jsonfile': 6.1.4
+      '@types/node': 22.13.4
+
   '@types/google-protobuf@3.15.12': {}
 
   '@types/http-cache-semantics@4.0.4': {}
@@ -8325,6 +8348,10 @@ snapshots:
   '@types/istanbul-reports@3.0.4':
     dependencies:
       '@types/istanbul-lib-report': 3.0.3
+
+  '@types/jsonfile@6.1.4':
+    dependencies:
+      '@types/node': 22.13.4
 
   '@types/jsonwebtoken@9.0.8':
     dependencies:

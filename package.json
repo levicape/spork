@@ -38,7 +38,6 @@
     "@stricli/core": "catalog:cli",
     "chokidar": "catalog:fs",
     "consola": "catalog:log-consola",
-    "dotenv": "catalog:runtime-env",
     "effect": "catalog:effect",
     "hono-rate-limiter": "catalog:hono",
     "loglayer": "catalog:log-loglayer",

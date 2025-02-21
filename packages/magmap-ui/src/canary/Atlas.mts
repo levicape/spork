@@ -4,6 +4,7 @@ import { Atlas } from "@levicape/spork-atlas";
 
 const { MAGMAP_HTTP, MAGMAP_UI } = process.env;
 
+// Import from -io?
 export const MagmapRoutemap = Atlas({
 	"/": {
 		$kind: "ComposeRouteResource",
