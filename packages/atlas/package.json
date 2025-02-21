@@ -21,12 +21,16 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "catalog:",
+    "fs-extra": "catalog:fs",
+    "serialize-error": "catalog:error",
     "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
+    "verror": "catalog:error",
     "zod": "catalog:schema-zod"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
+    "@types/fs-extra": "catalog:types",
     "@types/node": "catalog:types",
     "publint": "catalog:package",
     "ts-proto": "catalog:protobuf",

@@ -110,14 +110,15 @@ export const HonoHttpAuthenticationDerive = ({
 			});
 		}
 
-		const ignored = Math.random() > JWT_SAMPLE_PERCENT;
+		const random = Math.random();
+		const ignored = random > JWT_SAMPLE_PERCENT;
 		if (unparseable === true || !ignored) {
 			logger
 				?.withMetadata({
 					HonoAuthenticationBearer: {
 						jwt,
 						unparseable,
-						randomset: `${ignored}/1 > ${JWT_SAMPLE_PERCENT}`,
+						randomset: `${random}/1 > ${JWT_SAMPLE_PERCENT}`,
 					},
 				})
 				.debug("Parsing request jwt");
