@@ -6,6 +6,8 @@ import { LoginToken } from "../../../../server/security/model/LoginToken.js";
 import { SecurityRoles } from "../../../../server/security/model/Security.js";
 import { HonoBearerAuth } from "./HonoBearerAuth.mjs";
 
+const JWT_SAMPLE_PERCENT = 0.22;
+
 export type HonoHttpAuthenticationBearerContext = {
 	principal:
 		| {
@@ -108,14 +110,18 @@ export const HonoHttpAuthenticationDerive = ({
 			});
 		}
 
-		logger
-			?.withMetadata({
-				HonoAuthenticationBearer: {
-					jwt,
-					unparseable,
-				},
-			})
-			.debug("Parsing request jwt");
+		const ignored = Math.random() > JWT_SAMPLE_PERCENT;
+		if (unparseable === true || !ignored) {
+			logger
+				?.withMetadata({
+					HonoAuthenticationBearer: {
+						jwt,
+						unparseable,
+						randomset: `${ignored}/1 > ${JWT_SAMPLE_PERCENT}`,
+					},
+				})
+				.debug("Parsing request jwt");
+		}
 
 		return !unparseable;
 	};

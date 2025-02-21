@@ -493,10 +493,24 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 																		"aws:skipMetadataApiCheck": false,
 																		"context:stack.environment.isProd": false,
 																		"context:stack.environment.features": "aws",
-																		"'frontend:stack.dns.hostnames[0]'": `${root ?? APPLICATION}.cloud.$FRONTEND_HOSTNAME`,
-																		// "'frontend:stack.dns.hostnames[1]'": `${matrix.pipeline.environment.name}.${root ?? APPLICATION}.cloud.$FRONTEND_HOSTNAME`,
-																		// "'frontend:stack.dns.hostnames[2]'": `${PULUMI_PROJECT}.${matrix.pipeline.environment.name}.${root ?? APPLICATION}.cloud.$FRONTEND_HOSTNAME`,
+																		...Object.fromEntries(
+																			[
+																				root ?? APPLICATION,
+																				matrix.pipeline.environment.name,
+																				PULUMI_PROJECT,
+																			].map((key, i) => {
+																				let subdomain = key;
+																				for (let j = 0; j < i; j++) {
+																					subdomain = `${subdomain}.${key}`;
+																				}
+																				return [
+																					`'frontend:stack.dns.hostnames[${i}]'`,
+																					`${key}.cloud.$FRONTEND_HOSTNAME`,
+																				];
+																			}),
+																		),
 																	};
+
 																	const PULUMI_MESSAGE = `${_$_("WorkflowSource.BranchName")}-${_$_("WorkflowSource.CommitId")}`;
 																	return (
 																		<>
