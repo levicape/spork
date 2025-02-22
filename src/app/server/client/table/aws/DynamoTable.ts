@@ -90,6 +90,13 @@ export class DynamoTable<
 					":pk": partitionKey,
 				},
 				Limit: limit,
+				...(exclusiveStartKey
+					? {
+							ExclusiveStartKey: {
+								[partitionKeyColumn]: exclusiveStartKey,
+							},
+						}
+					: {}),
 			});
 
 			for (const row of result.Items ?? []) {

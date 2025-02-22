@@ -1,8 +1,8 @@
 import { createMiddleware } from "hono/factory";
 export const HonoAuthenticationKeypair = () => {
-	const thetoken = encodeURIComponent(
-		"porfavorabracadabraAAAa012392ssSWWWSSwwFFHHTYCEEFGWFBEFBWFBCDewd",
-	);
+	// const thetoken = encodeURIComponent(
+	// 	"porfavorabracadabraAAAa012392ssSWWWSSwwFFHHTYCEEFGWFBEFBWFBCDewd",
+	// );
 
 	return createMiddleware(async function AuthenticationKeypair(_, next) {
 		await next();

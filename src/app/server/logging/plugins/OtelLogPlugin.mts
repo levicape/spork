@@ -80,16 +80,15 @@ export const OtelLogPlugin: () => LogLayerPlugin = () => {
 		onBeforeDataOut: (() => {
 			return ({ data }) => {
 				if (data) {
-					const { spanId, rootId, parentSpanId, traceId, loggerId, _$span } =
-						data as {
-							_$span?: "logger";
-							_depth?: number;
-							rootId?: string;
-							loggerId: string;
-							traceId?: string;
-							spanId?: string;
-							parentSpanId?: string;
-						};
+					const { spanId, rootId, parentSpanId, traceId } = data as {
+						_$span?: "logger";
+						_depth?: number;
+						rootId?: string;
+						loggerId: string;
+						traceId?: string;
+						spanId?: string;
+						parentSpanId?: string;
+					};
 
 					// biome-ignore lint:
 					delete data._depth;

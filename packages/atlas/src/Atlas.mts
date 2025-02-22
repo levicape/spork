@@ -6,8 +6,8 @@ import VError from "verror";
 import { AtlasEnvironmentZod } from "./AtlasEnvironment.mjs";
 import {
 	type AtlasRouteMap,
-	AtlasRouteMapZod,
 	type Prefix,
+	RoutePathsZod,
 } from "./routes/AtlasRoutes.mjs";
 import { CaddyfileReverseProxy } from "./transform/caddy/Caddyfile.mjs";
 
@@ -60,7 +60,7 @@ export function Atlas<Paths extends Prefix>(
 	if (ATLAS_ROUTES) {
 		const file = readFileSync(ATLAS_ROUTES, "utf-8");
 		resolved = JSON.parse(file);
-		const result = AtlasRouteMapZod.safeParse(resolved);
+		const result = RoutePathsZod.safeParse(resolved);
 		if (!result.success) {
 			process.stderr?.write(`Filename: ${ATLAS_ROUTES} \n`);
 			process.stderr?.write("Raw: \n");
@@ -68,11 +68,11 @@ export function Atlas<Paths extends Prefix>(
 			process.stderr?.write("\n Parsed:\n");
 			process.stderr?.write(inspect(resolved, { depth: null }));
 			process.stderr?.write(
-				`\n AtlasRouteMapZod failed to parse routes: ${JSON.stringify(result.error.flatten())}\n`,
+				`\n RoutePathsZod failed to parse routes: ${JSON.stringify(result.error.flatten())}\n`,
 			);
 			throw new VError(
 				deserializeError(result.error),
-				"AtlasRouteMapZod failed to parse routes",
+				"RoutePathsZod failed to parse routes",
 			);
 		}
 	}

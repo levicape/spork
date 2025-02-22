@@ -13,6 +13,7 @@ export const { server, handler } = await SporkHonoHttpServer((app) =>
 		.use(
 			createMiddleware<{ Variables: { hol: "up" } }>(async (c, next) => {
 				c.set("hol", "up");
+				await next();
 			}),
 		)
 		.route(

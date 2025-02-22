@@ -5,9 +5,6 @@ export type Service = string;
 export type Prefix = "/" | `/${"!" | "~" | "-"}/v${number}/${string}`;
 export type ComposeRouteResource = {
 	$kind: "ComposeRouteResource";
-	hostname: string;
-	protocol: RouteProtocol;
-	port?: number;
 };
 export type LambdaRouteResource = {
 	$kind: "LambdaRouteResource";
@@ -36,39 +33,36 @@ export type LambdaRouteResource = {
 			attributes: Record<string, string>;
 		};
 	};
-} & Omit<Route<ComposeRouteResource>, "$kind">;
-export type NoRouteResource = { [key: symbol]: never };
-export type RouteResource =
-	| ComposeRouteResource
-	| LambdaRouteResource
-	| NoRouteResource;
+};
 
-export type Route<T> = {
+export type RouteResource = ComposeRouteResource | LambdaRouteResource;
+
+export type Route = {
 	hostname: string;
 	protocol: RouteProtocol;
 	port?: number;
-	cdn?: string;
-} & T;
+} & RouteResource;
 
-export type RoutePaths<Paths extends Prefix> = Record<
-	Paths,
-	Route<RouteResource>
->;
+export type RoutePaths<Paths extends Prefix> = Record<Paths, Route>;
 
 export type AtlasRouteMap<Paths extends Prefix> = Record<
 	Service,
 	RoutePaths<Paths | Prefix>
 >;
 
-export const ComposeRouteResourceZod = z.object({
-	$kind: z.literal("ComposeRouteResource"),
+export const RouteResourceZod = z.object({
 	hostname: z.string(),
-	protocol: z.enum(["http", "https"]),
+	protocol: z.enum(["http", "https", "ws", "wss"] as const),
 	port: z.number().min(0).max(65335).optional(),
 });
 
-export const LambdaRouteResourceZod = z.intersection(
-	ComposeRouteResourceZod,
+export const ComposeRouteResourceZod = RouteResourceZod.merge(
+	z.object({
+		$kind: z.literal("ComposeRouteResource"),
+	}),
+);
+
+export const LambdaRouteResourceZod = RouteResourceZod.merge(
 	z.object({
 		$kind: z.literal("LambdaRouteResource"),
 		lambda: z.object({
@@ -108,19 +102,42 @@ export const LambdaRouteResourceZod = z.intersection(
 			.optional(),
 	}),
 );
-export const RouteResourceZod = z.union([
+
+export const RouteZod = z.discriminatedUnion("$kind", [
 	ComposeRouteResourceZod,
 	LambdaRouteResourceZod,
 ]);
 
-export const AtlasRouteMapZod = z.record(z.record(RouteResourceZod));
+export const RoutePathsZod = z.record(RouteZod);
 
-type AtlasRouteMapZodType = z.infer<typeof AtlasRouteMapZod>;
-type AtlasRouteMapZodTypecheck = AtlasRouteMapZodType extends Record<
-	string,
-	Record<string, Route<RouteResource>>
->
-	? true
-	: false;
-
-const _atlasRouteMapZodTypecheck: AtlasRouteMapZodTypecheck = true;
+type RoutePathsZodType = z.infer<typeof RoutePathsZod>;
+({
+	"/": {
+		$kind: "ComposeRouteResource",
+		hostname: "localhost",
+		protocol: "http",
+		port: 80,
+	},
+	"/lambda": {
+		$kind: "LambdaRouteResource",
+		hostname: "localhost",
+		protocol: "http",
+		port: 80,
+		lambda: {
+			name: "test",
+		},
+		cloudmap: {
+			namespace: {
+				name: "test",
+			},
+			service: {
+				name: "test",
+			},
+			instance: {
+				attributes: {
+					test: "test",
+				},
+			},
+		},
+	},
+}) satisfies RoutePathsZodType;

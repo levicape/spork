@@ -105,7 +105,7 @@ export class PostgresTable<
 					},
 				);
 			};
-			this.initialize().then((r) => {
+			this.initialize().then((_r) => {
 				// Logger.debug({
 				// 	PostgresTable: {
 				// 		master: this.master,
@@ -185,7 +185,6 @@ export class PostgresTable<
 		partitionKeyColumn: string,
 		{
 			limit,
-			/* eslint-disable @typescript-eslint/no-unused-vars */
 			exclusiveStartKey,
 		}: { limit?: number; exclusiveStartKey?: string },
 	): Promise<AsyncGenerator<T>> => {
@@ -193,7 +192,12 @@ export class PostgresTable<
 			sql.fragment`${sql.identifier([partitionKeyColumn])} = ${partitionKey}`,
 		];
 
-		/* eslint-enable @typescript-eslint/no-unused-vars */
+		if (exclusiveStartKey) {
+			conditions.push(
+				sql.fragment`${sql.identifier([partitionKeyColumn])} > ${exclusiveStartKey}`,
+			);
+		}
+
 		const reads = this.reads;
 		const table = this.tableName;
 		return (async function* () {
@@ -272,8 +276,10 @@ export class PostgresTable<
 	): Promise<void> => {
 		const insertStatements = items.map((item) => {
 			const columns = Object.keys(item)
-				// biome-ignore lint/suspicious/noExplicitAny:
-				.filter((col) => (item as any)[col] !== undefined)
+				.filter(
+					(col) =>
+						(item as { [Key in typeof col]: unknown })[col] !== undefined,
+				)
 				.map((col) => sql.identifier([col]));
 
 			const values = Object.values(item)

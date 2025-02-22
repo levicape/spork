@@ -86,3 +86,5 @@ export const healthcheck = new Canary(
 		},
 	),
 );
+
+export const handler = healthcheck;

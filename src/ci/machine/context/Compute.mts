@@ -1,5 +1,5 @@
 import { userInfo } from "node:os";
-import { githubActions, isGithubAction } from "../executor/GithubActions.mjs";
+import { githubActions } from "../executor/GithubActions.mjs";
 import { getEnv } from "./Environment.mjs";
 
 const isBuildkite = false;
