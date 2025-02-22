@@ -31,6 +31,7 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@effect/platform": "catalog:effect",
     "@effect/platform-node": "catalog:effect",
+    "@hono/node-server": "catalog:hono",
     "@hono/zod-validator": "catalog:hono",
     "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
     "@loglayer/transport-consola": "catalog:log-loglayer",
@@ -39,7 +40,9 @@
     "chokidar": "catalog:fs",
     "consola": "catalog:log-consola",
     "effect": "catalog:effect",
+    "hono": "catalog:hono",
     "hono-rate-limiter": "catalog:hono",
+    "jsonwebtoken": "catalog:crypto",
     "loglayer": "catalog:log-loglayer",
     "pino": "catalog:log-pino",
     "pino-pretty": "catalog:log-pino",
@@ -48,7 +51,8 @@
     "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
     "ulidx": "catalog:id",
-    "verror": "catalog:error"
+    "verror": "catalog:error",
+    "zod": "catalog:schema-zod"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
@@ -169,13 +173,6 @@
     }
   },
   "packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
-  "peerDependencies": {
-    "@bufbuild/protobuf": "catalog:protobuf",
-    "@hono/node-server": "catalog:hono",
-    "hono": "catalog:hono",
-    "jsonwebtoken": "catalog:crypto",
-    "zod": "catalog:schema-zod"
-  },
   "pnpm": {
     "supportedArchitectures": {
       "os": [
