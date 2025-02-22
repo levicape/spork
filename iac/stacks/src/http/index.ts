@@ -292,6 +292,7 @@ export = async () => {
 		});
 
 		const memorySize = context.environment.isProd ? 512 : 256;
+		const timeout = context.environment.isProd ? 18 : 11;
 		const lambda = new LambdaFn(
 			_("function"),
 			{
@@ -299,7 +300,7 @@ export = async () => {
 				role: roleArn,
 				architectures: ["arm64"],
 				memorySize,
-				timeout: 18,
+				timeout: timeout,
 				packageType: "Zip",
 				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
 				handler: "index.handler",
@@ -323,7 +324,11 @@ export = async () => {
 				environment: all([cloudmapEnvironment]).apply(([cloudmapEnv]) => {
 					return {
 						variables: {
-							...cloudmapEnv,
+							NODE_OPTIONS: [
+								"--no-force-async-hooks-checks",
+								"--use-largepages=on",
+								"--enable-source-maps",
+							].join(" "),
 							NODE_ENV: "production",
 							LOG_LEVEL: "5",
 							...(LLRT_PLATFORM
@@ -332,6 +337,7 @@ export = async () => {
 										LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
 									}
 								: {}),
+							...cloudmapEnv,
 							...(ENVIRONMENT !== undefined && typeof ENVIRONMENT === "function"
 								? Object.fromEntries(
 										Object.entries(ENVIRONMENT(dereferenced$))

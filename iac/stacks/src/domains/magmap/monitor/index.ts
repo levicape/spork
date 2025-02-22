@@ -274,6 +274,7 @@ export = async () => {
 	});
 
 	// Compute
+	const HANDLER_TYPE = "monitorhandler" as const;
 	const handler = async (
 		{
 			name,
@@ -387,7 +388,11 @@ export = async () => {
 				environment: all([cloudmapEnvironment]).apply(([cloudmapEnv]) => {
 					return {
 						variables: {
-							...cloudmapEnv,
+							NODE_OPTIONS: [
+								"--no-force-async-hooks-checks",
+								"--use-largepages=on",
+								"--enable-source-maps",
+							].join(" "),
 							NODE_ENV: "production",
 							LOG_LEVEL: "5",
 							...(LLRT_PLATFORM
@@ -396,7 +401,8 @@ export = async () => {
 										LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
 									}
 								: {}),
-							ATLAS_ROUTES: `file://$LAMBDA_TASK_ROOT/${ATLASFILE_PATH}`,
+							ATLAS_ROUTES: `file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${ATLASFILE_PATH}`,
+							...cloudmapEnv,
 							...(environment !== undefined && typeof environment === "function"
 								? Object.fromEntries(
 										Object.entries(environment(dereferenced$))
@@ -533,7 +539,7 @@ export = async () => {
 					new CodeDeployAppspecBuilder()
 						.setResources([
 							{
-								monitorhandler: new CodeDeployAppspecResourceBuilder()
+								[HANDLER_TYPE]: new CodeDeployAppspecResourceBuilder()
 									.setName(props.name)
 									.setAlias(props.alias)
 									.setCurrentVersion(props.currentVersion)
@@ -548,7 +554,7 @@ export = async () => {
 			};
 
 			const project = (() => {
-				const PIPELINE_STAGE = "monitorhandler" as const;
+				const PIPELINE_STAGE = HANDLER_TYPE;
 				const EXTRACT_ACTION = "extractimage" as const;
 				const UPDATE_ACTION = "updatelambda" as const;
 

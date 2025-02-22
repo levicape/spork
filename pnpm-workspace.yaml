@@ -165,7 +165,6 @@ catalogs:
     "@pulumi/synced-folder": "^0.11.1"
     "@pulumiverse/time": "^0.1.0"
   runtime-env:
-    "@tuplo/envsubst": "1.15.2"
     "dotenv": "^16.4.7"
     "std-env": "^3.8.0"
   schema-zod:

@@ -195,9 +195,6 @@ catalogs:
       specifier: ^3.147.0
       version: 3.147.0
   runtime-env:
-    '@tuplo/envsubst':
-      specifier: 1.15.2
-      version: 1.15.2
     std-env:
       specifier: ^3.8.0
       version: 3.8.0
@@ -540,9 +537,6 @@ importers:
       '@levicape/spork':
         specifier: 'catalog:'
         version: 0.5.2-main.9(@bufbuild/protobuf@2.2.3)(@hono/node-server@1.13.7(hono@4.7.1))(hono@4.7.1)(jsonwebtoken@9.0.2)(pg-native@3.2.0)(zod@3.24.1)
-      '@tuplo/envsubst':
-        specifier: catalog:runtime-env
-        version: 1.15.2
       fs-extra:
         specifier: catalog:fs
         version: 11.3.0
@@ -2695,10 +2689,6 @@ packages:
   '@tufjs/models@2.0.1':
     resolution: {integrity: sha512-92F7/SFyufn4DXsha9+QfKnN03JGqtMFMXgSHbZOo8JG59WkTni7UzAouNQDf7AuP9OAMxVOPQcqG3sB7w+kkg==}
     engines: {node: ^16.14.0 || >=18.0.0}
-
-  '@tuplo/envsubst@1.15.2':
-    resolution: {integrity: sha512-sz+Tj0V+t4RfihoBMa4fw3OfKSpbTKy8EEvCxirjr+G1+xlaQROqbavCabZA8DVAK75CvxAG9mwWpjsDx693Ew==}
-    engines: {node: '>=12'}
 
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
@@ -8299,8 +8289,6 @@ snapshots:
     dependencies:
       '@tufjs/canonical-json': 2.0.0
       minimatch: 9.0.5
-
-  '@tuplo/envsubst@1.15.2': {}
 
   '@tybys/wasm-util@0.9.0':
     dependencies:
