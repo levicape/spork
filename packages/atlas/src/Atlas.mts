@@ -1,6 +1,7 @@
 import { appendFileSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
-import { deserializeError } from "serialize-error";
+import { deserializeError, serializeError } from "serialize-error";
 import { env, process } from "std-env";
 import VError from "verror";
 import { AtlasEnvironmentZod } from "./AtlasEnvironment.mjs";
@@ -33,6 +34,18 @@ export type AtlasConfiguration<Paths extends Prefix> = {
 	Routes: AtlasRouteMap<Paths>[keyof AtlasRouteMap<Paths>];
 };
 
+function deferExit() {
+	const { AWS_LAMBDA_FUNCTION_NAME } = env;
+	if (
+		AWS_LAMBDA_FUNCTION_NAME !== undefined &&
+		AWS_LAMBDA_FUNCTION_NAME.length > 0
+	) {
+		setTimeout(() => {
+			process.exit?.(1);
+		}, 500);
+	}
+}
+
 /**
  * Atlas is a function that takes an map of routes and returns a topology of routes.
  * It will also replace the routes with the ones in the ATLAS_ROUTES env var if it is set, allowing for Service Discovery.
@@ -44,22 +57,66 @@ export type AtlasConfiguration<Paths extends Prefix> = {
 export function Atlas<Paths extends Prefix>(
 	routes: AtlasRouteMap<Paths>[keyof AtlasRouteMap<Paths>],
 ): AtlasTopology<Paths> {
+	///
+	// Parse environment
+	//
 	const parsedEnv = AtlasEnvironmentZod.safeParse(env);
 	const { ATLAS_ROUTES, ATLAS_CADDYFILE } = parsedEnv.data ?? {};
 	if (!parsedEnv.success) {
 		process.stderr?.write(
-			`AtlasEnvZod failed to parse env: ${JSON.stringify(parsedEnv.error.flatten())}\n`,
+			`AtlasEnvZod failed to parse env: ${inspect(parsedEnv.error.flatten(), { depth: null })}\n`,
 		);
 
+		deferExit();
 		throw new VError(
 			deserializeError(parsedEnv.error),
 			"AtlasEnvZod failed to parse env",
 		);
 	}
+	///
+	// Resolve ATLAS_ROUTES
+	//
 	let resolved = routes;
 	if (ATLAS_ROUTES) {
-		const file = readFileSync(ATLAS_ROUTES, "utf-8");
-		resolved = JSON.parse(file);
+		///
+		// Read file
+		//
+		const filepath = fileURLToPath(ATLAS_ROUTES);
+		let file: string | undefined;
+		try {
+			file = readFileSync(filepath, "utf-8");
+			resolved = JSON.parse(file);
+		} catch (error) {
+			process.stderr?.write(
+				`Atlas failed to parse ATLAS_ROUTES: ${inspect(
+					{
+						filepath,
+						file,
+						resolved,
+					},
+					{ depth: null },
+				)}\n`,
+			);
+			process.stderr?.write(
+				inspect(
+					{
+						error: serializeError(error),
+					},
+					{ depth: null },
+				),
+			);
+
+			deferExit();
+
+			throw new VError(
+				deserializeError(error),
+				"Atlas failed to parse ATLAS_ROUTES",
+			);
+		}
+
+		///
+		// Validate with RoutePathsZod
+		//
 		const result = RoutePathsZod.safeParse(resolved);
 		if (!result.success) {
 			process.stderr?.write(`Filename: ${ATLAS_ROUTES} \n`);
@@ -68,16 +125,18 @@ export function Atlas<Paths extends Prefix>(
 			process.stderr?.write("\n Parsed:\n");
 			process.stderr?.write(inspect(resolved, { depth: null }));
 			process.stderr?.write(
-				`\n RoutePathsZod failed to parse routes: ${JSON.stringify(result.error.flatten())}\n`,
+				`\n RoutePathsZod failed validation: ${inspect(result.error.flatten(), { depth: null })}\n`,
 			);
+			deferExit();
 			throw new VError(
 				deserializeError(result.error),
-				"RoutePathsZod failed to parse routes",
+				"RoutePathsZod failed to validate routes",
 			);
 		}
 	}
-
+	///
 	// Caddyfile transform
+	//
 	if (ATLAS_CADDYFILE) {
 		process.stdout?.write(`Atlas: Appending Caddyfile to ${ATLAS_CADDYFILE}\n`);
 		const caddy = Object.entries(resolved)
@@ -112,3 +171,4 @@ export const a = Atlas;
 export * from "./AtlasEnvironment.mjs";
 export * from "./routes/AtlasRoutes.mjs";
 export * from "./transform/caddy/Caddyfile.mjs";
+export * from "./transform/Envsubst.mjs";

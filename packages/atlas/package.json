@@ -21,7 +21,6 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "catalog:",
-    "@tuplo/envsubst": "catalog:runtime-env",
     "fs-extra": "catalog:fs",
     "serialize-error": "catalog:error",
     "std-env": "catalog:runtime-env",
