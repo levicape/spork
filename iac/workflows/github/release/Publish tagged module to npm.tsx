@@ -27,7 +27,7 @@ const compileAndPublish = [
 	},
 	{
 		packageName: "@levicape/spork-atlas",
-		cwd: "packages/spork-atlas",
+		cwd: "packages/atlas",
 	},
 	{
 		packageName: "@levicape/protobuf-spork-stands",

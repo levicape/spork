@@ -236,15 +236,11 @@ export = async () => {
 										? {}
 										: {
 												website: {
-													url,
+													hostname: url,
 													protocol: "http",
 												},
 											}),
 									hostnames: hostnames ?? [],
-								},
-								version: {
-									sequence: Date.now().toString(),
-									stage,
 								},
 							},
 						} satisfies WebsiteManifest,

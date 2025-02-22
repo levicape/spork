@@ -38,6 +38,7 @@ import { StringAsset } from "@pulumi/pulumi/asset/asset";
 import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
+import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import { $deref, type DereferencedOutput } from "../../../Stack";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
@@ -82,18 +83,18 @@ const STACKREF_CONFIG = {
 	},
 } as const;
 
+const ENVIRONMENT = (
+	_$refs: DereferencedOutput<typeof STACKREF_CONFIG>["spork"],
+) => {
+	return {} as const;
+};
+
 const ROUTE_MAP = ({
 	"magmap-http": magmap_http,
 }: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT]) => {
 	return {
 		...magmap_http.routemap,
 	};
-};
-
-const ENVIRONMENT = (
-	_$refs: DereferencedOutput<typeof STACKREF_CONFIG>["spork"],
-) => {
-	return {} as const;
 };
 
 const LLRT_ARCH: string | undefined = process.env["LLRT_ARCH"];
@@ -390,7 +391,6 @@ export = async () => {
 						variables: {
 							NODE_OPTIONS: [
 								"--no-force-async-hooks-checks",
-								"--use-largepages=on",
 								"--enable-source-maps",
 							].join(" "),
 							NODE_ENV: "production",
@@ -592,7 +592,7 @@ export = async () => {
 						] as string[],
 						environment: {
 							type: "ARM_CONTAINER",
-							computeType: "BUILD_GENERAL1_SMALL",
+							computeType: AwsCodeBuildContainerRoundRobin.next().value,
 							image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 							environmentVariables: [
 								{
@@ -758,10 +758,9 @@ export = async () => {
 						},
 						exportedVariables: undefined as string[] | undefined,
 						environment: {
-							type: "ARM_LAMBDA_CONTAINER",
-							computeType: "BUILD_LAMBDA_2GB",
-							image:
-								"aws/codebuild/amazonlinux-aarch64-lambda-standard:nodejs20",
+							type: "ARM_CONTAINER",
+							computeType: AwsCodeBuildContainerRoundRobin.next().value,
+							image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 							environmentVariables: [
 								{
 									name: "SOURCE_IMAGE_REPOSITORY",

@@ -86,7 +86,7 @@ jobs:
       contents: read
     defaults:
       run:
-        working-directory: packages/spork-atlas
+        working-directory: packages/atlas
     steps:
       - name: Verify registry URL
         continue-on-error: true
@@ -225,7 +225,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)]Publish tagged module to npm.yml","source":"iac/workflows/github/release/Publish tagged module to npm.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"2c6028d5227d9f72afa50bb0ec58b020e6e8a3a05b0c535b52f4afea5f426fe4"}
-#**:_$~- {"$$":"footer","started":"2025-02-22T00:34:20.267Z","now":"2025-02-22T00:34:20.274Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"6537d82c7e6dabb6dfc6c3f7acc04494693654a2587d9923d48f4bbbc11d68fe"}
+#**:_$~- {"$$":"footer","started":"2025-02-22T07:54:04.930Z","now":"2025-02-22T07:54:04.937Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 

@@ -35,6 +35,7 @@ import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
 import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
+import { AwsCodeBuildContainerRoundRobin } from "../RoundRobin";
 import type { LambdaRouteResource, Route } from "../RouteMap";
 import { $deref, type DereferencedOutput } from "../Stack";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
@@ -326,7 +327,6 @@ export = async () => {
 						variables: {
 							NODE_OPTIONS: [
 								"--no-force-async-hooks-checks",
-								"--use-largepages=on",
 								"--enable-source-maps",
 							].join(" "),
 							NODE_ENV: "production",
@@ -610,7 +610,7 @@ export = async () => {
 					] as string[],
 					environment: {
 						type: "ARM_CONTAINER",
-						computeType: "BUILD_GENERAL1_SMALL",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
 						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
@@ -754,9 +754,9 @@ export = async () => {
 					},
 					exportedVariables: undefined as string[] | undefined,
 					environment: {
-						type: "ARM_LAMBDA_CONTAINER",
-						computeType: "BUILD_LAMBDA_2GB",
-						image: "aws/codebuild/amazonlinux-aarch64-lambda-standard:nodejs20",
+						type: "ARM_CONTAINER",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
+						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
 								name: "SOURCE_IMAGE_REPOSITORY",
@@ -902,6 +902,7 @@ export = async () => {
 							_(`${artifact.name}`),
 							{
 								description: `(${PACKAGE_NAME}) Deploy "${stage}" pipeline stage: "${action}"`,
+								badgeEnabled: true,
 								buildTimeout: 14,
 								serviceRole: farRole.arn,
 								artifacts: {
@@ -1473,7 +1474,7 @@ export = async () => {
 							},
 							qualifier: spork_http_lambda.function.alias.name,
 						},
-						url: spork_http_lambda.function.url.replace("https://", ""),
+						hostname: spork_http_lambda.function.url.replace("https://", ""),
 						protocol: "https",
 						cloudmap: {
 							namespace: {
