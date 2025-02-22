@@ -35,14 +35,15 @@ import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
 import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
+import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import type { LambdaRouteResource, Route } from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
-import type { MapgmapWWWRootRoute } from "../wwwroot/routes";
+import type { WWWRootRoute } from "../../../wwwroot/routes";
 import { SporkMagmapHttpStackExportsZod } from "./exports";
 
-const PACKAGE_NAME = "@levicape/spork" as const;
+const PACKAGE_NAME = "@levicape/spork-magmap-io" as const;
 const DESCRIPTION = "Spork HTTP api" as const;
 const LLRT_ARCH: string | undefined = process.env["LLRT_ARCH"]; //"lambda-arm64-full-sdk";
 const LLRT_PLATFORM: "node" | "browser" | undefined = LLRT_ARCH
@@ -292,6 +293,7 @@ export = async () => {
 		});
 
 		const memorySize = context.environment.isProd ? 512 : 256;
+		const timeout = context.environment.isProd ? 18 : 11;
 		const lambda = new LambdaFn(
 			_("function"),
 			{
@@ -299,7 +301,7 @@ export = async () => {
 				role: roleArn,
 				architectures: ["arm64"],
 				memorySize,
-				timeout: 18,
+				timeout: timeout,
 				packageType: "Zip",
 				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
 				handler: "index.handler",
@@ -323,7 +325,10 @@ export = async () => {
 				environment: all([cloudmapEnvironment]).apply(([cloudmapEnv]) => {
 					return {
 						variables: {
-							...cloudmapEnv,
+							NODE_OPTIONS: [
+								"--no-force-async-hooks-checks",
+								"--enable-source-maps",
+							].join(" "),
 							NODE_ENV: "production",
 							LOG_LEVEL: "5",
 							...(LLRT_PLATFORM
@@ -332,6 +337,7 @@ export = async () => {
 										LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
 									}
 								: {}),
+							...cloudmapEnv,
 							...(ENVIRONMENT !== undefined && typeof ENVIRONMENT === "function"
 								? Object.fromEntries(
 										Object.entries(ENVIRONMENT(dereferenced$))
@@ -604,7 +610,7 @@ export = async () => {
 					] as string[],
 					environment: {
 						type: "ARM_CONTAINER",
-						computeType: "BUILD_GENERAL1_SMALL",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
 						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
@@ -748,9 +754,9 @@ export = async () => {
 					},
 					exportedVariables: undefined as string[] | undefined,
 					environment: {
-						type: "ARM_LAMBDA_CONTAINER",
-						computeType: "BUILD_LAMBDA_2GB",
-						image: "aws/codebuild/amazonlinux-aarch64-lambda-standard:nodejs20",
+						type: "ARM_CONTAINER",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
+						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
 								name: "SOURCE_IMAGE_REPOSITORY",
@@ -1454,9 +1460,9 @@ export = async () => {
 		]) => {
 			const spork_magmap_http_routemap = (() => {
 				const routes: Partial<
-					Record<MapgmapWWWRootRoute, Route<LambdaRouteResource>>
+					Record<WWWRootRoute, Route<LambdaRouteResource>>
 				> = {
-					["/~/v1/Spork/Magmap"]: {
+					["/~/v1/Spork/Http"]: {
 						$kind: "LambdaRouteResource",
 						lambda: {
 							arn: spork_magmap_http_lambda.function.arn,
@@ -1467,7 +1473,10 @@ export = async () => {
 							},
 							qualifier: spork_magmap_http_lambda.function.alias.name,
 						},
-						url: spork_magmap_http_lambda.function.url.replace("https://", ""),
+						hostname: spork_magmap_http_lambda.function.url.replace(
+							"https://",
+							"",
+						),
 						protocol: "https",
 						cloudmap: {
 							namespace: {
