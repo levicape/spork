@@ -1,6 +1,7 @@
 import { R_OK, W_OK } from "node:constants";
 import { accessSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import envsubst from "@tuplo/envsubst";
 import { ensureFileSync } from "fs-extra";
 import { process } from "std-env";
 import { z } from "zod";
@@ -32,6 +33,7 @@ export const AtlasEnvironmentZod = z.object({
 		.string()
 		.url()
 		.optional()
+		.transform((path) => (path ? envsubst.default(path) : undefined))
 		.refine(
 			(path) => {
 				if (path) {

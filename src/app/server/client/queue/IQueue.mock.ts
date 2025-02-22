@@ -17,7 +17,7 @@ export class MemoryQueue<T extends IQueueMessage> implements IQueue<T> {
 			const message: IQueueMessage = yield;
 			// Logger.debug(`Received message ${JSON.stringify(message)}`);
 			const worker = {
-				process: async (message: IQueueMessage) => {
+				process: async (_message: IQueueMessage) => {
 					// Logger.debug(`Processing message ${JSON.stringify(message)}`);
 					// const task = taskForMessageType(message.type);
 					// if (task) {

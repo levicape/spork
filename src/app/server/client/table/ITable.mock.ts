@@ -18,22 +18,21 @@ export class MemoryTable<T, K> implements ITable<T, K> {
 		},
 	) {}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	forGsi(_gsi: string): ITable<T, K> {
 		return this;
 	}
 
 	readPartition(
 		partitionKey: string,
-		/* eslint-disable @typescript-eslint/no-unused-vars */
 		_partitionKeyColumn: string,
-		{
-			limit,
-			exclusiveStartKey,
-		}: { limit?: number; exclusiveStartKey?: string },
-		/* eslint-enable @typescript-eslint/no-unused-vars */
+		readOptions: { limit?: number; exclusiveStartKey?: string },
 	): Promise<AsyncGenerator<T>> {
 		const map = this.map;
+		const { limit, exclusiveStartKey } = readOptions;
+
+		limit;
+		exclusiveStartKey;
+
 		return Promise.resolve(
 			(async function* () {
 				const entries = Object.entries(map);

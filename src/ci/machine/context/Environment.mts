@@ -1,33 +1,6 @@
 import { appendFileSync } from "node:fs";
-import {
-	getBranch,
-	getCommit,
-	getCommitMessage,
-	getMainBranch,
-	getPullRequest,
-	getRepository,
-	getTargetBranch,
-	isFork,
-	isMainBranch,
-	isMergeQueue,
-	isPullRequest,
-} from "../code/Git.mjs";
 import { githubActions, isGithubAction } from "../executor/GithubActions.mjs";
 import { localExecutor } from "../executor/Local.mjs";
-import { getTailscaleIp } from "../executor/Tailscale.mjs";
-import { getBuildId, getBuildLabel, getBuildUrl } from "./Build.mjs";
-import { getUsername, isCI } from "./Compute.mjs";
-import { tmpdir } from "./Filesystem.mjs";
-import { getHostname, getPublicIp } from "./Network.mjs";
-import {
-	getAbi,
-	getAbiVersion,
-	getArch,
-	getKernel,
-	getOs,
-	isLinux,
-} from "./System.mjs";
-import { getDistro, getDistroVersion } from "./Version.mjs";
 
 export const MachineContextEnvironmentExecutor = [
 	githubActions,
@@ -100,69 +73,4 @@ export function endGroup() {
 
 export function print(object: unknown) {
 	MachineContextEnvironmentExecutor?.inspect(object);
-}
-
-export function printEnvironment() {
-	startGroup("Machine", () => {
-		print({
-			"Operating System": getOs(),
-			Architecture: getArch(),
-			Kernel: getKernel(),
-			Linux: isLinux
-				? {
-						ABI: getAbi(),
-						"ABI Version": getAbiVersion(),
-					}
-				: undefined,
-			Distro: getDistro(),
-			"Distro Version": getDistroVersion(),
-			Hostname: getHostname(),
-			CI: isCI
-				? {
-						"Tailscale IP": getTailscaleIp(),
-						"Public IP": getPublicIp(),
-					}
-				: undefined,
-			Username: getUsername(),
-			"Working Directory": process.cwd(),
-			"Temporary Directory": tmpdir(),
-		});
-	});
-
-	if (isCI) {
-		startGroup("Environment", () => {
-			for (const [key, value] of Object.entries(process.env)) {
-				console.log(`${key}:`, value);
-			}
-		});
-	}
-
-	startGroup("Repository", () => {
-		print({
-			Repository: getRepository(),
-			Commit: getCommit(),
-			"Commit Message": getCommitMessage(),
-			Branch: getBranch(),
-			"Main Branch": getMainBranch(),
-			"Is Fork": isFork(),
-			"Is Merge Queue": isMergeQueue(),
-			"Is Main Branch": isMainBranch(),
-			"Is Pull Request": isPullRequest(),
-			"Pull Request": isPullRequest() ? getPullRequest() : undefined,
-			"Target Branch": isPullRequest() ? getTargetBranch() : undefined,
-		});
-	});
-
-	if (isCI) {
-		startGroup("CI", () => {
-			print({
-				CI: {
-					"Build ID": getBuildId(),
-					"Build Label": getBuildLabel(),
-					"Build URL": getBuildUrl(),
-				},
-				Environment: MachineContextEnvironmentExecutor?.environment(),
-			});
-		});
-	}
 }

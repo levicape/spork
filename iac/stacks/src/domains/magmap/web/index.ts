@@ -51,7 +51,6 @@ const STACKREF_CONFIG = {
 				iam: SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
 			},
 		},
-		// TODO: Stack just each domain routemap
 		http: {
 			refs: {
 				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
@@ -64,7 +63,7 @@ const ROUTE_MAP = ({
 	http,
 }: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT]) => {
 	return {
-		http: http.routemap,
+		...http.routemap,
 	};
 };
 

@@ -189,7 +189,7 @@ export const isMainBranch = (cwd?: string) => {
 };
 
 let __isFork: boolean | undefined;
-export const isFork = (cwd?: string) => {
+export const isFork = (_cwd?: string) => {
 	if (__isFork === undefined) {
 		__isFork = (() => {
 			if (isBuildkite) {

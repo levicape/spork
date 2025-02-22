@@ -21,6 +21,7 @@
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "catalog:",
+    "@tuplo/envsubst": "catalog:runtime-env",
     "fs-extra": "catalog:fs",
     "serialize-error": "catalog:error",
     "std-env": "catalog:runtime-env",
@@ -49,13 +50,13 @@
   "license": "AGPL-3.0-only",
   "nx": {
     "targets": {
-      "build:tsc": {
-        "dependsOn": []
-      },
       "build:module": {
         "dependsOn": [
           "build:tsc"
         ]
+      },
+      "build:tsc": {
+        "dependsOn": []
       },
       "dx:lint": {
         "dependsOn": [
