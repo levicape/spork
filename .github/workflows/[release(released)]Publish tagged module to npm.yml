@@ -1,7 +1,7 @@
 ########################################
 # THIS FILE WAS AUTOMATICALLY GENERATED, DO NOT MODIFY
 ########################################
-name: "on Release: [released] Publish @levicape/(spork, protobuf-spork-stands) to Github"
+name: "on Release: [released] Publish @levicape/(spork, spork-atlas, protobuf-spork-stands) to Github"
 on:
   release:
     types:
@@ -16,6 +16,77 @@ jobs:
     permissions:
       packages: write
       contents: read
+    steps:
+      - name: Verify registry URL
+        continue-on-error: true
+        run: |-
+          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}";
+          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }};
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup Node 22.12.0
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+          scope: "@levicape"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: cache-npm
+        name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-build-npm-node-modules-${{ hashFiles('**/pnpm-lock.json') }}
+          restore-keys: ${{ runner.os }}-build-npm-node-modules-
+      - name: Get pnpm store directory
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV;
+      - id: cache-pnpm-store
+        name: Cache pnpm files
+        uses: actions/cache@v3
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.json') }}
+          restore-keys: ${{ runner.os }}-pnpm-store-
+      - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+        name: List Dependencies
+        continue-on-error: true
+        run: pnpm list;
+      - name: Install Dependencies
+        run: pnpm install;
+      - name: "Run package.json: build"
+        run: pnpm run build;
+      - name: "Run package.json: lint"
+        run: pnpm run lint;
+      - name: "Run package.json: test"
+        run: pnpm run test;
+      - name: "Run package.json: prepublish"
+        run: pnpm run prepublish;
+      - name: Increment version
+        env:
+          RELEVANT_SHA: ${{ github.event.release.target_commitish || github.sha }}
+        run: |-
+          export PREID=$RELEVANT_SHA;
+          export PREID=${PREID:0:10};
+          export ARGS="--git-tag-version=false --commit-hooks=false";
+          npm version ${{ github.event.release.tag_name }}-$PREID.${{ github.run_number }} $ARGS --allow-same-version;
+      - if: success()
+        name: Publish to npm
+        continue-on-error: true
+        run: pnpm publish --no-git-checks;
+  publish_spork-atlas:
+    name: "@levicape/spork-atlas: Compile and publish to Github"
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    defaults:
+      run:
+        working-directory: packages/spork-atlas
     steps:
       - name: Verify registry URL
         continue-on-error: true
@@ -154,7 +225,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)]Publish tagged module to npm.yml","source":"iac/workflows/github/release/Publish tagged module to npm.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"ff274df8f4414fa6b18b22312c125b35597a030711852bdebcc51bd17c7cd758"}
-#**:_$~- {"$$":"footer","started":"2025-02-03T09:23:27.020Z","now":"2025-02-03T09:23:27.032Z","elapsed":"12ms"}
+#**:_$~- {"$$":"body","hashed":"2c6028d5227d9f72afa50bb0ec58b020e6e8a3a05b0c535b52f4afea5f426fe4"}
+#**:_$~- {"$$":"footer","started":"2025-02-22T00:34:20.267Z","now":"2025-02-22T00:34:20.274Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 

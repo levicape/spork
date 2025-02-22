@@ -108,6 +108,7 @@ const CANARY_PATHS = [
 		packageName: "@levicape/spork-magmap-io",
 		handler: `${LLRT_ARCH ? OUTPUT_DIRECTORY : "module"}/canary/Http.handler`,
 		environment: ENVIRONMENT,
+		routemap: ROUTE_MAP,
 	},
 	{
 		name: "ui",
@@ -115,8 +116,11 @@ const CANARY_PATHS = [
 		packageName: "@levicape/spork-magmap-ui",
 		handler: `${LLRT_ARCH ? OUTPUT_DIRECTORY : "module"}/canary/StaticWWW.handler`,
 		environment: ENVIRONMENT,
+		routemap: ROUTE_MAP,
 	},
 ] as const;
+
+const ATLASFILE_PATH = `atlasfile.json`;
 
 export = async () => {
 	const context = await Context.fromConfig();
@@ -269,22 +273,6 @@ export = async () => {
 		},
 	});
 
-	const atlasfile = new BucketObjectv2(_(`atlasfile`), {
-		bucket: s3.artifacts.bucket,
-		source: new StringAsset(
-			stringify({
-				...ROUTE_MAP(dereferenced$),
-			}),
-		),
-		contentType: "application/json",
-		key: `atlasfile.json`,
-		tags: {
-			Name: _(`atlasfile`),
-			StackRef: STACKREF_ROOT,
-			PackageName: WORKSPACE_PACKAGE_NAME,
-		},
-	});
-
 	// Compute
 	const handler = async (
 		{
@@ -293,6 +281,7 @@ export = async () => {
 			packageName,
 			handler,
 			environment,
+			routemap,
 		}: (typeof CANARY_PATHS)[number],
 		{
 			datalayer,
@@ -407,7 +396,7 @@ export = async () => {
 										LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
 									}
 								: {}),
-							ATLAS_ROUTES: "file://$LAMBDA_TASK_ROOT/atlasfile.json",
+							ATLAS_ROUTES: `file://$LAMBDA_TASK_ROOT/${ATLASFILE_PATH}`,
 							...(environment !== undefined && typeof environment === "function"
 								? Object.fromEntries(
 										Object.entries(environment(dereferenced$))
@@ -544,7 +533,7 @@ export = async () => {
 					new CodeDeployAppspecBuilder()
 						.setResources([
 							{
-								httphandler: new CodeDeployAppspecResourceBuilder()
+								monitorhandler: new CodeDeployAppspecResourceBuilder()
 									.setName(props.name)
 									.setAlias(props.alias)
 									.setCurrentVersion(props.currentVersion)
@@ -585,6 +574,7 @@ export = async () => {
 							S3_DEPLOY_KEY: "<S3_DEPLOY_KEY>",
 							CANARY_NAME: "<CANARY_NAME>",
 							PACKAGE_NAME: "<PACKAGE_NAME>",
+							ATLASFILE_OBJECT_KEY: "<ATLASFILE_OBJECT_KEY>",
 						},
 						exportedVariables: [
 							"STACKREF_CODESTAR_ECR_REPOSITORY_ARN",
@@ -644,6 +634,11 @@ export = async () => {
 									value: "<PACKAGE_NAME>",
 									type: "PLAINTEXT",
 								},
+								{
+									name: "ATLASFILE_OBJECT_KEY",
+									value: "<ATLASFILE_OBJECT_KEY>",
+									type: "PLAINTEXT",
+								},
 							] as { name: string; value: string; type: "PLAINTEXT" }[],
 						},
 						phases: {
@@ -653,7 +648,7 @@ export = async () => {
 								`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $STACKREF_CODESTAR_ECR_REPOSITORY_URL`,
 								"docker pull $SOURCE_IMAGE_URI",
 								"docker images",
-								// node_module
+								// extract module
 								[
 									...[
 										"docker run",
@@ -709,6 +704,13 @@ export = async () => {
 											`rm -rf $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/${OUTPUT_DIRECTORY} || true`,
 											`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
 										]),
+								// atlasfile
+								`echo "Rendering Atlasfile"`,
+								`echo "s3://$ATLASFILE_OBJECT_KEY"`,
+								`aws s3 cp s3://$ATLASFILE_OBJECT_KEY $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/${ATLASFILE_PATH}`,
+								`cat $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/${ATLASFILE_PATH}`,
+								// deploy key
+								`echo "Rendering deploy key to .deploykey"`,
 								`NODE_NO_WARNINGS=1 node -e '(${(
 									// biome-ignore lint/complexity/useArrowFunction:
 									function () {
@@ -985,8 +987,29 @@ export = async () => {
 			} as const;
 		})();
 
+		const atlasfile = (() => {
+			const content = JSON.stringify(routemap(dereferenced$));
+			const object = new BucketObjectv2(_(`${name}-atlasfile`), {
+				bucket: s3.artifacts.bucket,
+				source: new StringAsset(content),
+				contentType: "application/json",
+				key: `${name}/${ATLASFILE_PATH}`,
+				tags: {
+					Name: _(`${name}-atlasfile`),
+					StackRef: STACKREF_ROOT,
+					PackageName: WORKSPACE_PACKAGE_NAME,
+				},
+			});
+
+			return {
+				object,
+				content,
+			};
+		})();
+
 		return {
 			role: datalayer.props.lambda.role,
+			atlasfile,
 			cloudwatch: {
 				loggroup,
 			},
@@ -1066,7 +1089,10 @@ export = async () => {
 					{
 						name: "MonitorHandler",
 						actions: Object.entries(canary).flatMap(
-							([name, { codebuild, lambda, codedeploy, environment }]) => {
+							([
+								name,
+								{ codebuild, lambda, codedeploy, environment, atlasfile },
+							]) => {
 								return [
 									{
 										runOrder: 1,
@@ -1086,6 +1112,8 @@ export = async () => {
 											__codestar.ecr.repository.url,
 											codebuild.extractimage.project.name,
 											s3.artifacts.bucket,
+											atlasfile.object.bucket,
+											atlasfile.object.key,
 										]).apply(
 											([
 												repositoryArn,
@@ -1093,6 +1121,8 @@ export = async () => {
 												repositoryUrl,
 												projectExtractImageName,
 												artifactBucketName,
+												atlasfileBucketName,
+												atlasfileObjectKey,
 											]) => {
 												return {
 													ProjectName: projectExtractImageName,
@@ -1140,6 +1170,11 @@ export = async () => {
 														{
 															name: "PACKAGE_NAME",
 															value: environment.PACKAGE_NAME,
+															type: "PLAINTEXT",
+														},
+														{
+															name: "ATLASFILE_OBJECT_KEY",
+															value: `${atlasfileBucketName}/${atlasfileObjectKey}`,
 															type: "PLAINTEXT",
 														},
 													]),

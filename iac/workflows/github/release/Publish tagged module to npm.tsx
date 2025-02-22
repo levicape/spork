@@ -21,6 +21,20 @@ type CompileAndPublishProps = {
 	compile?: string;
 };
 
+const compileAndPublish = [
+	{
+		packageName: "@levicape/spork",
+	},
+	{
+		packageName: "@levicape/spork-atlas",
+		cwd: "packages/spork-atlas",
+	},
+	{
+		packageName: "@levicape/protobuf-spork-stands",
+		cwd: "protocols/stands",
+	},
+] satisfies CompileAndPublishProps[];
+
 export default (
 	(props: {
 		compileAndPublish?: CompileAndPublishProps[];
@@ -135,14 +149,5 @@ export default (
 		);
 	}
 )({
-	compileAndPublish: [
-		{
-			packageName: "@levicape/spork",
-		},
-		{
-			packageName: "@levicape/protobuf-spork-stands",
-			cwd: "protocols/stands",
-			compile: "build",
-		},
-	],
+	compileAndPublish,
 });
