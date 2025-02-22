@@ -1,17 +1,18 @@
 import { Canary, PromiseActivity } from "@levicape/paloma";
-import {
-	LoggingContext,
-	RuntimeContext,
-} from "@levicape/paloma/runtime/server/RuntimeContext";
-import { Effect } from "effect";
+import { LoggingContext } from "@levicape/paloma/runtime/server/RuntimeContext";
+import { withStructuredLogging } from "@levicape/paloma/runtime/server/loglayer/LoggingContext";
+import { Context, Effect } from "effect";
 import { hc } from "hono/client";
 import type { MagmapHonoApp } from "../http/HonoApp.mjs";
 import { MagmapRoutemap } from "./Atlas.mjs";
 
 const client = hc<MagmapHonoApp>(MagmapRoutemap["/~/v1/Spork/Magmap"].url());
 const { Magmap } = client["~"].v1.Spork;
+// @ts-ignore
 const { trace } = await Effect.runPromise(
+	// @ts-ignore
 	Effect.provide(
+		// @ts-ignore
 		Effect.gen(function* () {
 			const logging = yield* LoggingContext;
 			return {
@@ -20,7 +21,8 @@ const { trace } = await Effect.runPromise(
 				}),
 			};
 		}),
-		RuntimeContext,
+		// @ts-ignore
+		Context.empty().pipe(withStructuredLogging({ prefix: "ExecutionPlan" })),
 	),
 );
 

@@ -20,7 +20,7 @@
   "dependencies": {
     "@bufbuild/protobuf": "catalog:protobuf",
     "@levicape/paloma": "catalog:",
-    "@levicape/spork": "catalog:",
+    "@levicape/spork": "workspace:",
     "destr": "catalog:parse-json",
     "fs-extra": "catalog:fs",
     "serialize-error": "catalog:error",
