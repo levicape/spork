@@ -24,7 +24,12 @@ import { BucketWebsiteConfigurationV2 } from "@pulumi/aws/s3/bucketWebsiteConfig
 import { type Output, all } from "@pulumi/pulumi";
 import { stringify } from "yaml";
 import type { z } from "zod";
-import type { WebsiteManifest } from "../../../RouteMap";
+import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
+import type {
+	Route,
+	StaticRouteResource,
+	WebsiteManifest,
+} from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
@@ -76,7 +81,7 @@ export = async () => {
 
 	// Stack references
 	const dereferenced$ = await $deref(STACKREF_CONFIG);
-	const { codestar, datalayer, http } = dereferenced$;
+	const { codestar, datalayer } = dereferenced$;
 	const routemap = ROUTE_MAP(dereferenced$);
 
 	// Object Store
@@ -195,6 +200,40 @@ export = async () => {
 							expiration: {
 								days: daysToRetain,
 							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
+						},
+						{
+							status: "Enabled",
+							id: "DeleteMarkers",
+							expiration: {
+								days: context.environment.isProd ? 8 : 4,
+								expiredObjectDeleteMarker: true,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
+						},
+						{
+							status: "Enabled",
+							id: "NonCurrentVersions",
+							noncurrentVersionExpiration: {
+								noncurrentDays: context.environment.isProd ? 13 : 6,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
+						},
+						{
+							status: "Enabled",
+							id: "IncompleteMultipartUploads",
+							abortIncompleteMultipartUpload: {
+								daysAfterInitiation: context.environment.isProd ? 3 : 7,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
 					],
 				});
@@ -216,7 +255,6 @@ export = async () => {
 	if (routemap) {
 		(() => {
 			const {
-				stage,
 				environment: { isProd },
 				frontend,
 			} = context;
@@ -350,7 +388,7 @@ export = async () => {
 					},
 					environment: {
 						type: "ARM_CONTAINER",
-						computeType: "BUILD_GENERAL1_SMALL",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
 						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
 						environmentVariables: [
 							{
@@ -555,7 +593,7 @@ export = async () => {
 	const eventbridge = (() => {
 		const { name } = codestar.ecr.repository;
 
-		const rule = new EventRule(_("on-ecr"), {
+		const rule = new EventRule(_("on-ecr-push"), {
 			description: `(${PACKAGE_NAME}) ECR image deploy pipeline trigger for tag "${name}"`,
 			state: "ENABLED",
 			eventPattern: JSON.stringify({
@@ -623,12 +661,23 @@ export = async () => {
 			eventTargetArn,
 			eventTargetId,
 		]) => {
+			const spork_magmap_web_routemap = (() => {
+				const routes: Partial<Record<"/", Route<StaticRouteResource>>> = {
+					["/"]: {
+						$kind: "StaticRouteResource",
+						hostname: webBucketWebsiteEndpoint.replace("http://", ""),
+						protocol: "http",
+					},
+				};
+				return routes;
+			})();
+
 			const exported = {
 				spork_magmap_web_imports: {
 					spork: {
 						codestar,
 						datalayer,
-						http,
+						http: dereferenced$["http"],
 					},
 				},
 				spork_magmap_web_s3: {
@@ -674,12 +723,13 @@ export = async () => {
 						},
 					},
 				},
+				spork_magmap_web_routemap,
 			} satisfies z.infer<typeof SporkMagmapWebStackExportsZod> & {
 				spork_magmap_web_imports: {
 					spork: {
 						codestar: typeof codestar;
 						datalayer: typeof datalayer;
-						http: typeof http;
+						http: (typeof dereferenced$)["http"];
 					};
 				};
 			};
