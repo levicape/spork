@@ -1,17 +1,23 @@
 import { z } from "zod";
 
 export type RouteProtocol = "http" | "https" | "ws" | "wss";
+
+export type Url = `${RouteProtocol}://${string}`;
+
 export type Service = string;
-export type Prefix = "/" | `/${"!" | "~" | "-"}/v${number}/${string}`;
-export type ComposeRouteResource = {
-	$kind: "ComposeRouteResource";
+
+export type Prefix = "/" | `/${"!" | "~" | "-"}/${string}`;
+
+export type StaticRouteResource = {
+	$kind: "StaticRouteResource";
 };
+
 export type LambdaRouteResource = {
 	$kind: "LambdaRouteResource";
 	lambda: {
-		arn?: string;
+		arn: string;
 		name: string;
-		role?: {
+		role: {
 			arn: string;
 			name: string;
 		};
@@ -19,121 +25,170 @@ export type LambdaRouteResource = {
 	};
 	cloudmap?: {
 		namespace: {
-			arn?: string;
+			arn: string;
 			name: string;
-			id?: string;
-			hostedZone?: string;
+			id: string;
+			hostedZone: string;
 		};
 		service: {
 			arn: string;
 			name: string;
 		};
 		instance: {
-			id?: string;
-			attributes: Record<string, string>;
+			id: string;
+			attributes?: Record<string, string>;
 		};
 	};
 };
 
-export type RouteResource = ComposeRouteResource | LambdaRouteResource;
+export type S3RouteResource = {
+	$kind: "S3RouteResource";
+	bucket: {
+		arn: string;
+		name: string;
+		domainName: string;
+	};
+	website: {
+		domain: string;
+		endpoint: string;
+	};
+};
+
+export type RouteResource =
+	| LambdaRouteResource
+	| StaticRouteResource
+	| S3RouteResource;
 
 export type Route = {
 	hostname: string;
 	protocol: RouteProtocol;
-	port?: number;
-} & RouteResource;
+	port?: string;
+} & (StaticRouteResource | LambdaRouteResource | S3RouteResource);
 
-export type RoutePaths<Paths extends Prefix> = Record<Paths, Route>;
-
-export type AtlasRouteMap<Paths extends Prefix> = Record<
-	Service,
-	RoutePaths<Paths | Prefix>
+export type AtlasRoutePaths<Paths extends Prefix = Prefix> = Record<
+	Paths,
+	Route
 >;
 
-export const RouteResourceZod = z.object({
+export type AtlasRouteMap<Paths extends Prefix = Prefix> = Record<
+	Service,
+	AtlasRoutePaths<Paths | Prefix>
+>;
+
+export const StaticRouteResourceZod = z.object({
+	$kind: z.literal("StaticRouteResource"),
 	hostname: z.string(),
-	protocol: z.enum(["http", "https", "ws", "wss"] as const),
-	port: z.number().min(0).max(65335).optional(),
+	protocol: z.union([
+		z.literal("http"),
+		z.literal("https"),
+		z.literal("ws"),
+		z.literal("wss"),
+	]),
+	port: z.string().optional(),
 });
 
-export const ComposeRouteResourceZod = RouteResourceZod.merge(
-	z.object({
-		$kind: z.literal("ComposeRouteResource"),
+export const S3RouteResourceZod = z.object({
+	$kind: z.literal("S3RouteResource"),
+	hostname: z.string().optional(),
+	protocol: z.union([
+		z.literal("http"),
+		z.literal("https"),
+		z.literal("ws"),
+		z.literal("wss"),
+	]),
+	port: z.string().optional(),
+	bucket: z.object({
+		arn: z.string(),
+		name: z.string(),
+		domainName: z.string(),
 	}),
-);
+	website: z.object({
+		domain: z.string(),
+		endpoint: z.string(),
+	}),
+});
 
-export const LambdaRouteResourceZod = RouteResourceZod.merge(
-	z.object({
-		$kind: z.literal("LambdaRouteResource"),
-		lambda: z.object({
-			arn: z.string().optional(),
+export const LambdaRouteResourceZod = z.object({
+	$kind: z.literal("LambdaRouteResource"),
+	hostname: z.string(),
+	protocol: z.union([
+		z.literal("http"),
+		z.literal("https"),
+		z.literal("ws"),
+		z.literal("wss"),
+	]),
+	port: z.string().optional(),
+	lambda: z.object({
+		arn: z.string(),
+		name: z.string(),
+		qualifier: z.string().optional(),
+		role: z.object({
+			arn: z.string(),
 			name: z.string(),
-			role: z
-				.object({
-					arn: z.string(),
-					name: z.string(),
-				})
-				.optional(),
-			qualifier: z.string().optional(),
 		}),
-		cloudmap: z
-			.object({
-				namespace: z
-					.object({
-						arn: z.string().optional(),
-						name: z.string(),
-						id: z.string().optional(),
-						hostedZone: z.string().optional(),
-					})
-					.optional(),
-				service: z
-					.object({
-						arn: z.string().optional(),
-						name: z.string(),
-					})
-					.optional(),
-				instance: z
-					.object({
-						id: z.string().optional(),
-						attributes: z.record(z.string()),
-					})
-					.optional(),
-			})
-			.optional(),
 	}),
+	cloudmap: z
+		.object({
+			namespace: z.object({
+				arn: z.string(),
+				name: z.string(),
+				id: z.string(),
+				hostedZone: z.string(),
+			}),
+			service: z.object({
+				arn: z.string(),
+				name: z.string(),
+			}),
+			instance: z.object({
+				id: z.string(),
+				attributes: z.record(z.string()).optional(),
+			}),
+		})
+		.optional(),
+});
+
+export const RouteMapZod = z.record(
+	z.record(
+		S3RouteResourceZod.or(LambdaRouteResourceZod).or(StaticRouteResourceZod),
+	),
 );
 
-export const RouteZod = z.discriminatedUnion("$kind", [
-	ComposeRouteResourceZod,
-	LambdaRouteResourceZod,
-]);
-
-export const RoutePathsZod = z.record(RouteZod);
+export const RoutePathsZod = RouteMapZod.valueSchema;
 
 type RoutePathsZodType = z.infer<typeof RoutePathsZod>;
 ({
 	"/": {
-		$kind: "ComposeRouteResource",
+		$kind: "StaticRouteResource",
 		hostname: "localhost",
 		protocol: "http",
-		port: 80,
+		port: "80",
 	},
 	"/lambda": {
 		$kind: "LambdaRouteResource",
 		hostname: "localhost",
 		protocol: "http",
-		port: 80,
+		port: "80",
 		lambda: {
 			name: "test",
+			arn: "arn:aws:lambda:region:account-id:function:test",
+			role: {
+				arn: "arn:aws:iam::account-id:role/test",
+				name: "test",
+			},
 		},
 		cloudmap: {
 			namespace: {
 				name: "test",
+				arn: "arn:aws:servicediscovery:region:account-id:namespace/test",
+				id: "test",
+				hostedZone: "test",
 			},
 			service: {
+				arn: "arn:aws:servicediscovery:region:account-id:service/test",
 				name: "test",
 			},
 			instance: {
+				id: "test-instance",
 				attributes: {
 					test: "test",
 				},

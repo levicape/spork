@@ -3,11 +3,10 @@ import { LoggingContext } from "@levicape/paloma/runtime/server/RuntimeContext";
 import { withStructuredLogging } from "@levicape/paloma/runtime/server/loglayer/LoggingContext";
 import { Context, Effect } from "effect";
 import { hc } from "hono/client";
+import { HTTP_BASE_PATH, MagmapRoutemap } from "../http/Atlas.mjs";
 import type { MagmapHonoApp } from "../http/HonoApp.mjs";
-import { MagmapRoutemap } from "./Atlas.mjs";
 
-const client = hc<MagmapHonoApp>(MagmapRoutemap["/~/v1/Spork/Magmap"].url());
-const { Magmap } = client["~"].v1.Spork;
+const client = hc<MagmapHonoApp>(MagmapRoutemap[HTTP_BASE_PATH].url());
 // @ts-ignore
 const { trace } = await Effect.runPromise(
 	// @ts-ignore
@@ -22,15 +21,9 @@ const { trace } = await Effect.runPromise(
 			};
 		}),
 		// @ts-ignore
-		Context.empty().pipe(withStructuredLogging({ prefix: "ExecutionPlan" })),
+		Context.empty().pipe(withStructuredLogging({ prefix: "Canary" })),
 	),
 );
-
-trace
-	.withMetadata({
-		Magmap,
-	})
-	.info("Loaded service clients");
 
 export const healthcheck = new Canary(
 	"http-healthcheck",
@@ -67,7 +60,7 @@ export const healthcheck = new Canary(
 			trace.metadataOnly([
 				events,
 				{ a: 1, b: "Y" },
-				Magmap.test123.$url({}),
+				client["~"].Spork.Magmap.test123.$url({}),
 				{ a: "Z", b: 2 },
 			]);
 			{

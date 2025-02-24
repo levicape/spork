@@ -1,17 +1,19 @@
 #!/usr/bin/env -S node --no-warnings --watch
 
 import { Atlas } from "@levicape/spork-atlas";
+import { env } from "std-env";
 
-const { MAGMAP_HTTP, MAGMAP_UI } = process.env;
+const { MAGMAP_HTTP, MAGMAP_UI } = env;
 
+export const HTTP_BASE_PATH = "/~/Spork/Magmap";
 export const MagmapRoutemap = Atlas({
 	"/": {
-		$kind: "ComposeRouteResource",
+		$kind: "StaticRouteResource",
 		hostname: `ui:${MAGMAP_UI}`,
 		protocol: "http",
 	},
-	"/~/v1/Spork/Magmap": {
-		$kind: "ComposeRouteResource",
+	[HTTP_BASE_PATH]: {
+		$kind: "StaticRouteResource",
 		hostname: `http:${MAGMAP_HTTP}`,
 		protocol: "http",
 	},
