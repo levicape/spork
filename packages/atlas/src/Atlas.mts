@@ -8,6 +8,7 @@ import VError from "verror";
 import { AtlasEnvironmentZod } from "./AtlasEnvironment.mjs";
 import {
 	type AtlasRouteMap,
+	type AtlasRoutePaths,
 	type Prefix,
 	RoutePathsZod,
 } from "./routes/AtlasRoutes.mjs";
@@ -62,7 +63,7 @@ function deferExit() {
  * @see {@link AtlasEnvironment}
  */
 export function Atlas<Paths extends Prefix>(
-	routes: AtlasRouteMap<Paths>[keyof AtlasRouteMap<Paths>],
+	routes: AtlasRoutePaths<Paths>,
 ): AtlasTopology<Paths> {
 	///
 	// Parse environment
@@ -83,7 +84,10 @@ export function Atlas<Paths extends Prefix>(
 	///
 	// Resolve ATLAS_ROUTES
 	//
-	let resolved = routes;
+	let resolved = routes as Record<
+		Paths,
+		AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>]
+	>;
 	if (ATLAS_ROUTES) {
 		///
 		// Read file
@@ -148,7 +152,9 @@ export function Atlas<Paths extends Prefix>(
 		console.info(`Atlas: Appending Caddyfile to ${ATLAS_CADDYFILE}\n`);
 		const caddy = Object.entries(resolved)
 			.map(([path, route]) => {
-				return CaddyfileReverseProxy(path, route);
+				let routeObject =
+					route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
+				return CaddyfileReverseProxy(path, routeObject);
 			})
 			.join("\n");
 		console.info(`Caddyfile:\n${caddy}\n`);
@@ -157,16 +163,18 @@ export function Atlas<Paths extends Prefix>(
 
 	return Object.entries(routes).reduce(
 		(acc, [path, route]) => {
+			let routeObject =
+				route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
 			acc[path as Paths] = {
 				url: () =>
 					[
-						`${route.protocol}://${route.hostname}`,
-						route.port ? `:${route.port}` : "",
+						`${routeObject.protocol}://${routeObject.hostname}`,
+						routeObject.port ? `:${routeObject.port}` : "",
 					].join(""),
 				// @ts-ignore
-				["~protocol"]: route.protocol,
-				["~hostname"]: route.hostname,
-				["~port"]: route.port,
+				["~protocol"]: routeObject.protocol,
+				["~hostname"]: routeObject.hostname,
+				["~port"]: routeObject.port,
 			} satisfies AtlasMap;
 			return acc;
 		},

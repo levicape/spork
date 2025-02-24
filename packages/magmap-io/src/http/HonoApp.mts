@@ -1,10 +1,11 @@
 import { SporkHonoHttpServer } from "@levicape/spork/hono";
 import { HonoGuardAuthentication } from "@levicape/spork/hono/guard/HonoHttpGuard";
 import { Hono } from "hono/quick";
+import { HTTP_BASE_PATH } from "./Atlas.mjs";
 
 export const { server, handler } = await SporkHonoHttpServer(
 	(app) =>
-		app.basePath("/~/v1/Spork/Magmap").get(
+		app.basePath(HTTP_BASE_PATH).get(
 			"/test123",
 			HonoGuardAuthentication(() => Promise.resolve(true)),
 			async (c) => {
