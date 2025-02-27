@@ -1,11 +1,10 @@
 import { Effect } from "effect";
-import { useCallback, useMemo, useState } from "react";
-import "./App.css";
+import type { Context } from "hono";
+import { useCallback, useMemo, useState } from "hono/jsx";
 
 export const App = () => {
 	const [count, setCount] = useState(0);
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies:
 	const task = useMemo(
 		() => Effect.sync(() => setCount((current) => current + 1)),
 		[setCount],
@@ -30,3 +29,7 @@ export const App = () => {
 		</>
 	);
 };
+
+export default function Home(_c: Context) {
+	return <App />;
+}

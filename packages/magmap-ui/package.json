@@ -6,41 +6,29 @@
     "packagemanager": "pnpm",
     "packageexecutor": "pnpm exec",
     "packagescript": "pnpm run",
-    "outpaths": "./output",
-    "lintpaths": "./server ./src ./server.ts",
-    "server": "./server.ts",
-    "serverrender": "./render/server.tsx",
-    "staticwwwoutput": "./output/staticwww",
-    "staticwwwcanary": "module/canary/StaticWWW.mjs",
-    "webhttpoutput": "./output/webhttp",
-    "webhttpmodule": "./server.js"
+    "outpaths": "./dist",
+    "lintpaths": "./app",
+    "server": "./app/hono.ts",
+    "staticwwwoutput": "./dist",
+    "webcanary": "module/canary/StaticWWW.mjs"
   },
   "dependencies": {
-    "@aws-lambda-powertools/logger": "catalog:log-awspowertools",
     "@levicape/paloma": "catalog:",
+    "@levicape/spork": "workspace:",
     "@levicape/spork-atlas": "workspace:",
-    "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
-    "@loglayer/transport-consola": "catalog:log-loglayer",
-    "consola": "catalog:log-consola",
     "effect": "catalog:effect",
-    "express": "catalog:http-express",
-    "loglayer": "catalog:log-loglayer",
-    "react": "catalog:web-react",
-    "react-dom": "catalog:web-react",
-    "serialize-error": "catalog:error",
-    "sirv": "catalog:http-express",
+    "hono": "catalog:hono",
+    "honox": "catalog:hono",
     "std-env": "catalog:runtime-env",
-    "ulidx": "catalog:id",
     "verror": "catalog:error"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
+    "@hono/vite-build": "catalog:hono",
+    "@hono/vite-dev-server": "catalog:hono",
+    "@hono/vite-ssg": "catalog:hono",
     "@tailwindcss/vite": "catalog:web-style",
-    "@types/express": "catalog:types",
     "@types/node": "catalog:types",
-    "@types/react": "catalog:types",
-    "@types/react-dom": "catalog:types",
-    "@vitejs/plugin-react-swc": "catalog:web-vite",
     "tailwindcss": "catalog:web-style",
     "typescript": "catalog:dev",
     "vite": "catalog:web-vite"
@@ -50,7 +38,7 @@
   },
   "files": [
     "module",
-    "output"
+    "dist"
   ],
   "nx": {
     "targets": {
@@ -61,6 +49,7 @@
       },
       "build:tsc": {
         "dependsOn": [
+          "@levicape/spork:build:module",
           "@levicape/spork-magmap-io:build:module",
           "@levicape/spork-atlas:build:module"
         ]
@@ -70,19 +59,19 @@
           "build:module"
         ]
       },
-      "webhttp:build": {
+      "serverwww:build": {
         "dependsOn": [
           "staticwww:build"
         ]
       },
-      "webhttp:dev": {
+      "serverwww:dev": {
         "dependsOn": [
-          "webhttp:build"
+          "serverwww:build"
         ]
       },
-      "webhttp:preview": {
+      "serverwww:preview": {
         "dependsOn": [
-          "webhttp:build"
+          "serverwww:build"
         ]
       },
       "dx:lint": {
@@ -119,7 +108,7 @@
         "dependsOn": [
           "build:module",
           "staticwww:build",
-          "webhttp:build"
+          "serverwww:build"
         ]
       },
       "nx:test": {
@@ -154,14 +143,12 @@
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "preview": "$npm_package_config_packageexecutor nx webhttp:preview",
-    "staticwww:build": "$npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput --ssrManifest",
-    "staticwww:canary": "node $npm_package_config_staticwwwcanary",
-    "staticwww:dev": "$npm_package_config_packageexecutor vite --cors --debug --host --port ${PORT:-64128}",
-    "staticwww:preview": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --cors --debug --host --port $PORT",
+    "serverwww:build": "PORT=${PORT:-64128} $npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput",
+    "serverwww:dev": "$npm_package_config_packageexecutor vite --cors --debug --host --port ${PORT:-64128}",
+    "serverwww:preview": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --debug --host --port ${PORT:-64128}",
+    "staticwww:build": "$npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput --ssrManifest --mode client",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
-    "webhttp:build": "SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpoutput CLIENT_OUTPUT=$npm_package_config_staticwwwoutput $npm_package_config_packageexecutor vite build --outDir $npm_package_config_webhttpoutput --ssr ./src/$npm_package_config_serverrender",
-    "webhttp:dev": "SERVER_ENTRYPOINT=./src/$npm_package_config_serverrender $npm_package_config_server",
-    "webhttp:preview": "NODE_ENV=production CLIENT_OUTPUT=$npm_package_config_staticwwwoutput SERVER_ENTRYPOINT=$npm_package_config_webhttpoutput/$npm_package_config_webhttpmodule $npm_package_config_server"
+    "web:canary": "node $npm_package_config_webcanary"
   },
   "type": "module"
 }

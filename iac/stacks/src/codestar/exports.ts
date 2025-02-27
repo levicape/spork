@@ -18,4 +18,11 @@ export const SporkCodestarStackExportsZod = z.object({
 			name: z.string(),
 		}),
 	}),
+	spork_codestar_appconfig: z.object({
+		application: z.object({
+			arn: z.string(),
+			id: z.string(),
+			name: z.string(),
+		}),
+	}),
 });

@@ -1,17 +1,50 @@
-import { defineConfig } from 'vite'
+import build from "@hono/vite-build/node";
+import adapter from '@hono/vite-dev-server/node';
+import ssg from '@hono/vite-ssg';
 import tailwindcss from "@tailwindcss/vite";
-import react from '@vitejs/plugin-react-swc'
+import honox from 'honox/vite';
+import client from 'honox/vite/client';
+import { defineConfig } from 'vite';
+import { env } from "std-env"
 
-// https://vite.dev/config/
-export default defineConfig({
-  build: {
-    outDir: 'output/unknown',
-  },
-  server: {
-    allowedHosts: true,
-  },
-  plugins: [
-    react(),
-  	tailwindcss(),
-  ],
-})
+const entry = '/app/server.ts';
+const { PORT } = env;
+
+/**
+ * @see https://vite.dev/config/
+ */
+export default defineConfig(({mode}) => {
+  if (mode === 'client') {
+    return {
+      build: {
+        outDir: 'output',
+      },
+      plugins: [client()],
+    }
+  };
+    
+  return {
+    build: {
+      emptyOutDir: false,
+      outDir: 'output',
+    },
+    plugins: [
+      honox({
+        client: {
+          input: ['/app/style.css'],
+        },
+        devServer: {
+          adapter,
+        },
+      }),
+      build({
+        entry,
+        port: PORT ? Number(PORT) : undefined,
+      }),
+      tailwindcss(),
+      ssg({
+        entry
+      })
+    ],
+  };
+});

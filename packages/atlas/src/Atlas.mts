@@ -161,7 +161,7 @@ export function Atlas<Paths extends Prefix>(
 		appendFileSync(ATLAS_CADDYFILE, caddy);
 	}
 
-	return Object.entries(routes).reduce(
+	return Object.entries(resolved).reduce(
 		(acc, [path, route]) => {
 			let routeObject =
 				route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
