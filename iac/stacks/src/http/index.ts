@@ -115,27 +115,50 @@ export = async () => {
 	// Object Store
 	const s3 = (() => {
 		const bucket = (name: string) => {
-			const bucket = new Bucket(_(name), {
-				acl: "private",
-				forceDestroy: !context.environment.isProd,
-				tags: {
-					Name: _(name),
-					StackRef: STACKREF_ROOT,
-					PackageName: PACKAGE_NAME,
-					Key: name,
-				},
-			});
-
-			new BucketServerSideEncryptionConfigurationV2(_(`${name}-encryption`), {
-				bucket: bucket.bucket,
-				rules: [
-					{
-						applyServerSideEncryptionByDefault: {
-							sseAlgorithm: "AES256",
-						},
+			const bucket = new Bucket(
+				_(name),
+				{
+					acl: "private",
+					forceDestroy: !context.environment.isProd,
+					tags: {
+						Name: _(name),
+						StackRef: STACKREF_ROOT,
+						PackageName: PACKAGE_NAME,
+						Key: name,
 					},
-				],
-			});
+				},
+				{
+					ignoreChanges: [
+						"acl",
+						"lifecycleRules",
+						"loggings",
+						"policy",
+						"serverSideEncryptionConfiguration",
+						"versioning",
+						"website",
+						"websiteDomain",
+						"websiteEndpoint",
+					],
+				},
+			);
+
+			new BucketServerSideEncryptionConfigurationV2(
+				_(`${name}-encryption`),
+				{
+					bucket: bucket.bucket,
+					rules: [
+						{
+							applyServerSideEncryptionByDefault: {
+								sseAlgorithm: "AES256",
+							},
+						},
+					],
+				},
+				{
+					deletedWith: bucket,
+				},
+			);
+
 			new BucketVersioningV2(
 				_(`${name}-versioning`),
 
@@ -145,65 +168,73 @@ export = async () => {
 						status: "Enabled",
 					},
 				},
-				{ parent: this },
+				{
+					deletedWith: bucket,
+				},
 			);
-			new BucketPublicAccessBlock(_(`${name}-public-access-block`), {
-				bucket: bucket.bucket,
-				blockPublicAcls: true,
-				blockPublicPolicy: true,
-				ignorePublicAcls: true,
-				restrictPublicBuckets: true,
-			});
+			new BucketPublicAccessBlock(
+				_(`${name}-public-access-block`),
+				{
+					bucket: bucket.bucket,
+					blockPublicAcls: true,
+					blockPublicPolicy: true,
+					ignorePublicAcls: true,
+					restrictPublicBuckets: true,
+				},
+				{
+					deletedWith: bucket,
+				},
+			);
 
-			new BucketLifecycleConfigurationV2(_(`${name}-lifecycle`), {
-				bucket: bucket.bucket,
-				rules: [
-					{
-						status: "Enabled",
-						id: "ExpireObjects",
-						expiration: {
-							days: context.environment.isProd ? 20 : 10,
+			new BucketLifecycleConfigurationV2(
+				_(`${name}-lifecycle`),
+				{
+					bucket: bucket.bucket,
+					rules: [
+						{
+							status: "Enabled",
+							id: "DeleteMarkers",
+							expiration: {
+								expiredObjectDeleteMarker: true,
+							},
 						},
-						filter: {
-							objectSizeGreaterThan: 1,
+						{
+							status: "Enabled",
+							id: "IncompleteMultipartUploads",
+							abortIncompleteMultipartUpload: {
+								daysAfterInitiation: context.environment.isProd ? 3 : 7,
+							},
 						},
-					},
-					{
-						status: "Enabled",
-						id: "DeleteMarkers",
-						expiration: {
-							days: context.environment.isProd ? 8 : 4,
-							expiredObjectDeleteMarker: true,
+						{
+							status: "Enabled",
+							id: "NonCurrentVersions",
+							noncurrentVersionExpiration: {
+								noncurrentDays: context.environment.isProd ? 13 : 6,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
-						filter: {
-							objectSizeGreaterThan: 1,
+						{
+							status: "Enabled",
+							id: "ExpireObjects",
+							expiration: {
+								days: context.environment.isProd ? 20 : 10,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
-					},
-					{
-						status: "Enabled",
-						id: "NonCurrentVersions",
-						noncurrentVersionExpiration: {
-							noncurrentDays: context.environment.isProd ? 13 : 6,
-						},
-						filter: {
-							objectSizeGreaterThan: 1,
-						},
-					},
-					{
-						status: "Enabled",
-						id: "IncompleteMultipartUploads",
-						abortIncompleteMultipartUpload: {
-							daysAfterInitiation: context.environment.isProd ? 3 : 7,
-						},
-						filter: {
-							objectSizeGreaterThan: 1,
-						},
-					},
-				],
-			});
+					],
+				},
+				{
+					deletedWith: bucket,
+				},
+			);
 
 			return bucket;
 		};
+
 		return {
 			pipeline: bucket("pipeline"),
 			artifacts: bucket("artifacts"),
@@ -566,7 +597,7 @@ export = async () => {
 				dnsRecords: [
 					{
 						type: "CNAME",
-						ttl: 55,
+						ttl: context.environment.isProd ? 55 : 175,
 					},
 				],
 			},
