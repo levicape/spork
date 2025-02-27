@@ -4,8 +4,8 @@ import ssg from '@hono/vite-ssg';
 import tailwindcss from "@tailwindcss/vite";
 import honox from 'honox/vite';
 import client from 'honox/vite/client';
+import { env } from "std-env";
 import { defineConfig } from 'vite';
-import { env } from "std-env"
 
 const entry = '/app/server.ts';
 const { PORT } = env;
@@ -16,9 +16,6 @@ const { PORT } = env;
 export default defineConfig(({mode}) => {
   if (mode === 'client') {
     return {
-      build: {
-        outDir: 'output',
-      },
       plugins: [client()],
     }
   };
@@ -26,12 +23,15 @@ export default defineConfig(({mode}) => {
   return {
     build: {
       emptyOutDir: false,
-      outDir: 'output',
     },
     plugins: [
+      tailwindcss(),
       honox({
         client: {
-          input: ['/app/style.css'],
+          input: [
+            './app/*.css',
+            './app/**/*.css'
+          ],
         },
         devServer: {
           adapter,
@@ -41,7 +41,6 @@ export default defineConfig(({mode}) => {
         entry,
         port: PORT ? Number(PORT) : undefined,
       }),
-      tailwindcss(),
       ssg({
         entry
       })

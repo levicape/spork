@@ -26,6 +26,7 @@
     "@levicape/spork-atlas": "workspace:",
     "effect": "catalog:effect",
     "hono": "catalog:hono",
+    "hono-rate-limiter": "catalog:hono",
     "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf"
   },

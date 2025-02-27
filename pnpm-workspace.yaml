@@ -71,6 +71,7 @@ catalogs:
   data-row-avro:
     "avsc": "^5.7.7"
   dev:
+    "concurrently": "^9.1.2"
     "tslib": "^2.8.1"
     "tsx": "^4.19.3"
     "ts-node": "^10.9.2"

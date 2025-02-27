@@ -509,26 +509,28 @@ export = async () => {
 		);
 
 		const url = new FunctionUrl(_("url"), {
-			functionName: lambda.name,
-			qualifier: alias.name,
 			authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
 			cors: {
 				allowMethods: ["*"],
 				allowOrigins: context.environment.isProd ? hostnames : ["*"],
 				maxAge: 86400,
 			},
+			functionName: lambda.name,
+			invokeMode: "RESPONSE_STREAM",
+			qualifier: alias.name,
 		});
 
 		let latestUrl: FunctionUrl | undefined;
 		if (!context.environment.isProd) {
 			latestUrl = new FunctionUrl(_("url-latest"), {
-				functionName: lambda.name,
-				authorizationType: context.environment.isProd ? "AWS_IAM" : "NONE",
+				authorizationType: "AWS_IAM",
 				cors: {
 					allowMethods: ["*"],
 					allowOrigins: hostnames,
 					maxAge: 86400,
 				},
+				functionName: lambda.name,
+				invokeMode: "RESPONSE_STREAM",
 			});
 		}
 

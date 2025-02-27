@@ -1,6 +1,6 @@
 import { jsxRenderer } from "hono/jsx-renderer";
 import { Link, Script } from "honox/server";
-import { Appshell } from "../Appshell";
+import { Appshell } from "../Appshell.tsx";
 
 export default jsxRenderer(({ children }, c) => {
 	return (
@@ -15,6 +15,7 @@ export default jsxRenderer(({ children }, c) => {
 					nonce={c.get("secureHeadersNonce")}
 				/>
 				<Link href="/app/style.css" rel="stylesheet" />
+				<Link href="/app/routes/index.css" rel="stylesheet" />
 			</head>
 			<body>
 				<Appshell>{children}</Appshell>
