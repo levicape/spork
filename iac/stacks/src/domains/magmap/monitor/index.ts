@@ -40,6 +40,7 @@ import { stringify } from "yaml";
 import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import { $deref, type DereferencedOutput } from "../../../Stack";
+import { SporkApplicationStackExportsZod } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkMagmapHttpStackExportsZod } from "../http/exports";
@@ -55,6 +56,13 @@ const CI = {
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
+		application: {
+			refs: {
+				servicecatalog:
+					SporkApplicationStackExportsZod.shape
+						.spork_application_servicecatalog,
+			},
+		},
 		codestar: {
 			refs: {
 				codedeploy:
@@ -124,40 +132,71 @@ const CANARY_PATHS = [
 const ATLASFILE_PATH = `atlasfile.json`;
 
 export = async () => {
-	const context = await Context.fromConfig();
-	const _ = (name?: string) =>
-		name ? `${context.prefix}-${name}` : context.prefix;
-	const stage = CI.CI_ENVIRONMENT;
-	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
-
 	// Stack references
 	const dereferenced$ = await $deref(STACKREF_CONFIG);
-	const { codestar: __codestar, datalayer: __datalayer } = dereferenced$;
+	const {
+		codestar: $codestar,
+		datalayer: $datalayer,
+		application: $application,
+	} = dereferenced$;
+
+	const context = await Context.fromConfig({
+		aws: {
+			awsApplication: $application.servicecatalog.application.tag,
+		},
+	});
+	const _ = (name: string) => `${context.prefix}-${name}`;
+	context.resourcegroups({ _ });
+
+	const stage = CI.CI_ENVIRONMENT;
+	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 
 	// Object Store
 	const s3 = (() => {
 		const bucket = (name: string) => {
-			const bucket = new Bucket(_(name), {
-				acl: "private",
-				forceDestroy: !context.environment.isProd,
-				tags: {
-					Name: _(name),
-					StackRef: STACKREF_ROOT,
-					PackageName: WORKSPACE_PACKAGE_NAME,
-					Key: name,
-				},
-			});
-
-			new BucketServerSideEncryptionConfigurationV2(_(`${name}-encryption`), {
-				bucket: bucket.bucket,
-				rules: [
-					{
-						applyServerSideEncryptionByDefault: {
-							sseAlgorithm: "AES256",
-						},
+			const bucket = new Bucket(
+				_(name),
+				{
+					acl: "private",
+					forceDestroy: !context.environment.isProd,
+					tags: {
+						Name: _(name),
+						StackRef: STACKREF_ROOT,
+						PackageName: WORKSPACE_PACKAGE_NAME,
+						Key: name,
 					},
-				],
-			});
+				},
+				{
+					ignoreChanges: [
+						"acl",
+						"lifecycleRules",
+						"loggings",
+						"policy",
+						"serverSideEncryptionConfiguration",
+						"versioning",
+						"website",
+						"websiteDomain",
+						"websiteEndpoint",
+					],
+				},
+			);
+
+			new BucketServerSideEncryptionConfigurationV2(
+				_(`${name}-encryption`),
+				{
+					bucket: bucket.bucket,
+					rules: [
+						{
+							applyServerSideEncryptionByDefault: {
+								sseAlgorithm: "AES256",
+							},
+						},
+					],
+				},
+				{
+					deletedWith: bucket,
+				},
+			);
 			new BucketVersioningV2(
 				_(`${name}-versioning`),
 
@@ -167,62 +206,76 @@ export = async () => {
 						status: "Enabled",
 					},
 				},
-				{ parent: this },
+				{
+					deletedWith: bucket,
+				},
 			);
-			new BucketPublicAccessBlock(_(`${name}-public-access-block`), {
-				bucket: bucket.bucket,
-				blockPublicAcls: true,
-				blockPublicPolicy: true,
-				ignorePublicAcls: true,
-				restrictPublicBuckets: true,
-			});
+			new BucketPublicAccessBlock(
+				_(`${name}-public-access-block`),
+				{
+					bucket: bucket.bucket,
+					blockPublicAcls: true,
+					blockPublicPolicy: true,
+					ignorePublicAcls: true,
+					restrictPublicBuckets: true,
+				},
+				{
+					deletedWith: bucket,
+				},
+			);
 
-			new BucketLifecycleConfigurationV2(_(`${name}-lifecycle`), {
-				bucket: bucket.bucket,
-				rules: [
-					{
-						status: "Enabled",
-						id: "ExpireObjects",
-						expiration: {
-							days: context.environment.isProd ? 20 : 10,
+			new BucketLifecycleConfigurationV2(
+				_(`${name}-lifecycle`),
+				{
+					bucket: bucket.bucket,
+					rules: [
+						{
+							status: "Enabled",
+							id: "ExpireObjects",
+							expiration: {
+								days: context.environment.isProd ? 20 : 10,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
-						filter: {
-							objectSizeGreaterThan: 1,
+						{
+							status: "Enabled",
+							id: "DeleteMarkers",
+							expiration: {
+								days: context.environment.isProd ? 8 : 4,
+								expiredObjectDeleteMarker: true,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
-					},
-					{
-						status: "Enabled",
-						id: "DeleteMarkers",
-						expiration: {
-							days: context.environment.isProd ? 8 : 4,
-							expiredObjectDeleteMarker: true,
+						{
+							status: "Enabled",
+							id: "NonCurrentVersions",
+							noncurrentVersionExpiration: {
+								noncurrentDays: context.environment.isProd ? 13 : 6,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
-						filter: {
-							objectSizeGreaterThan: 1,
+						{
+							status: "Enabled",
+							id: "IncompleteMultipartUploads",
+							abortIncompleteMultipartUpload: {
+								daysAfterInitiation: context.environment.isProd ? 3 : 7,
+							},
+							filter: {
+								objectSizeGreaterThan: 1,
+							},
 						},
-					},
-					{
-						status: "Enabled",
-						id: "NonCurrentVersions",
-						noncurrentVersionExpiration: {
-							noncurrentDays: context.environment.isProd ? 13 : 6,
-						},
-						filter: {
-							objectSizeGreaterThan: 1,
-						},
-					},
-					{
-						status: "Enabled",
-						id: "IncompleteMultipartUploads",
-						abortIncompleteMultipartUpload: {
-							daysAfterInitiation: context.environment.isProd ? 3 : 7,
-						},
-						filter: {
-							objectSizeGreaterThan: 1,
-						},
-					},
-				],
-			});
+					],
+				},
+				{
+					deletedWith: bucket,
+				},
+			);
 
 			return bucket;
 		};
@@ -322,7 +375,7 @@ export = async () => {
 		{
 			datalayer,
 			codestar,
-		}: { datalayer: typeof __datalayer; codestar: typeof __codestar },
+		}: { datalayer: typeof $datalayer; codestar: typeof $codestar },
 		cw: typeof cloudwatch,
 	) => {
 		const role = datalayer.iam.roles.lambda.name;
@@ -1072,8 +1125,8 @@ export = async () => {
 	};
 
 	const deps = {
-		datalayer: __datalayer,
-		codestar: __codestar,
+		datalayer: $datalayer,
+		codestar: $codestar,
 	} as const;
 
 	const canary = await (async () => {
@@ -1114,7 +1167,7 @@ export = async () => {
 								provider: "ECR",
 								version: "1",
 								outputArtifacts: ["source_image"],
-								configuration: all([__codestar.ecr.repository.name]).apply(
+								configuration: all([$codestar.ecr.repository.name]).apply(
 									([repositoryName]) => {
 										return {
 											RepositoryName: repositoryName,
@@ -1146,9 +1199,9 @@ export = async () => {
 											codebuild.extractimage.buildspec.artifact,
 										],
 										configuration: all([
-											__codestar.ecr.repository.arn,
-											__codestar.ecr.repository.name,
-											__codestar.ecr.repository.url,
+											$codestar.ecr.repository.arn,
+											$codestar.ecr.repository.name,
+											$codestar.ecr.repository.url,
 											codebuild.extractimage.project.name,
 											s3.artifacts.bucket,
 											atlasfile.object.bucket,
@@ -1318,7 +1371,7 @@ export = async () => {
 										version: "1",
 										inputArtifacts: [codebuild.updatelambda.buildspec.artifact],
 										configuration: all([
-											__codestar.codedeploy.application.name,
+											$codestar.codedeploy.application.name,
 											codedeploy.deploymentGroup.deploymentGroupName,
 										]).apply(([applicationName, deploymentGroupName]) => {
 											return {
@@ -1358,7 +1411,7 @@ export = async () => {
 
 	// Eventbridge will trigger on ecr push
 	const eventbridge = (() => {
-		const { name } = __codestar.ecr.repository;
+		const { name } = $codestar.ecr.repository;
 
 		const EcrImageAction = (() => {
 			const rule = new EventRule(_("on-ecr-push"), {
@@ -1736,8 +1789,8 @@ export = async () => {
 			const exported = {
 				spork_magmap_monitor_imports: {
 					spork: {
-						codestar: __codestar,
-						datalayer: __datalayer,
+						codestar: $codestar,
+						datalayer: $datalayer,
 					},
 				},
 				spork_magmap_monitor_s3,
@@ -1749,8 +1802,8 @@ export = async () => {
 			} satisfies z.infer<typeof SporkMagmapMonitorStackExportsZod> & {
 				spork_magmap_monitor_imports: {
 					spork: {
-						codestar: typeof __codestar;
-						datalayer: typeof __datalayer;
+						codestar: typeof $codestar;
+						datalayer: typeof $datalayer;
 					};
 				};
 			};

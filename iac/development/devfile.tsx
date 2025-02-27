@@ -10,7 +10,7 @@ import {
 	DevfileX,
 } from "@levicape/fourtwo/devfile";
 
-const APPLICATION_NAME = "paloma";
+const APPLICATION_NAME = "spork";
 const NODE_VERSION = "22.12.0";
 const PNPM_VERSION = "pnpm@9.15.4";
 const MAKE_DEPENDENCIES = [

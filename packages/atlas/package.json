@@ -18,14 +18,10 @@
     "port": "64128"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "catalog:protobuf",
-    "@levicape/paloma": "catalog:",
-    "@levicape/spork": "workspace:",
     "destr": "catalog:parse-json",
     "fs-extra": "catalog:fs",
     "serialize-error": "catalog:error",
     "std-env": "catalog:runtime-env",
-    "ts-proto": "catalog:protobuf",
     "verror": "catalog:error",
     "zod": "catalog:schema-zod"
   },
@@ -34,7 +30,6 @@
     "@types/fs-extra": "catalog:types",
     "@types/node": "catalog:types",
     "publint": "catalog:package",
-    "ts-proto": "catalog:protobuf",
     "typescript": "catalog:dev"
   },
   "engines": {

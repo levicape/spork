@@ -21,6 +21,9 @@ export const CODECATALYST_PULUMI_STACKS: Array<{
 }> = (
 	[
 		{
+			stack: "application",
+		},
+		{
 			stack: "codestar",
 		},
 		{

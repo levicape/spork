@@ -33,7 +33,6 @@
     "@biomejs/biome": "catalog:lint",
     "@types/node": "catalog:types",
     "publint": "catalog:package",
-    "ts-proto": "catalog:protobuf",
     "typescript": "catalog:dev"
   },
   "engines": {

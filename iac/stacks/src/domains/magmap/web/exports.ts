@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RouteMapZod } from "../../../RouteMap";
+import { RouteMapZod, S3RouteResourceZod } from "../../../RouteMap";
 
 export const SporkMagmapWebStackExportsZod = z.object({
 	spork_magmap_web_s3: z.object({
@@ -45,5 +45,5 @@ export const SporkMagmapWebStackExportsZod = z.object({
 			}),
 		}),
 	}),
-	spork_magmap_web_routemap: RouteMapZod.valueSchema,
+	spork_magmap_web_routemap: z.record(S3RouteResourceZod),
 });

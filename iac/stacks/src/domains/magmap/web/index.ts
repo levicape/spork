@@ -31,18 +31,26 @@ import type {
 	WebsiteManifest,
 } from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
+import { SporkApplicationStackExportsZod } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkHttpStackExportsZod } from "../../../http/exports";
 import { SporkMagmapWebStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork-magmap-ui" as const;
-const DEPLOY_DIRECTORY = "output/staticwww" as const;
+const DEPLOY_DIRECTORY = "dist" as const;
 const MANIFEST_PATH = "/_web/routemap.json" as const;
 
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
+		application: {
+			refs: {
+				servicecatalog:
+					SporkApplicationStackExportsZod.shape
+						.spork_application_servicecatalog,
+			},
+		},
 		codestar: {
 			refs: {
 				codedeploy:
@@ -73,15 +81,22 @@ const ROUTE_MAP = ({
 };
 
 export = async () => {
-	const context = await Context.fromConfig();
-	const _ = (name?: string) =>
-		name ? `${context.prefix}-${name}` : context.prefix;
-	const stage = process.env.CI_ENVIRONMENT ?? "unknown";
-	const farRole = await getRole({ name: "FourtwoAccessRole" });
-
 	// Stack references
 	const dereferenced$ = await $deref(STACKREF_CONFIG);
 	const { codestar, datalayer } = dereferenced$;
+
+	const context = await Context.fromConfig({
+		aws: {
+			awsApplication: dereferenced$.application.servicecatalog.application.tag,
+		},
+	});
+	const _ = (name?: string) =>
+		name ? `${context.prefix}-${name}` : context.prefix;
+	context.resourcegroups({ _ });
+
+	const stage = process.env.CI_ENVIRONMENT ?? "unknown";
+	const farRole = await getRole({ name: "FourtwoAccessRole" });
+
 	const routemap = ROUTE_MAP(dereferenced$);
 
 	// Object Store

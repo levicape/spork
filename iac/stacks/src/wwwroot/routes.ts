@@ -1,13 +1,12 @@
 import type { RoutePaths, RouteResource } from "../RouteMap";
 
-export class WWWRootRoutes {
-	static readonly REQUIRED_ROUTES = ["/~/v1/Spork/Http"] as const;
-
-	static readonly ADMIN_ROUTES = ["/!/v1/Spork/Http"] as const;
+export class SporkWWWRootRoutes {
+	static readonly REQUIRED_ROUTES = ["/~/Spork/Http"] as const;
 }
 
-export type WWWRootRoute = (typeof WWWRootRoutes.REQUIRED_ROUTES)[number];
-export type WWWRootRouteMap<Resource extends RouteResource> = RoutePaths<
-	WWWRootRoute,
+export type SporkWWWRootRoute =
+	(typeof SporkWWWRootRoutes.REQUIRED_ROUTES)[number];
+export type SporkWWWRootRouteMap<Resource extends RouteResource> = RoutePaths<
+	SporkWWWRootRoute,
 	Resource
 >;

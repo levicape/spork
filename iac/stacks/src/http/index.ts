@@ -38,9 +38,10 @@ import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../RoundRobin";
 import type { LambdaRouteResource, Route } from "../RouteMap";
 import { $deref, type DereferencedOutput } from "../Stack";
+import { SporkApplicationStackExportsZod } from "../application/exports";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
-import type { WWWRootRoute } from "../wwwroot/routes";
+import type { SporkWWWRootRoute } from "../wwwroot/routes";
 import { SporkHttpStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork" as const;
@@ -59,6 +60,13 @@ const CI = {
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
+		application: {
+			refs: {
+				servicecatalog:
+					SporkApplicationStackExportsZod.shape
+						.spork_application_servicecatalog,
+			},
+		},
 		codestar: {
 			refs: {
 				codedeploy:
@@ -89,13 +97,20 @@ const ENVIRONMENT = (
 };
 
 export = async () => {
-	const context = await Context.fromConfig();
-	const _ = (name: string) => `${context.prefix}-${name}`;
-	const stage = CI.CI_ENVIRONMENT;
-	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 	// Stack references
 	const dereferenced$ = await $deref(STACKREF_CONFIG);
 	const { codestar: __codestar, datalayer: __datalayer } = dereferenced$;
+
+	const context = await Context.fromConfig({
+		aws: {
+			awsApplication: dereferenced$.application.servicecatalog.application.tag,
+		},
+	});
+	const _ = (name: string) => `${context.prefix}-${name}`;
+	context.resourcegroups({ _ });
+
+	const stage = CI.CI_ENVIRONMENT;
+	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 
 	// Object Store
 	const s3 = (() => {
@@ -1494,9 +1509,9 @@ export = async () => {
 		]) => {
 			const spork_http_routemap = (() => {
 				const routes: Partial<
-					Record<WWWRootRoute, Route<LambdaRouteResource>>
+					Record<SporkWWWRootRoute, Route<LambdaRouteResource>>
 				> = {
-					["/~/v1/Spork/Http"]: {
+					["/~/Spork/Http"]: {
 						$kind: "LambdaRouteResource",
 						lambda: {
 							arn: spork_http_lambda.function.arn,
@@ -1525,7 +1540,7 @@ export = async () => {
 								attributes: spork_http_cloudmap.instance.attributes,
 							},
 						},
-					},
+					} as const,
 				};
 				return routes;
 			})();

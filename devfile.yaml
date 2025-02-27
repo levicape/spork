@@ -1,6 +1,6 @@
 schemaVersion: 2.0.0
 metadata:
-  name: paloma
+  name: spork
 components:
   - name: source
     container:

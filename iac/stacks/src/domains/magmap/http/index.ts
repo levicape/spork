@@ -38,9 +38,10 @@ import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import type { LambdaRouteResource, Route } from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
+import { SporkApplicationStackExportsZod } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
-import type { WWWRootRoute } from "../../../wwwroot/routes";
+import type { MapgmapWWWRootRoute } from "../wwwroot/routes";
 import { SporkMagmapHttpStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork-magmap-io" as const;
@@ -59,6 +60,13 @@ const CI = {
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
+		application: {
+			refs: {
+				servicecatalog:
+					SporkApplicationStackExportsZod.shape
+						.spork_application_servicecatalog,
+			},
+		},
 		codestar: {
 			refs: {
 				codedeploy:
@@ -89,13 +97,20 @@ const ENVIRONMENT = (
 };
 
 export = async () => {
-	const context = await Context.fromConfig();
-	const _ = (name: string) => `${context.prefix}-${name}`;
-	const stage = CI.CI_ENVIRONMENT;
-	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 	// Stack references
 	const dereferenced$ = await $deref(STACKREF_CONFIG);
 	const { codestar: __codestar, datalayer: __datalayer } = dereferenced$;
+
+	const context = await Context.fromConfig({
+		aws: {
+			awsApplication: dereferenced$.application.servicecatalog.application.tag,
+		},
+	});
+	const _ = (name: string) => `${context.prefix}-${name}`;
+	context.resourcegroups({ _ });
+
+	const stage = CI.CI_ENVIRONMENT;
+	const farRole = await getRole({ name: CI.CI_ACCESS_ROLE });
 
 	// Object Store
 	const s3 = (() => {
@@ -145,23 +160,16 @@ export = async () => {
 				rules: [
 					{
 						status: "Enabled",
-						id: "ExpireObjects",
+						id: "DeleteMarkers",
 						expiration: {
-							days: context.environment.isProd ? 20 : 10,
-						},
-						filter: {
-							objectSizeGreaterThan: 1,
+							expiredObjectDeleteMarker: true,
 						},
 					},
 					{
 						status: "Enabled",
-						id: "DeleteMarkers",
-						expiration: {
-							days: context.environment.isProd ? 8 : 4,
-							expiredObjectDeleteMarker: true,
-						},
-						filter: {
-							objectSizeGreaterThan: 1,
+						id: "IncompleteMultipartUploads",
+						abortIncompleteMultipartUpload: {
+							daysAfterInitiation: context.environment.isProd ? 3 : 7,
 						},
 					},
 					{
@@ -176,9 +184,9 @@ export = async () => {
 					},
 					{
 						status: "Enabled",
-						id: "IncompleteMultipartUploads",
-						abortIncompleteMultipartUpload: {
-							daysAfterInitiation: context.environment.isProd ? 3 : 7,
+						id: "ExpireObjects",
+						expiration: {
+							days: context.environment.isProd ? 20 : 10,
 						},
 						filter: {
 							objectSizeGreaterThan: 1,
@@ -551,7 +559,7 @@ export = async () => {
 				dnsRecords: [
 					{
 						type: "CNAME",
-						ttl: 55,
+						ttl: context.environment.isProd ? 55 : 175,
 					},
 				],
 			},
@@ -1494,9 +1502,9 @@ export = async () => {
 		]) => {
 			const spork_magmap_http_routemap = (() => {
 				const routes: Partial<
-					Record<WWWRootRoute, Route<LambdaRouteResource>>
+					Record<MapgmapWWWRootRoute, Route<LambdaRouteResource>>
 				> = {
-					["/~/v1/Spork/Http"]: {
+					["/~/Spork/Magmap"]: {
 						$kind: "LambdaRouteResource",
 						lambda: {
 							arn: spork_magmap_http_lambda.function.arn,
