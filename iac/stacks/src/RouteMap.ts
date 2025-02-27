@@ -66,7 +66,7 @@ export type Route<T = {}> = {
 } & T;
 
 export type RoutePaths<
-	Paths extends Prefix,
+	Paths extends string,
 	Resource extends RouteResource | {},
 > = Record<Paths, Route<Resource>>;
 
@@ -89,7 +89,7 @@ export const StaticRouteResourceZod = z.object({
 
 export const S3RouteResourceZod = z.object({
 	$kind: z.literal("S3RouteResource"),
-	hostname: z.string().optional(),
+	hostname: z.string(),
 	protocol: z.union([
 		z.literal("http"),
 		z.literal("https"),
@@ -158,13 +158,7 @@ export interface WebsiteManifest {
 	manifest:
 		| {
 				ok: true;
-				routes: Record<
-					keyof RouteMap,
-					Record<
-						keyof RouteMap[string],
-						Omit<RouteMap[string][Prefix], keyof RouteResource>
-					>
-				>;
+				routes: Partial<RoutePaths<string, RouteResource>>;
 				frontend: {
 					website?: Omit<Route, keyof RouteResource>;
 					hostnames: string[];

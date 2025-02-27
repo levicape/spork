@@ -197,6 +197,7 @@ export = async () => {
 					deletedWith: bucket,
 				},
 			);
+
 			new BucketVersioningV2(
 				_(`${name}-versioning`),
 
@@ -231,23 +232,16 @@ export = async () => {
 					rules: [
 						{
 							status: "Enabled",
-							id: "ExpireObjects",
+							id: "DeleteMarkers",
 							expiration: {
-								days: context.environment.isProd ? 20 : 10,
-							},
-							filter: {
-								objectSizeGreaterThan: 1,
+								expiredObjectDeleteMarker: true,
 							},
 						},
 						{
 							status: "Enabled",
-							id: "DeleteMarkers",
-							expiration: {
-								days: context.environment.isProd ? 8 : 4,
-								expiredObjectDeleteMarker: true,
-							},
-							filter: {
-								objectSizeGreaterThan: 1,
+							id: "IncompleteMultipartUploads",
+							abortIncompleteMultipartUpload: {
+								daysAfterInitiation: context.environment.isProd ? 3 : 7,
 							},
 						},
 						{
@@ -262,9 +256,9 @@ export = async () => {
 						},
 						{
 							status: "Enabled",
-							id: "IncompleteMultipartUploads",
-							abortIncompleteMultipartUpload: {
-								daysAfterInitiation: context.environment.isProd ? 3 : 7,
+							id: "ExpireObjects",
+							expiration: {
+								days: context.environment.isProd ? 20 : 10,
 							},
 							filter: {
 								objectSizeGreaterThan: 1,
@@ -279,6 +273,7 @@ export = async () => {
 
 			return bucket;
 		};
+
 		return {
 			pipeline: bucket("pipeline"),
 			artifacts: bucket("artifacts"),
@@ -445,6 +440,7 @@ export = async () => {
 		};
 
 		const memorySize = context.environment.isProd ? 512 : 256;
+		const timeout = context.environment.isProd ? 93 : 55;
 		const lambda = new LambdaFn(
 			_(`${name}`),
 			{
@@ -452,7 +448,7 @@ export = async () => {
 				role: roleArn,
 				architectures: ["arm64"],
 				memorySize,
-				timeout: 93,
+				timeout,
 				packageType: "Zip",
 				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
 				handler: "index.handler",
@@ -485,7 +481,7 @@ export = async () => {
 							...(LLRT_PLATFORM
 								? {
 										LLRT_PLATFORM,
-										LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
+										LLRT_GC_THRESHOLD_MB: String(memorySize / 2),
 									}
 								: {}),
 							ATLAS_ROUTES: `file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${ATLASFILE_PATH}`,
