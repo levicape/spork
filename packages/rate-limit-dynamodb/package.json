@@ -1,6 +1,6 @@
 {
-  "name": "@levicape/spork-atlas",
-  "description": "Routing configuration module",
+  "name": "@levicape/rate-limit-dynamodb",
+  "description": "Rate limiter store for use with `hono-rate-limiter`",
   "version": "0.0.0-local.0",
   "author": "Pedro Cardona",
   "config": {
@@ -12,16 +12,11 @@
     "lintpaths": "./src"
   },
   "dependencies": {
-    "destr": "catalog:parse-json",
-    "fs-extra": "catalog:fs",
-    "serialize-error": "catalog:error",
-    "std-env": "catalog:runtime-env",
-    "verror": "catalog:error",
-    "zod": "catalog:schema-zod"
+    "@aws-sdk/client-dynamodb": "catalog:aws",
+    "@aws-sdk/lib-dynamodb": "catalog:aws"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
-    "@types/fs-extra": "catalog:types",
     "@types/node": "catalog:types",
     "publint": "catalog:package",
     "typescript": "catalog:dev"
@@ -30,7 +25,7 @@
     "node": "22"
   },
   "exports": {
-    ".": "./module/Atlas.mjs"
+    ".": "./module/DynamoDbStore.mjs"
   },
   "files": [
     "module",
@@ -94,6 +89,9 @@
       }
     }
   },
+  "peerDependencies": {
+    "hono-rate-limiter": "^0.4.2"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
@@ -108,12 +106,6 @@
     "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "dx:test": "$npm_package_config_packagescript clean && $npm_package_config_packagescript build && $npm_package_config_packagescript test",
-    "generate:i18n": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../i18n\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact module --destination $npm_package_config_i18n --clean",
-    "generate:models": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../models\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact module --destination $npm_package_config_models --clean",
-    "generate:protocols": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../protocols\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact gen --destination $npm_package_config_protocols --clean",
-    "http:canary": "node $npm_package_config_httpcanary",
-    "http:dev": "rm nohup.out || true; nohup $npm_package_config_packageexecutor tsc -w & echo $! > .pidfile.tsc && LOG_LEVEL=5 pnpm run http:start --watch module; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
-    "http:start": "$npm_package_config_packageexecutor spork server start $npm_package_config_server --port ${PORT:-64128}",
     "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_srcpaths",
     "lint:format": "$npm_package_config_packageexecutor biome check --write $npm_package_config_srcpaths",
     "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_srcpaths",
@@ -125,7 +117,6 @@
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
-    "start": "$npm_package_config_packageexecutor spork server start $npm_package_config_server --port $PORT",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose --no-cloud",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'"
   },

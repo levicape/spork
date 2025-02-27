@@ -3,7 +3,7 @@ import { HonoGuardAuthentication } from "@levicape/spork/hono/guard";
 import type { Context as HonoContext } from "hono";
 import { Hono } from "hono/quick";
 
-export const { server, handler } = await SporkHonoHttpServer((app) =>
+export const { server, handler, stream } = await SporkHonoHttpServer((app) =>
 	app
 
 		.get(

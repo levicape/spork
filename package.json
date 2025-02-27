@@ -126,7 +126,8 @@
           "@levicape/spork-canary:dx:precommit",
           "@levicape/spork-magmap-io:dx:precommit",
           "@levicape/spork-magmap-ui:dx:precommit",
-          "@levicape/spork-atlas:dx:precommit"
+          "@levicape/spork-atlas:dx:precommit",
+          "@levicape/rate-limit-dynamodb:dx:precommit"
         ]
       },
       "dx:test": {
@@ -148,7 +149,8 @@
           "@levicape/spork-canary:nx:compile",
           "@levicape/spork-magmap-io:nx:compile",
           "@levicape/spork-magmap-ui:nx:compile",
-          "@levicape/spork-atlas:nx:compile"
+          "@levicape/spork-atlas:nx:compile",
+          "@levicape/rate-limit-dynamodb:nx:compile"
         ]
       },
       "nx:sync": {
@@ -162,7 +164,8 @@
           "@levicape/spork-canary:nx:test",
           "@levicape/spork-magmap-io:nx:test",
           "@levicape/spork-magmap-ui:nx:test",
-          "@levicape/spork-atlas:nx:test"
+          "@levicape/spork-atlas:nx:test",
+          "@levicape/rate-limit-dynamodb:nx:test"
         ]
       },
       "test:module": {

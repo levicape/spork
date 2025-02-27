@@ -1,7 +1,13 @@
 import { serve } from "@hono/node-server";
 import { Context, Effect, pipe } from "effect";
 import type { Hono } from "hono";
-import { handle } from "hono/aws-lambda";
+import {
+	type APIGatewayProxyResult,
+	type LambdaContext,
+	type LambdaEvent,
+	handle,
+	streamHandle,
+} from "hono/aws-lambda";
 import type { BlankEnv, BlankSchema } from "hono/types";
 import { serializeError } from "serialize-error";
 import { env, process } from "std-env";
@@ -28,13 +34,22 @@ const { trace } = await Effect.runPromise(
 	),
 );
 
+export type HonoHttpLambdaHandler = (
+	event: LambdaEvent,
+	lambdaContext?: LambdaContext,
+) => Promise<APIGatewayProxyResult>;
+
 export type HonoHttpServerBuilderProps<
 	Env extends BlankEnv,
 	Schema extends BlankSchema,
 	BasePath extends string,
 > = {
 	app: Effect.Effect<
-		{ app: Hono<Env, Schema, BasePath>; handler?: ReturnType<typeof handle> },
+		{
+			app: Hono<Env, Schema, BasePath>;
+			stream?: HonoHttpLambdaHandler;
+			handler?: HonoHttpLambdaHandler;
+		},
 		unknown
 	>;
 	effect?: {
@@ -63,7 +78,23 @@ export const HonoHttpServerBuilder =
 		app,
 		effect,
 	}: HonoHttpServerBuilderProps<Env, Schema, BasePath>) =>
-	async (props?: HonoHttpServerProps) => {
+	async (
+		props?: HonoHttpServerProps,
+	): Promise<
+		Effect.Effect<
+			{
+				handler: HonoHttpLambdaHandler | undefined;
+				stream: HonoHttpLambdaHandler | undefined;
+				server: {
+					app: Hono<Env, Schema, BasePath>;
+					serve: (options: ServeOptions) => Promise<void>;
+					stop: () => Promise<void>;
+				};
+			},
+			unknown,
+			never
+		>
+	> => {
 		trace.debug("Building server");
 
 		return Effect.provide(
@@ -115,6 +146,7 @@ export const HonoHttpServerBuilder =
 
 				return {
 					handler: instance.handler,
+					stream: instance.stream,
 					server: {
 						app: instance.app,
 						serve: async ({ port }: ServeOptions) => {
@@ -228,9 +260,12 @@ export const SporkHonoHttpServer = async <
 											const { AWS_LAMBDA_FUNCTION_NAME } = env;
 											return Effect.succeed({
 												app: app(spork),
-												handler:
-													(AWS_LAMBDA_FUNCTION_NAME && handle(spork)) ||
-													undefined,
+												stream: AWS_LAMBDA_FUNCTION_NAME
+													? (streamHandle(spork) as HonoHttpLambdaHandler)
+													: undefined,
+												handler: AWS_LAMBDA_FUNCTION_NAME
+													? handle(spork)
+													: undefined,
 											});
 										},
 									);

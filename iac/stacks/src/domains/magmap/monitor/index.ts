@@ -44,6 +44,7 @@ import { SporkApplicationStackExportsZod } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkMagmapHttpStackExportsZod } from "../http/exports";
+import { SporkMagmapWebStackExportsZod } from "../web/exports";
 import { SporkMagmapMonitorStackExportsZod } from "./exports";
 
 const WORKSPACE_PACKAGE_NAME = "@levicape/spork";
@@ -83,11 +84,11 @@ const STACKREF_CONFIG = {
 					SporkMagmapHttpStackExportsZod.shape.spork_magmap_http_routemap,
 			},
 		},
-		// ["magmap-web"]: {
-		// 	refs: {
-		// 		routemap: SporkMagmapWebStackExportsZod.shape.spork_magmap_web_routemap,
-		// 	}
-		// }
+		["magmap-web"]: {
+			refs: {
+				routemap: SporkMagmapWebStackExportsZod.shape.spork_magmap_web_routemap,
+			},
+		},
 	},
 } as const;
 
@@ -99,9 +100,11 @@ const ENVIRONMENT = (
 
 const ROUTE_MAP = ({
 	"magmap-http": magmap_http,
+	"magmap-web": magmap_web,
 }: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT]) => {
 	return {
 		...magmap_http.routemap,
+		...magmap_web.routemap,
 	};
 };
 
