@@ -32,21 +32,29 @@ import {
 } from "../../../Cloudfront";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import { $deref, type DereferencedOutput } from "../../../Stack";
-import { SporkApplicationStackExportsZod } from "../../../application/exports";
-import { SporkMagmapHttpStackExportsZod } from "../http/exports";
-import { SporkMagmapWebStackExportsZod } from "../web/exports";
+import {
+	SporkApplicationRoot,
+	SporkApplicationStackExportsZod,
+} from "../../../application/exports";
+import {
+	SporkMagmapHttpStackExportsZod,
+	SporkMagmapHttpStackrefRoot,
+} from "../http/exports";
+import {
+	SporkMagmapWebStackExportsZod,
+	SporkMagmapWebStackrefRoot,
+} from "../web/exports";
 import { SporkMagmapWWWRootExportsZod } from "./exports";
 
-const WORKSPACE_PACKAGE_NAME = "@levicape/paloma";
-//
+const WORKSPACE_PACKAGE_NAME = "@levicape/spork";
 
 const ROUTE_MAP = ({
-	"nevada-http": nevada_http,
-	"nevada-web": nevada_web,
+	[SporkMagmapHttpStackrefRoot]: http,
+	[SporkMagmapWebStackrefRoot]: web,
 }: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT]) => {
 	return {
-		...nevada_http.routemap,
-		...nevada_web.routemap,
+		...http.routemap,
+		...web.routemap,
 	};
 };
 
@@ -55,7 +63,7 @@ const CI = {
 	CI_ACCESS_ROLE: process.env.CI_ACCESS_ROLE ?? "FourtwoAccessRole",
 };
 
-const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
+const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
 		application: {
@@ -65,7 +73,7 @@ const STACKREF_CONFIG = {
 						.spork_application_servicecatalog,
 			},
 		},
-		["nevada-http"]: {
+		[SporkMagmapHttpStackrefRoot]: {
 			refs: {
 				cloudmap:
 					SporkMagmapHttpStackExportsZod.shape.spork_magmap_http_cloudmap,
@@ -73,7 +81,7 @@ const STACKREF_CONFIG = {
 					SporkMagmapHttpStackExportsZod.shape.spork_magmap_http_routemap,
 			},
 		},
-		["nevada-web"]: {
+		[SporkMagmapWebStackrefRoot]: {
 			refs: {
 				s3: SporkMagmapWebStackExportsZod.shape.spork_magmap_web_s3,
 				routemap: SporkMagmapWebStackExportsZod.shape.spork_magmap_web_routemap,
@@ -810,8 +818,8 @@ function handler(event) {
 		>,
 	);
 
-	const $nevada_http = dereferenced$["nevada-http"];
-	const $nevada_web = dereferenced$["nevada-web"];
+	const $http = dereferenced$[SporkMagmapHttpStackrefRoot];
+	const $web = dereferenced$[SporkMagmapWebStackrefRoot];
 
 	return all([s3Output, cloudfrontOutput, codebuildProjectsOutput]).apply(
 		([
@@ -821,9 +829,9 @@ function handler(event) {
 		]) => {
 			const exported = {
 				spork_magmap_wwwroot_imports: {
-					paloma: {
-						nevada_http: $nevada_http,
-						nevada_web: $nevada_web,
+					[SporkApplicationRoot]: {
+						nevada_http: $http,
+						nevada_web: $web,
 					},
 				},
 				spork_magmap_wwwroot_s3,
@@ -831,9 +839,9 @@ function handler(event) {
 				spork_magmap_wwwroot_codebuild,
 			} satisfies z.infer<typeof SporkMagmapWWWRootExportsZod> & {
 				spork_magmap_wwwroot_imports: {
-					paloma: {
-						nevada_http: typeof $nevada_http;
-						nevada_web: typeof $nevada_web;
+					[SporkApplicationRoot]: {
+						nevada_http: typeof $http;
+						nevada_web: typeof $web; // Updated to use $web instead of $nevada_web
 					};
 				};
 			};

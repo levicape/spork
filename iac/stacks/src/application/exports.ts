@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+export const SporkApplicationRoot = "spork";
 export const SporkApplicationStackExportsZod = z.object({
 	spork_application_servicecatalog: z.object({
 		application: z.object({

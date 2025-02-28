@@ -31,7 +31,10 @@ import type {
 	WebsiteManifest,
 } from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
-import { SporkApplicationStackExportsZod } from "../../../application/exports";
+import {
+	SporkApplicationRoot,
+	SporkApplicationStackExportsZod,
+} from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkHttpStackExportsZod } from "../../../http/exports";
@@ -41,7 +44,7 @@ const PACKAGE_NAME = "@levicape/spork-magmap-ui" as const;
 const DEPLOY_DIRECTORY = "dist" as const;
 const MANIFEST_PATH = "/_web/routemap.json" as const;
 
-const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
+const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
 		application: {
@@ -730,7 +733,7 @@ export = async () => {
 
 			const exported = {
 				spork_magmap_web_imports: {
-					spork: {
+					[SporkApplicationRoot]: {
 						codestar,
 						datalayer,
 						http: dereferenced$["http"],
@@ -782,7 +785,7 @@ export = async () => {
 				spork_magmap_web_routemap,
 			} satisfies z.infer<typeof SporkMagmapWebStackExportsZod> & {
 				spork_magmap_web_imports: {
-					spork: {
+					[SporkApplicationRoot]: {
 						codestar: typeof codestar;
 						datalayer: typeof datalayer;
 						http: (typeof dereferenced$)["http"];

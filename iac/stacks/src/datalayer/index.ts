@@ -9,14 +9,17 @@ import { Vpc } from "@pulumi/awsx/ec2/vpc";
 import { all } from "@pulumi/pulumi";
 import type { z } from "zod";
 import { $deref } from "../Stack";
-import { SporkApplicationStackExportsZod } from "../application/exports";
+import {
+	SporkApplicationRoot,
+	SporkApplicationStackExportsZod,
+} from "../application/exports";
 import { SporkDatalayerStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork";
 const EFS_ROOT_DIRECTORY = "/spork";
 const EFS_MOUNT_PATH = "/mnt/efs";
 
-const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
+const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
 		application: {

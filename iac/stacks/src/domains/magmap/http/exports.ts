@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { LambdaRouteResourceZod, RouteMapZod } from "../../../RouteMap";
 
+export const SporkMagmapHttpStackrefRoot = "magmap-http" as const;
+
 export const SporkMagmapHttpStackExportsZod = z.object({
 	spork_magmap_http_cloudmap: z.object({
 		namespace: z.object({

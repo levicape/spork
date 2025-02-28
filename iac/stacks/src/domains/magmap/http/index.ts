@@ -38,7 +38,10 @@ import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import type { LambdaRouteResource, Route } from "../../../RouteMap";
 import { $deref, type DereferencedOutput } from "../../../Stack";
-import { SporkApplicationStackExportsZod } from "../../../application/exports";
+import {
+	SporkApplicationRoot,
+	SporkApplicationStackExportsZod,
+} from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import type { MapgmapWWWRootRoute } from "../wwwroot/routes";
@@ -57,7 +60,7 @@ const CI = {
 	CI_ENVIRONMENT: process.env.CI_ENVIRONMENT ?? "unknown",
 	CI_ACCESS_ROLE: process.env.CI_ACCESS_ROLE ?? "FourtwoAccessRole",
 };
-const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
+const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
 		application: {
@@ -1583,7 +1586,7 @@ export = async () => {
 
 			const exported = {
 				spork_magmap_http_imports: {
-					spork: {
+					[SporkApplicationRoot]: {
 						codestar: __codestar,
 						datalayer: __datalayer,
 					},
@@ -1598,7 +1601,7 @@ export = async () => {
 				spork_magmap_http_routemap,
 			} satisfies z.infer<typeof SporkMagmapHttpStackExportsZod> & {
 				spork_magmap_http_imports: {
-					spork: {
+					[SporkApplicationRoot]: {
 						codestar: typeof __codestar;
 						datalayer: typeof __datalayer;
 					};
