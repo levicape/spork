@@ -39,6 +39,7 @@ import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { Output, all, log } from "@pulumi/pulumi";
 import { AssetArchive } from "@pulumi/pulumi/asset/archive";
 import { StringAsset } from "@pulumi/pulumi/asset/asset";
+import { error, warn } from "@pulumi/pulumi/log";
 import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
@@ -129,12 +130,12 @@ const ENVIRONMENT = (
 	_$refs: DereferencedOutput<typeof STACKREF_CONFIG>["spork"],
 ) => {
 	return {
-		...Object.fromEntries(
-			Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
-				name.toUpperCase(),
+		...Object.fromEntries([
+			...Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
+				`ATLAS_${name.toUpperCase()}`,
 				`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
 			]),
-		),
+		]),
 	} as const;
 };
 
@@ -581,6 +582,26 @@ export = async () => {
 				atlasfile(named, { path, content }),
 			]),
 		);
+		const appconfigEnvironment = {
+			AWS_APPCONFIG_APPLICATION: codestar.appconfig.application.name,
+			AWS_APPCONFIG_ENVIRONMENT: appconfig.environment.name,
+		};
+		const configpath = (file: keyof typeof ATLASFILE_PATHS) => {
+			const applicationName = appconfigEnvironment.AWS_APPCONFIG_APPLICATION;
+			const environmentName = appconfigEnvironment.AWS_APPCONFIG_ENVIRONMENT;
+			return `/applications/${applicationName}/environments/${environmentName}/${atlas[file].configuration.name}`;
+		};
+		let AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
+			let prefetch = [];
+			for (const af of Object.keys(atlas)) {
+				if (af) {
+					prefetch.push(af);
+				}
+			}
+			return prefetch.map((af) =>
+				configpath(af as keyof typeof ATLASFILE_PATHS),
+			);
+		})().join(",");
 
 		const memorySize = context.environment.isProd ? 512 : 256;
 		const timeout = context.environment.isProd ? 93 : 55;
@@ -632,6 +653,7 @@ export = async () => {
 									}
 								: {}),
 							...cloudmapEnv,
+							AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
 							...(environment !== undefined && typeof environment === "function"
 								? Object.fromEntries(
 										Object.entries(environment(dereferenced$))
@@ -1931,6 +1953,10 @@ export = async () => {
 					[SporkApplicationRoot]: {
 						codestar: $codestar,
 						datalayer: $datalayer,
+						[SporkMagmapHttpStackrefRoot]:
+							dereferenced$[SporkMagmapHttpStackrefRoot],
+						[SporkMagmapWebStackrefRoot]:
+							dereferenced$[SporkMagmapWebStackrefRoot],
 					},
 				},
 				spork_magmap_monitor_s3,
@@ -1944,14 +1970,15 @@ export = async () => {
 					[SporkApplicationRoot]: {
 						codestar: typeof $codestar;
 						datalayer: typeof $datalayer;
+						[SporkMagmapHttpStackrefRoot]: (typeof dereferenced$)[typeof SporkMagmapHttpStackrefRoot];
+						[SporkMagmapWebStackrefRoot]: (typeof dereferenced$)[typeof SporkMagmapWebStackrefRoot];
 					};
 				};
 			};
 			const validate = SporkMagmapMonitorStackExportsZod.safeParse(exported);
 			if (!validate.success) {
-				process.stderr.write(
-					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
-				);
+				error(`Validation failed: ${JSON.stringify(validate.error, null, 2)}`);
+				warn(inspect(exported, { depth: null }));
 			}
 
 			return exported;

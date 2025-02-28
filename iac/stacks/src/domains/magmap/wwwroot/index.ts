@@ -22,7 +22,7 @@ import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { CannedAcl } from "@pulumi/aws/types/enums/s3";
 import { Command } from "@pulumi/command/local";
 import { Output, all, interpolate } from "@pulumi/pulumi";
-import { warn } from "@pulumi/pulumi/log";
+import { error, warn } from "@pulumi/pulumi/log";
 import { VError } from "verror";
 import { stringify } from "yaml";
 import type { z } from "zod";
@@ -752,7 +752,7 @@ function handler(event) {
 			Object.entries(s3).map(([key, bucket]) => {
 				return [
 					key,
-					all([bucket.bucket, bucket.region]).apply(
+					all([bucket.bucket.bucket, bucket.region]).apply(
 						([bucketName, bucketRegion]) => ({
 							bucket: bucketName,
 							region: bucketRegion,
@@ -834,23 +834,22 @@ function handler(event) {
 						nevada_web: $web,
 					},
 				},
-				spork_magmap_wwwroot_s3,
 				spork_magmap_wwwroot_cloudfront,
 				spork_magmap_wwwroot_codebuild,
+				spork_magmap_wwwroot_s3,
 			} satisfies z.infer<typeof SporkMagmapWWWRootExportsZod> & {
 				spork_magmap_wwwroot_imports: {
 					[SporkApplicationRoot]: {
 						nevada_http: typeof $http;
-						nevada_web: typeof $web; // Updated to use $web instead of $nevada_web
+						nevada_web: typeof $web;
 					};
 				};
 			};
+
 			const validate = SporkMagmapWWWRootExportsZod.safeParse(exported);
 			if (!validate.success) {
-				process.stderr.write(
-					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
-				);
-				process.exit(1);
+				error(`Validation failed: ${inspect(validate.error, { depth: null })}`);
+				warn(inspect(exported, { depth: null }));
 			}
 
 			return exported;
