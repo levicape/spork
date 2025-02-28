@@ -1,3 +1,4 @@
+import { inspect } from "node:util";
 import { Context } from "@levicape/fourtwo-pulumi";
 import { Application as AppconfigApplication } from "@pulumi/aws/appconfig";
 import { Application } from "@pulumi/aws/codedeploy";
@@ -5,6 +6,7 @@ import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
 import { Repository as ECRRepository, LifecyclePolicy } from "@pulumi/aws/ecr";
 import { getLifecyclePolicyDocument } from "@pulumi/aws/ecr/getLifecyclePolicyDocument";
 import { RepositoryPolicy } from "@pulumi/aws/ecr/repositoryPolicy";
+import { error, warn } from "@pulumi/pulumi/log";
 import { all } from "@pulumi/pulumi/output";
 import type { z } from "zod";
 import { $deref } from "../Stack";
@@ -219,9 +221,8 @@ export = async () => {
 
 			const validate = SporkCodestarStackExportsZod.safeParse(exported);
 			if (!validate.success) {
-				process.stderr.write(
-					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
-				);
+				error(`Validation failed: ${JSON.stringify(validate.error, null, 2)}`);
+				warn(inspect(exported, { depth: null }));
 			}
 
 			return exported;

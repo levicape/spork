@@ -39,6 +39,7 @@ import { Instance } from "@pulumi/aws/servicediscovery/instance";
 import { Service } from "@pulumi/aws/servicediscovery/service";
 import { Output, all, getStack, log } from "@pulumi/pulumi";
 import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
+import { error, warn } from "@pulumi/pulumi/log";
 import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
@@ -128,7 +129,7 @@ const ENVIRONMENT = (
 			_$refs.datalayer.props.lambda.fileSystemConfig.localMountPath,
 		...Object.fromEntries(
 			Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
-				name.toUpperCase(),
+				`ATLAS_${name.toUpperCase()}`,
 				`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
 			]),
 		),
@@ -1789,9 +1790,8 @@ export = async () => {
 			};
 			const validate = SporkMagmapHttpStackExportsZod.safeParse(exported);
 			if (!validate.success) {
-				process.stderr.write(
-					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
-				);
+				error(`Validation failed: ${JSON.stringify(validate.error, null, 2)}`);
+				warn(inspect(exported, { depth: null }));
 			}
 
 			return exported;

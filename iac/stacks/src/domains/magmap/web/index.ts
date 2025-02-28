@@ -1,3 +1,4 @@
+import { inspect } from "node:util";
 import {
 	CodeBuildBuildspecArtifactsBuilder,
 	CodeBuildBuildspecBuilder,
@@ -22,6 +23,7 @@ import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock"
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { BucketWebsiteConfigurationV2 } from "@pulumi/aws/s3/bucketWebsiteConfigurationV2";
 import { type Output, all } from "@pulumi/pulumi";
+import { error, warn } from "@pulumi/pulumi/log";
 import { stringify } from "yaml";
 import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
@@ -38,6 +40,10 @@ import {
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkHttpStackExportsZod } from "../../../http/exports";
+import {
+	SporkMagmapHttpStackExportsZod,
+	SporkMagmapHttpStackrefRoot,
+} from "../http/exports";
 import { SporkMagmapWebStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork-magmap-ui" as const;
@@ -70,6 +76,12 @@ const STACKREF_CONFIG = {
 		http: {
 			refs: {
 				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
+			},
+		},
+		[SporkMagmapHttpStackrefRoot]: {
+			refs: {
+				routemap:
+					SporkMagmapHttpStackExportsZod.shape.spork_magmap_http_routemap,
 			},
 		},
 	},
@@ -737,6 +749,8 @@ export = async () => {
 						codestar,
 						datalayer,
 						http: dereferenced$["http"],
+						[SporkMagmapHttpStackrefRoot]:
+							dereferenced$[SporkMagmapHttpStackrefRoot],
 					},
 				},
 				spork_magmap_web_s3: {
@@ -789,15 +803,15 @@ export = async () => {
 						codestar: typeof codestar;
 						datalayer: typeof datalayer;
 						http: (typeof dereferenced$)["http"];
+						[SporkMagmapHttpStackrefRoot]: (typeof dereferenced$)[typeof SporkMagmapHttpStackrefRoot];
 					};
 				};
 			};
 
 			const validate = SporkMagmapWebStackExportsZod.safeParse(exported);
 			if (!validate.success) {
-				process.stderr.write(
-					`Validation failed: ${JSON.stringify(validate.error, null, 2)}`,
-				);
+				error(`Validation failed: ${JSON.stringify(validate.error, null, 2)}`);
+				warn(inspect(exported, { depth: null }));
 			}
 
 			return exported;

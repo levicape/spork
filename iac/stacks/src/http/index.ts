@@ -126,7 +126,7 @@ const ENVIRONMENT = (
 			_$refs.datalayer.props.lambda.fileSystemConfig.localMountPath,
 		...Object.fromEntries(
 			Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
-				name.toUpperCase(),
+				`ATLAS_${name.toUpperCase()}`,
 				`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
 			]),
 		),
