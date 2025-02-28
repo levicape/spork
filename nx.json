@@ -28,18 +28,6 @@
       "outputs": [
         "{projectRoot}/output/http"
       ]
-    },
-    "staticwww:build": {
-      "cache": true,
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
-    },    
-    "serverwww:build": {
-      "cache": true,
-      "outputs": [
-        "{projectRoot}/dist"
-      ]
     }
   }
 }

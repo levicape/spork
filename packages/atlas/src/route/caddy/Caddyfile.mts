@@ -1,4 +1,4 @@
-import type { Route } from "../../Atlas.mjs";
+import type { Route } from "../AtlasRoutes.mjs";
 
 export const CaddyfileReverseProxy = (path: string, route: Route) => {
 	const pathstar = path.endsWith("/") ? `${path}*` : `${path}/*`;

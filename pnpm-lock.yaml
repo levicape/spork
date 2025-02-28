@@ -51,9 +51,6 @@ catalogs:
       specifier: 0.3.7-main.16
       version: 0.3.7-main.16
   dev:
-    concurrently:
-      specifier: ^9.1.2
-      version: 9.1.2
     ts-node:
       specifier: ^10.9.2
       version: 10.9.2
@@ -98,8 +95,8 @@ catalogs:
       specifier: ^1.3.0
       version: 1.3.0
     '@hono/vite-dev-server':
-      specifier: ^0.18.2
-      version: 0.18.2
+      specifier: ^0.19.0
+      version: 0.19.0
     '@hono/vite-ssg':
       specifier: ^0.1.1
       version: 0.1.1
@@ -113,8 +110,8 @@ catalogs:
       specifier: ^0.4.2
       version: 0.4.2
     honox:
-      specifier: ^0.1.35
-      version: 0.1.35
+      specifier: ^0.1.38
+      version: 0.1.38
   id:
     ulidx:
       specifier: ^2.4.1
@@ -617,7 +614,7 @@ importers:
         version: 4.7.2
       honox:
         specifier: catalog:hono
-        version: 0.1.35(hono@4.7.2)
+        version: 0.1.38(hono@4.7.2)
       std-env:
         specifier: catalog:runtime-env
         version: 3.8.0
@@ -633,7 +630,7 @@ importers:
         version: 1.3.0(hono@4.7.2)
       '@hono/vite-dev-server':
         specifier: catalog:hono
-        version: 0.18.2(hono@4.7.2)
+        version: 0.19.0(hono@4.7.2)
       '@hono/vite-ssg':
         specifier: catalog:hono
         version: 0.1.1(hono@4.7.2)
@@ -643,9 +640,6 @@ importers:
       '@types/node':
         specifier: catalog:types
         version: 22.13.5
-      concurrently:
-        specifier: catalog:dev
-        version: 9.1.2
       tailwindcss:
         specifier: catalog:web-style
         version: 4.0.0
@@ -1468,8 +1462,8 @@ packages:
     peerDependencies:
       hono: '*'
 
-  '@hono/vite-dev-server@0.18.2':
-    resolution: {integrity: sha512-Pbk7P7qIgADj6nVsU5T9SIwosnpbyKyO/NtS6IFuxSCKA5eI9nGUPMRis381X/adZalytIsI8j+qtB+UqraUtQ==}
+  '@hono/vite-dev-server@0.19.0':
+    resolution: {integrity: sha512-myMc4Nm0nFQSPaeE6I/a1ODyDR5KpQ4EHodX4Tu/7qlB31GfUemhUH/WsO91HJjDEpRRpsT4Zbg+PleMlpTljw==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '*'
@@ -2893,11 +2887,6 @@ packages:
   concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
-  concurrently@9.1.2:
-    resolution: {integrity: sha512-H9MWcoPsYddwbOGM6difjVwVZHl63nwMEwDJG/L7VGtuaJhb12h2caPG2tVPWs7emuYix252iGfqOyrz1GczTQ==}
-    engines: {node: '>=18'}
-    hasBin: true
-
   consola@3.4.0:
     resolution: {integrity: sha512-EiPU8G6dQG0GFHNR8ljnZFki/8a+cQwEQ+7wpxdChl02Q8HXlwEZWD5lqAF8vC2sEC3Tehr8hy7vErz88LHyUA==}
     engines: {node: ^14.18.0 || >=16.10.0}
@@ -3502,8 +3491,8 @@ packages:
     resolution: {integrity: sha512-8V5XxoOF6SI12jkHkzX/6aLBMU5GEF5g387EjVSQipS0DlxWgWGSMeEayY3CRBjtTUQYwLHx9JYouWqKzy2Vng==}
     engines: {node: '>=16.9.0'}
 
-  honox@0.1.35:
-    resolution: {integrity: sha512-ymvOsscRmOHMrt+uBUxp2RqHfG3n6zMzcSVIHgaoLBlCoDzZblkhyLS9YDXzXxfgEB/hupDZqZci+MRzqAuoyw==}
+  honox@0.1.38:
+    resolution: {integrity: sha512-UW6Ao7nobujpkwhD1mcaJIK7zVCTEBrJWV+gmcYBEVfMR7f/zS7XeSlpTuGPGfODS10ldzHWljJ3V0rf1fcrYA==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '>=4.*'
@@ -4676,9 +4665,6 @@ packages:
   run-parallel@1.2.0:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
 
-  rxjs@7.8.2:
-    resolution: {integrity: sha512-dhKf903U/PQZY6boNNtAGdWbG85WAbjT/1xYoZIC7FAY0yWapOBQVsVrDl58W86//e1VpMNBtRV4MaXfdMySFA==}
-
   sade@1.8.1:
     resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
     engines: {node: '>=6'}
@@ -4728,10 +4714,6 @@ packages:
   shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
-
-  shell-quote@1.8.2:
-    resolution: {integrity: sha512-AzqKpGKjrj7EM6rKVQEPpB288oCfnrEIuyoT9cyF4nmGa7V8Zk6f7RRqYisX8X9m+Q7bd632aZW4ky7EhbQztA==}
-    engines: {node: '>= 0.4'}
 
   shimmer@1.2.1:
     resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
@@ -4893,10 +4875,6 @@ packages:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
 
-  supports-color@8.1.1:
-    resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
-    engines: {node: '>=10'}
-
   supports-preserve-symlinks-flag@1.0.0:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
@@ -4950,10 +4928,6 @@ packages:
   to-regex-range@5.0.1:
     resolution: {integrity: sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ==}
     engines: {node: '>=8.0'}
-
-  tree-kill@1.2.2:
-    resolution: {integrity: sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==}
-    hasBin: true
 
   treeverse@3.0.0:
     resolution: {integrity: sha512-gcANaAnd2QDZFmHFEOF4k7uc1J/6a6z3DJMd/QwEyxLoKGiptJRwid582r7QIsFlFMIZ3SnxfS52S4hm2DHkuQ==}
@@ -6440,7 +6414,7 @@ snapshots:
     dependencies:
       hono: 4.7.2
 
-  '@hono/vite-dev-server@0.18.2(hono@4.7.2)':
+  '@hono/vite-dev-server@0.19.0(hono@4.7.2)':
     dependencies:
       '@hono/node-server': 1.13.8(hono@4.7.2)
       hono: 4.7.2
@@ -8084,16 +8058,6 @@ snapshots:
 
   concat-map@0.0.1: {}
 
-  concurrently@9.1.2:
-    dependencies:
-      chalk: 4.1.2
-      lodash: 4.17.21
-      rxjs: 7.8.2
-      shell-quote: 1.8.2
-      supports-color: 8.1.1
-      tree-kill: 1.2.2
-      yargs: 17.7.2
-
   consola@3.4.0: {}
 
   core-util-is@1.0.2: {}
@@ -8738,13 +8702,13 @@ snapshots:
 
   hono@4.7.2: {}
 
-  honox@0.1.35(hono@4.7.2):
+  honox@0.1.38(hono@4.7.2):
     dependencies:
       '@babel/generator': 7.25.6
       '@babel/parser': 7.25.6
       '@babel/traverse': 7.25.6
       '@babel/types': 7.25.6
-      '@hono/vite-dev-server': 0.18.2(hono@4.7.2)
+      '@hono/vite-dev-server': 0.19.0(hono@4.7.2)
       hono: 4.7.2
       jsonc-parser: 3.3.1
       precinct: 12.1.2
@@ -9969,10 +9933,6 @@ snapshots:
     dependencies:
       queue-microtask: 1.2.3
 
-  rxjs@7.8.2:
-    dependencies:
-      tslib: 2.8.1
-
   sade@1.8.1:
     dependencies:
       mri: 1.2.0
@@ -10007,8 +9967,6 @@ snapshots:
       shebang-regex: 3.0.0
 
   shebang-regex@3.0.0: {}
-
-  shell-quote@1.8.2: {}
 
   shimmer@1.2.1: {}
 
@@ -10172,10 +10130,6 @@ snapshots:
     dependencies:
       has-flag: 4.0.0
 
-  supports-color@8.1.1:
-    dependencies:
-      has-flag: 4.0.0
-
   supports-preserve-symlinks-flag@1.0.0: {}
 
   syncpack@13.0.2(typescript@5.7.3):
@@ -10246,8 +10200,6 @@ snapshots:
   to-regex-range@5.0.1:
     dependencies:
       is-number: 7.0.0
-
-  tree-kill@1.2.2: {}
 
   treeverse@3.0.0: {}
 

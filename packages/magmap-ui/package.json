@@ -29,7 +29,6 @@
     "@hono/vite-ssg": "catalog:hono",
     "@tailwindcss/vite": "catalog:web-style",
     "@types/node": "catalog:types",
-    "concurrently": "catalog:dev",
     "tailwindcss": "catalog:web-style",
     "typescript": "catalog:dev",
     "vite": "catalog:web-vite"
@@ -145,7 +144,7 @@
     "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
     "preview": "$npm_package_config_packageexecutor nx webhttp:preview",
     "serverwww:build": "PORT=${PORT:-64128} $npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput",
-    "serverwww:dev": "$npm_package_config_packageexecutor concurrently \"$npm_package_config_packagescript staticwww:build --watch\" \"$npm_package_config_packageexecutor vite --cors --debug --host --port ${PORT:-64128}\"",
+    "serverwww:dev": "$npm_package_config_packageexecutor vite --cors --debug --host --port ${PORT:-64128}",
     "serverwww:preview": "$npm_package_config_packageexecutor vite preview --outDir $npm_package_config_staticwwwoutput --debug --host --port ${PORT:-64128}",
     "staticwww:build": "$npm_package_config_packageexecutor vite build --outDir $npm_package_config_staticwwwoutput --ssrManifest --mode client",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",

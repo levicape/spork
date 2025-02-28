@@ -4,8 +4,6 @@ export type RouteProtocol = "http" | "https" | "ws" | "wss";
 
 export type Url = `${RouteProtocol}://${string}`;
 
-export type Service = string;
-
 export type Prefix = "/" | `/${"!" | "~" | "-"}/${string}`;
 
 export type StaticRouteResource = {
@@ -64,16 +62,6 @@ export type Route = {
 	protocol: RouteProtocol;
 	port?: string;
 } & (StaticRouteResource | LambdaRouteResource | S3RouteResource);
-
-export type AtlasRoutePaths<Paths extends Prefix = Prefix> = Record<
-	Paths,
-	Route
->;
-
-export type AtlasRouteMap<Paths extends Prefix = Prefix> = Record<
-	Service,
-	AtlasRoutePaths<Paths | Prefix>
->;
 
 export const StaticRouteResourceZod = z.object({
 	$kind: z.literal("StaticRouteResource"),
@@ -154,45 +142,3 @@ export const RouteMapZod = z.record(
 );
 
 export const RoutePathsZod = RouteMapZod.valueSchema;
-
-type RoutePathsZodType = z.infer<typeof RoutePathsZod>;
-({
-	"/": {
-		$kind: "StaticRouteResource",
-		hostname: "localhost",
-		protocol: "http",
-		port: "80",
-	},
-	"/lambda": {
-		$kind: "LambdaRouteResource",
-		hostname: "localhost",
-		protocol: "http",
-		port: "80",
-		lambda: {
-			name: "test",
-			arn: "arn:aws:lambda:region:account-id:function:test",
-			role: {
-				arn: "arn:aws:iam::account-id:role/test",
-				name: "test",
-			},
-		},
-		cloudmap: {
-			namespace: {
-				name: "test",
-				arn: "arn:aws:servicediscovery:region:account-id:namespace/test",
-				id: "test",
-				hostedZone: "test",
-			},
-			service: {
-				arn: "arn:aws:servicediscovery:region:account-id:service/test",
-				name: "test",
-			},
-			instance: {
-				id: "test-instance",
-				attributes: {
-					test: "test",
-				},
-			},
-		},
-	},
-}) satisfies RoutePathsZodType;

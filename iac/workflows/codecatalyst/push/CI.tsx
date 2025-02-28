@@ -114,7 +114,7 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 	const PNPM_ENVIRONMENT = [
 		register("COREPACK_HOME", COREPACK_GLOBAL_CACHE),
 		register("PNPM_VERSION", "pnpm@9.15.4"),
-		register("NODEJS_VERSION", "22.12.0"),
+		register("NODEJS_VERSION", "22.13.0"),
 		...Object.entries(matrix.pipeline.install.npm).flatMap(([name, npm]) => [
 			register(`NPM_REGISTRY_PROTOCOL_${name}`, npm.protocol),
 			register(`NPM_REGISTRY_HOST_${name}`, npm.host),

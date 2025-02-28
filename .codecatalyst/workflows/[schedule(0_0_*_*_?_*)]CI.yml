@@ -45,7 +45,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.12.0
+              Value: 22.13.0
             - Name: NPM_REGISTRY_PROTOCOL_LEVICAPE
               Value: https
             - Name: NPM_REGISTRY_HOST_LEVICAPE
@@ -166,7 +166,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.12.0
+              Value: 22.13.0
             - Name: NPM_REGISTRY_PROTOCOL_LEVICAPE
               Value: https
             - Name: NPM_REGISTRY_HOST_LEVICAPE
@@ -236,7 +236,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.12.0
+              Value: 22.13.0
             - Name: NPM_REGISTRY_PROTOCOL_LEVICAPE
               Value: https
             - Name: NPM_REGISTRY_HOST_LEVICAPE
@@ -313,7 +313,7 @@ Actions:
             - Name: PNPM_VERSION
               Value: pnpm@9.15.4
             - Name: NODEJS_VERSION
-              Value: 22.12.0
+              Value: 22.13.0
             - Name: NPM_REGISTRY_PROTOCOL_LEVICAPE
               Value: https
             - Name: NPM_REGISTRY_HOST_LEVICAPE
@@ -518,13 +518,23 @@ Actions:
                 source .pulumi-ci-helper
                 deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/monitor" --non-interactive --suppress-progress --diff --json
                 capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/monitor" "_pulumi/domains_magmap_monitor"
+            - Run: |-
+                source .pulumi-ci-helper && configure_stack "Deploy" "spork-magmap-wwwroot.current" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" "spork-magmap-wwwroot" "_pulumi/domains_magmap_wwwroot" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-wwwroot.current" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-magmap-wwwroot.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" --non-interactive --suppress-progress --diff --json
+            - Run: |-
+                source .pulumi-ci-helper
+                deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" --non-interactive --suppress-progress --diff --json
+                capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" "_pulumi/domains_magmap_wwwroot"
             - Run: du -sh _pulumi
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[schedule(0_0_*_*_?_*)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"72349f1ad7bf1464562e8b0d9fa0e41fc8b9c11c6e7d2cdfbb8041a93f4d968c"}
-#**:_$~- {"$$":"footer","started":"2025-02-27T06:58:09.292Z","now":"2025-02-27T06:58:09.296Z","elapsed":"4ms"}
+#**:_$~- {"$$":"body","hashed":"0d7ca82fe4eafcc9eacca2eaad99d689cbf987936addc0098580c4d3f00ee7a7"}
+#**:_$~- {"$$":"footer","started":"2025-02-28T08:28:32.692Z","now":"2025-02-28T08:28:32.695Z","elapsed":"3ms"}
 # END OF GENERATED FILE
 
