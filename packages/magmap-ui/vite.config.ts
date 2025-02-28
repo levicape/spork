@@ -16,7 +16,10 @@ const { PORT } = env;
 export default defineConfig(({mode}) => {
   if (mode === 'client') {
     return {
-      plugins: [client()],
+      plugins: [client({
+        input: [
+          './app/style.css',
+      ]})],
     }
   };
     
@@ -29,8 +32,7 @@ export default defineConfig(({mode}) => {
       honox({
         client: {
           input: [
-            './app/*.css',
-            './app/**/*.css'
+            './app/style.css',
           ],
         },
         devServer: {

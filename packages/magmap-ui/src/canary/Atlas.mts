@@ -6,7 +6,7 @@ import { env } from "std-env";
 const { MAGMAP_UI } = env;
 
 // Import from -io?
-export const MagmapRoutemap = Atlas({
+export const MagmapRoutemap = Atlas.routes({
 	"/": {
 		$kind: "StaticRouteResource",
 		hostname: `ui:${MAGMAP_UI}`,

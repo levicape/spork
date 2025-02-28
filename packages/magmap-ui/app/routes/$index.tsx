@@ -12,8 +12,8 @@ export const App = () => {
 	const increment = useCallback(() => Effect.runSync(task), [task]);
 
 	return (
-		<>
-			<h1 className={"text-2xl"}>hmm + Hono/jsx</h1>
+		<main>
+			<h2 className={"text-2xl"}>hmr + Hono/jsx</h2>
 			<button type={"button"} onClick={increment}>
 				count is {count}
 			</button>
@@ -22,9 +22,9 @@ export const App = () => {
 					count is {count}
 				</button>
 				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
+					Edit <code>src/App.tsx</code>
 				</p>
 			</div>
-		</>
+		</main>
 	);
 };

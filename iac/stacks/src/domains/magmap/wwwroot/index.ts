@@ -584,6 +584,11 @@ function handler(event) {
 					restrictionType: "none",
 				},
 			},
+			tags: {
+				Name: _("cdn"),
+				StackRef: STACKREF_ROOT,
+				WORKSPACE_PACKAGE_NAME,
+			},
 		},
 		{ dependsOn: [...(s3.logs.acl ? [s3.logs.acl] : [])] },
 	);
