@@ -8,11 +8,14 @@ import { RepositoryPolicy } from "@pulumi/aws/ecr/repositoryPolicy";
 import { all } from "@pulumi/pulumi/output";
 import type { z } from "zod";
 import { $deref } from "../Stack";
-import { SporkApplicationStackExportsZod } from "../application/exports";
+import {
+	SporkApplicationRoot,
+	SporkApplicationStackExportsZod,
+} from "../application/exports";
 import { SporkCodestarStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork";
-const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
+const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
 		application: {

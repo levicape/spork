@@ -40,21 +40,30 @@ import { stringify } from "yaml";
 import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import { $deref, type DereferencedOutput } from "../../../Stack";
-import { SporkApplicationStackExportsZod } from "../../../application/exports";
+import {
+	SporkApplicationRoot,
+	SporkApplicationStackExportsZod,
+} from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
-import { SporkMagmapHttpStackExportsZod } from "../http/exports";
-import { SporkMagmapWebStackExportsZod } from "../web/exports";
+import {
+	SporkMagmapHttpStackExportsZod,
+	SporkMagmapHttpStackrefRoot,
+} from "../http/exports";
+import {
+	SporkMagmapWebStackExportsZod,
+	SporkMagmapWebStackrefRoot,
+} from "../web/exports";
 import { SporkMagmapMonitorStackExportsZod } from "./exports";
 
-const WORKSPACE_PACKAGE_NAME = "@levicape/spork";
+const WORKSPACE_PACKAGE_NAME = "@levicape/spork-magmap";
 
 const CI = {
 	CI_ENVIRONMENT: process.env.CI_ENVIRONMENT ?? "unknown",
 	CI_ACCESS_ROLE: process.env.CI_ACCESS_ROLE ?? "FourtwoAccessRole",
 };
 
-const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? "spork";
+const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
 		application: {
@@ -78,13 +87,13 @@ const STACKREF_CONFIG = {
 				cloudmap: SporkDatalayerStackExportsZod.shape.spork_datalayer_cloudmap,
 			},
 		},
-		["magmap-http"]: {
+		[SporkMagmapHttpStackrefRoot]: {
 			refs: {
 				routemap:
 					SporkMagmapHttpStackExportsZod.shape.spork_magmap_http_routemap,
 			},
 		},
-		["magmap-web"]: {
+		[SporkMagmapWebStackrefRoot]: {
 			refs: {
 				routemap: SporkMagmapWebStackExportsZod.shape.spork_magmap_web_routemap,
 			},
@@ -1787,7 +1796,7 @@ export = async () => {
 		]) => {
 			const exported = {
 				spork_magmap_monitor_imports: {
-					spork: {
+					[SporkApplicationRoot]: {
 						codestar: $codestar,
 						datalayer: $datalayer,
 					},
@@ -1800,7 +1809,7 @@ export = async () => {
 				spork_magmap_monitor_eventbridge,
 			} satisfies z.infer<typeof SporkMagmapMonitorStackExportsZod> & {
 				spork_magmap_monitor_imports: {
-					spork: {
+					[SporkApplicationRoot]: {
 						codestar: typeof $codestar;
 						datalayer: typeof $datalayer;
 					};
