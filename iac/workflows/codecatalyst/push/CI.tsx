@@ -130,7 +130,7 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 
 	const PULUMI_ENVIRONMENT = [
 		register("AWS_REGION", matrix.region),
-		register("FRONTEND_HOSTNAME", `${APPLICATION}.levicape.cloud`),
+		register("FRONTEND_HOSTNAME", `at.levicape.cloud`),
 		register("PULUMI_CONFIG_PASSPHRASE", secret("PULUMI_CONFIG_PASSPHRASE")),
 		register("PULUMI_HOME", PULUMI_CACHE),
 		register("PULUMI_VERSION", "3.152.0"),
@@ -148,6 +148,14 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 		register("PAKETO_LAUNCHER_IMAGE", "heroku/heroku:24"),
 	];
 
+	const $ = (commands: string[]) =>
+		commands
+			.map(
+				(c) =>
+					`echo '' && echo '>>>>>>>>>>>>>' && echo '${c.replaceAll("'", "'")}' && echo '' && ${c}`,
+			)
+			.join("; ");
+
 	const PNPM_NODE_INSTALL_STEPS = (
 		<>
 			{Object.entries(matrix.pipeline.install.npm).flatMap(
@@ -163,8 +171,8 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 			{...(
 				<>
 					<CodeCatalystStepX
-						run={["sudo ", ""]
-							.flatMap((su) => [
+						run={$(
+							["sudo ", ""].flatMap((su) => [
 								`${su}npm config set prefix=${NPM_GLOBAL_CACHE}`,
 								`${su}corepack -g install $PNPM_VERSION`,
 								`${su}corepack enable pnpm`,
@@ -172,46 +180,8 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 								`${su}pnpm config set global-dir ${PNPM_GLOBAL_CACHE}`,
 								`${su}pnpm config set store-dir ${PNPM_STORE_CACHE}`,
 								`${su}pnpx n $NODEJS_VERSION`,
-							])
-							.map(
-								(c) =>
-									`echo '' && echo '>>>>>>>>>>>>>' && echo '${c}' && echo '' && ${c}`,
-							)
-							.join(";")}
-					/>
-					<CodeCatalystStepX
-						run={["sudo ", ""]
-							.flatMap((su) => [
-								`${su}npm config set prefix=${NPM_GLOBAL_CACHE}`,
-								`${su}corepack -g install $PNPM_VERSION`,
-								`${su}corepack enable pnpm`,
-								`${su}pnpm config set cache-dir ${PNPM_DLX_CACHE}`,
-								`${su}pnpm config set global-dir ${PNPM_GLOBAL_CACHE}`,
-								`${su}pnpm config set store-dir ${PNPM_STORE_CACHE}`,
-								`${su}pnpx n $NODEJS_VERSION`,
-							])
-							.map(
-								(c) =>
-									`echo '' && echo '>>>>>>>>>>>>>' && echo '${c}' && echo '' && ${c}`,
-							)
-							.join(";")}
-					/>
-					<CodeCatalystStepX
-						run={["sudo ", ""]
-							.flatMap((su) => [
-								`${su}npm config set prefix=${NPM_GLOBAL_CACHE}`,
-								`${su}corepack -g install $PNPM_VERSION`,
-								`${su}corepack enable pnpm`,
-								`${su}pnpm config set cache-dir ${PNPM_DLX_CACHE}`,
-								`${su}pnpm config set global-dir ${PNPM_GLOBAL_CACHE}`,
-								`${su}pnpm config set store-dir ${PNPM_STORE_CACHE}`,
-								`${su}pnpx n $NODEJS_VERSION`,
-							])
-							.map(
-								(c) =>
-									`echo '' && echo '>>>>>>>>>>>>>' && echo '${c}' && echo '' && ${c}`,
-							)
-							.join("; ")}
+							]),
+						)}
 					/>
 				</>
 			)}
@@ -219,15 +189,19 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 	);
 
 	const MAKE_DEPENDENCY_INSTALL_STEPS = [
-		"make cmake zip unzip automake autoconf",
-		"zlib bzip2",
-		"g++ libcurl-devel libtool",
-		"protobuf protobuf-devel protobuf-compiler",
-		"sqlite sqlite-devel sqlite-libs sqlite-tools",
-		"jq",
-	].map((dependency) => (
-		<CodeCatalystStepX run={`sudo yum install -y ${dependency} || true`} />
-	));
+		<CodeCatalystStepX
+			run={$(
+				[
+					"make cmake zip unzip automake autoconf",
+					"zlib bzip2",
+					"g++ libcurl-devel libtool",
+					"protobuf protobuf-devel protobuf-compiler",
+					"sqlite sqlite-devel sqlite-libs sqlite-tools",
+					"jq",
+				].map((dependency) => `sudo yum install -y ${dependency} || true`),
+			)}
+		/>,
+	];
 
 	return (
 		<CodeCatalystWorkflowX
@@ -265,57 +239,58 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 									timeout={23}
 									steps={
 										<>
-											{...[
-												...ALL_CACHES,
-												...NODEJS_CACHES,
-												`${DOCKER_CACHE}/images`,
-											].flatMap((cache) => (
-												<>
-													<CodeCatalystStepX run={`mkdir -p ${cache}`} />
-												</>
-											))}
+											<CodeCatalystStepX
+												run={[
+													...ALL_CACHES,
+													...NODEJS_CACHES,
+													`${DOCKER_CACHE}/images`,
+												]
+													.flatMap((cache) => `mkdir -p ${cache}`)
+													.join("; ")}
+											/>
 											{/* Node */}
 											{...PNPM_NODE_INSTALL_STEPS}
-											<CodeCatalystStepX run="sudo npm root -g" />
+											<CodeCatalystStepX run="sudo npm root -g; echo $PNPM_HOME" />
 											<CodeCatalystStepX run="pnpm install --ignore-scripts" />
-											<CodeCatalystStepX run="echo $PNPM_HOME" />
 											<CodeCatalystStepX run="pnpm list" />
 											{...["node_modules", ...NODEJS_CACHES].flatMap(
 												(cache) => (
 													<>
 														<CodeCatalystStepX
-															run={`du -sh ${cache} || true`}
-														/>
-														<CodeCatalystStepX
-															run={`ls -la ${cache} || true `}
+															run={$([
+																`du -sh ${cache} || true`,
+																`ls -la ${cache} || true`,
+															])}
 														/>
 													</>
 												),
 											)}
 											{/* Python */}
-											<CodeCatalystStepX run="curl -fsSL https://pyenv.run | bash || true" />
-											<CodeCatalystStepX run='[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' />
-											<CodeCatalystStepX run="which pyenv || true" />
 											<CodeCatalystStepX
-												run={'eval "$(pyenv init - || true)"'}
+												run={$([
+													"curl -fsSL https://pyenv.run | bash || true",
+													'[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"',
+													"which pyenv || true",
+													'eval "$(pyenv init - || true)"',
+													"git clone https://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update || true",
+													"pyenv update || true",
+													"pyenv install $PYTHON_VERSION || true",
+													"pyenv global $PYTHON_VERSION || true",
+													"pyenv versions || true",
+												])}
 											/>
-											<CodeCatalystStepX run="git clone https://github.com/pyenv/pyenv-update.git $(pyenv root)/plugins/pyenv-update || true" />
-											<CodeCatalystStepX run="pyenv update || true" />
-											<CodeCatalystStepX run="pyenv install $PYTHON_VERSION || true" />
-											<CodeCatalystStepX run="pyenv global $PYTHON_VERSION || true" />
-											<CodeCatalystStepX run="pyenv versions || true" />
-											<CodeCatalystStepX run="du -sh $PYENV_ROOT" />
 											<CodeCatalystStepX run="python3 -m pip install -r requirements.txt" />
+											<CodeCatalystStepX run="du -sh $PYENV_ROOT" />
 											{/* Docker */}
 											{...DOCKER_IMAGES.flatMap(([file, image]) => {
 												return (
 													<>
 														<CodeCatalystStepX
-															run={`docker load --input ${DOCKER_CACHE}/images/${file} || true`}
-														/>
-														<CodeCatalystStepX run={`docker pull ${image}`} />
-														<CodeCatalystStepX
-															run={`docker save ${image} | gzip > ${DOCKER_CACHE}/images/${file}`}
+															run={$([
+																`docker load --input ${DOCKER_CACHE}/images/${file} || true`,
+																`docker pull ${image}`,
+																`docker save ${image} | gzip > ${DOCKER_CACHE}/images/${file}`,
+															])}
 														/>
 														<CodeCatalystStepX
 															run={`du -sh ${DOCKER_CACHE}/images/${file} || true`}
@@ -324,8 +299,33 @@ const cicd = <Preview extends boolean, Deploy extends boolean>(
 												);
 											})}
 											{/* Pulumi */}
+
 											<CodeCatalystStepX
-												run={`[ -f ${PULUMI_CACHE}/bin/pulumi ] && ${PULUMI_CACHE}/bin/pulumi version | grep $PULUMI_VERSION || curl -fsSL https://get.pulumi.com | sh -s -- --version $PULUMI_VERSION --install-root ${PULUMI_CACHE}`}
+												run={[
+													[
+														// Read pulumi version
+														[
+															`[ -f ${PULUMI_CACHE}/bin/pulumi ]`,
+															`${PULUMI_CACHE}/bin/pulumi version`,
+														].join(" && "),
+														[
+															// check that it matches
+															"grep $PULUMI_VERSION",
+															[
+																// or
+																"curl -fsSL https://get.pulumi.com",
+																[
+																	// install from pulumi.com
+																	"sh -s",
+																	[
+																		"--version $PULUMI_VERSION",
+																		"--install-root ${PULUMI_CACHE}",
+																	].join(" "),
+																].join(" -- "),
+															].join(" | "),
+														].join(" || "),
+													].join(" | "),
+												].join("")}
 											/>
 											<CodeCatalystStepX run={`du -sh ${PULUMI_CACHE}`} />
 										</>
