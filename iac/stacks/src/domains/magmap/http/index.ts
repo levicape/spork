@@ -52,6 +52,7 @@ import {
 } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
+import { SporkHttpStackExportsZod } from "../../../http/exports";
 import type { MapgmapWWWRootRoute } from "../wwwroot/routes";
 import { SporkMagmapHttpStackExportsZod } from "./exports";
 
@@ -95,15 +96,23 @@ const STACKREF_CONFIG = {
 				cloudmap: SporkDatalayerStackExportsZod.shape.spork_datalayer_cloudmap,
 			},
 		},
+		http: {
+			refs: {
+				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
+			},
+		},
 	},
 };
 
 const HANDLER_TYPE = "httphandler" as const;
 
 const ROUTE_MAP = (
-	_$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
+	$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
 ) => {
-	return {};
+	const { http } = $refs;
+	return {
+		...http.routemap,
+	};
 };
 
 const ATLASFILE_PATHS: Record<
