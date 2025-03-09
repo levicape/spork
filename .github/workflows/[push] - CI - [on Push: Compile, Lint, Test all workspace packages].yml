@@ -4,8 +4,7 @@
 name: "on Push: Compile, Lint, Test all workspace packages"
 on:
   push:
-    branches:
-      - main
+    {}
 env:
   NPM_REGISTRY_PROTOCOL: https
   NPM_REGISTRY_HOST: npm.pkg.github.com
@@ -105,9 +104,9 @@ jobs:
 
 ########################################
 ########################################
-#**:_$~- {"$$":"head","filename":"[push(b:main)]CI.yml","source":"iac/workflows/github/push/CI.js"}
+#**:_$~- {"$$":"head","filename":"[push] - CI - [on Push: Compile, Lint, Test all workspace packages].yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"86d4a0dc924a9286c6445531e4ce2de8f5f1f4cde92c47bd87cdb8ca07a2fb7a"}
-#**:_$~- {"$$":"footer","started":"2025-02-28T07:38:52.592Z","now":"2025-02-28T07:38:52.598Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"d6562d285bad7e923a324754d0ab1dd51147b3b40a123f77db7610ad74d4eec3"}
+#**:_$~- {"$$":"footer","started":"2025-03-09T00:58:20.232Z","now":"2025-03-09T00:58:20.239Z","elapsed":"7ms"}
 # END OF GENERATED FILE
 

@@ -16,47 +16,47 @@ export const SporkMagmapWWWRootExportsZod = z
 					id: z.string(),
 					domainName: z.string(),
 					status: z.string(),
-					aliases: z.array(z.string()).optional(),
-					originAccessIdentity: z.string().optional(),
+					aliases: z.array(z.string()).nullish(),
+					originAccessIdentity: z.string().nullish(),
 					etag: z.string(),
 					lastModifiedTime: z.string(),
-					enabled: z.boolean().optional(),
-					isIpv6Enabled: z.boolean().optional(),
-					httpVersion: z.string().optional(),
-					priceClass: z.string().optional(),
-					webAclId: z.string().optional(),
+					enabled: z.boolean().nullish(),
+					isIpv6Enabled: z.boolean().nullish(),
+					httpVersion: z.string().nullish(),
+					priceClass: z.string().nullish(),
+					webAclId: z.string().nullish(),
 					origins: z.array(
 						z.object({
 							originId: z.string(),
 							domainName: z.string(),
 							s3OriginConfig: z
 								.object({
-									originAccessIdentity: z.string().optional(),
+									originAccessIdentity: z.string().nullish(),
 								})
-								.optional(),
+								.nullish(),
 							customOriginConfig: z
 								.object({
-									httpPort: z.number().optional(),
-									httpsPort: z.number().optional(),
-									originProtocolPolicy: z.string().optional(),
-									originSslProtocols: z.array(z.string()).optional(),
-									originReadTimeout: z.number().optional(),
-									originKeepaliveTimeout: z.number().optional(),
+									httpPort: z.number().nullish(),
+									httpsPort: z.number().nullish(),
+									originProtocolPolicy: z.string().nullish(),
+									originSslProtocols: z.array(z.string()).nullish(),
+									originReadTimeout: z.number().nullish(),
+									originKeepaliveTimeout: z.number().nullish(),
 								})
-								.optional(),
-							connectionAttempts: z.number().optional(),
-							connectionTimeout: z.number().optional(),
-							originPath: z.string().optional(),
+								.nullish(),
+							connectionAttempts: z.number().nullish(),
+							connectionTimeout: z.number().nullish(),
+							originPath: z.string().nullish(),
 							originShield: z
 								.object({
 									enabled: z.boolean(),
-									originShieldRegion: z.string().optional(),
+									originShieldRegion: z.string().nullish(),
 								})
-								.optional(),
+								.nullish(),
 						}),
 					),
 					defaultCacheBehavior: z.object({
-						cachePolicyId: z.string().optional(),
+						cachePolicyId: z.string().nullish(),
 						targetOriginId: z.string(),
 						functionAssociations: z
 							.array(
@@ -65,36 +65,36 @@ export const SporkMagmapWWWRootExportsZod = z
 									eventType: z.string(),
 								}),
 							)
-							.optional(),
-						viewerProtocolPolicy: z.string().optional(),
+							.nullish(),
+						viewerProtocolPolicy: z.string().nullish(),
 						allowedMethods: z.array(z.string()),
 						cachedMethods: z.array(z.string()),
-						compress: z.boolean().optional(),
+						compress: z.boolean().nullish(),
 						originRequestPolicyId: z
 							.union([z.string(), z.null(), z.undefined()])
-							.optional(),
-						smoothStreaming: z.boolean().optional(),
-						fieldLevelEncryptionId: z.string().optional(),
-						trustedSigners: z.array(z.string()).optional(),
-						trustedKeyGroups: z.array(z.string()).optional(),
+							.nullish(),
+						smoothStreaming: z.boolean().nullish(),
+						fieldLevelEncryptionId: z.string().nullish(),
+						trustedSigners: z.array(z.string()).nullish(),
+						trustedKeyGroups: z.array(z.string()).nullish(),
 						lambdaFunctionAssociations: z
 							.array(
 								z.object({
 									eventType: z.string(),
 									lambdaArn: z.string(),
-									includeBody: z.boolean().optional(),
+									includeBody: z.boolean().nullish(),
 								}),
 							)
-							.optional(),
+							.nullish(),
 					}),
 					orderedCacheBehaviors: z
 						.array(
 							z.object({
 								pathPattern: z.string(),
 								targetOriginId: z.string(),
-								cachePolicyId: z.string().optional(),
-								originRequestPolicyId: z.string().optional(),
-								viewerProtocolPolicy: z.string().optional(),
+								cachePolicyId: z.string().nullish(),
+								originRequestPolicyId: z.string().nullish(),
+								viewerProtocolPolicy: z.string().nullish(),
 								allowedMethods: z.array(z.string()),
 								functionAssociations: z
 									.array(
@@ -103,62 +103,62 @@ export const SporkMagmapWWWRootExportsZod = z
 											eventType: z.string(),
 										}),
 									)
-									.optional(),
+									.nullish(),
 								cachedMethods: z.array(z.string()),
-								compress: z.boolean().optional(),
-								smoothStreaming: z.boolean().optional(),
-								fieldLevelEncryptionId: z.string().optional(),
-								trustedSigners: z.array(z.string()).optional(),
-								trustedKeyGroups: z.array(z.string()).optional(),
+								compress: z.boolean().nullish(),
+								smoothStreaming: z.boolean().nullish(),
+								fieldLevelEncryptionId: z.string().nullish(),
+								trustedSigners: z.array(z.string()).nullish(),
+								trustedKeyGroups: z.array(z.string()).nullish(),
 								lambdaFunctionAssociations: z
 									.array(
 										z.object({
 											eventType: z.string(),
 											lambdaArn: z.string(),
-											includeBody: z.boolean().optional(),
+											includeBody: z.boolean().nullish(),
 										}),
 									)
-									.optional(),
+									.nullish(),
 							}),
 						)
-						.optional(),
+						.nullish(),
 					customErrorResponses: z
 						.array(
 							z.object({
 								errorCode: z.number(),
-								responsePagePath: z.string().optional(),
-								responseCode: z.number().optional(),
-								errorCachingMinTtl: z.number().optional(),
+								responsePagePath: z.string().nullish(),
+								responseCode: z.number().nullish(),
+								errorCachingMinTtl: z.number().nullish(),
 							}),
 						)
-						.optional(),
+						.nullish(),
 					restrictions: z
 						.object({
 							geoRestriction: z.object({
 								restrictionType: z.string(),
-								locations: z.array(z.string()).optional(),
+								locations: z.array(z.string()).nullish(),
 							}),
 						})
-						.optional(),
+						.nullish(),
 					viewerCertificate: z
 						.object({
-							acmCertificateArn: z.string().optional(),
-							cloudfrontDefaultCertificate: z.boolean().optional(),
-							iamCertificateId: z.string().optional(),
-							minimumProtocolVersion: z.string().optional(),
-							sslSupportMethod: z.string().optional(),
+							acmCertificateArn: z.string().nullish(),
+							cloudfrontDefaultCertificate: z.boolean().nullish(),
+							iamCertificateId: z.string().nullish(),
+							minimumProtocolVersion: z.string().nullish(),
+							sslSupportMethod: z.string().nullish(),
 						})
-						.optional(),
+						.nullish(),
 					loggingConfig: z
 						.object({
 							bucket: z.string(),
-							includeCookies: z.boolean().optional(),
-							prefix: z.string().optional(),
+							includeCookies: z.boolean().nullish(),
+							prefix: z.string().nullish(),
 						})
-						.optional(),
+						.nullish(),
 				}),
 			})
-			.optional(),
+			.nullish(),
 		spork_magmap_wwwroot_codebuild: z.object({
 			invalidate: z.object({
 				buildspec: z.object({

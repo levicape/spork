@@ -6,8 +6,8 @@ import {
 	CodeBuildBuildspecResourceLambdaPhaseBuilder,
 	CodeDeployAppspecBuilder,
 	CodeDeployAppspecResourceBuilder,
-} from "@levicape/fourtwo-builders";
-import { Context } from "@levicape/fourtwo-pulumi";
+} from "@levicape/fourtwo-builders/commonjs/index.cjs";
+import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
 import { Version } from "@pulumi/aws-native/lambda";
 import {
 	ConfigurationProfile,
@@ -37,9 +37,10 @@ import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock"
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { Instance } from "@pulumi/aws/servicediscovery/instance";
 import { Service } from "@pulumi/aws/servicediscovery/service";
-import { Output, all, getStack, log } from "@pulumi/pulumi";
+import { Output, all, getStack, interpolate, log } from "@pulumi/pulumi";
 import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
 import { error, warn } from "@pulumi/pulumi/log";
+import { RandomId } from "@pulumi/random/RandomId";
 import { serializeError } from "serialize-error";
 import { stringify } from "yaml";
 import type { z } from "zod";
@@ -164,9 +165,15 @@ export = async () => {
 	// Object Store
 	const s3 = (() => {
 		const bucket = (name: string) => {
+			const randomid = new RandomId(_(`${name}-id`), {
+				byteLength: 4,
+			});
+
+			const urlsafe = _(name).replace(/[^a-zA-Z0-9]/g, "-");
 			const bucket = new Bucket(
 				_(name),
 				{
+					bucket: interpolate`${urlsafe}-${randomid.hex}`,
 					acl: "private",
 					forceDestroy: !context.environment.isProd,
 					tags: {
@@ -313,15 +320,21 @@ export = async () => {
 
 	// Configuration
 	const appconfig = (() => {
-		const environment = new Environment(_("environment"), {
-			applicationId: __codestar.appconfig.application.id,
-			description: `(${PACKAGE_NAME}) "${DESCRIPTION}" in #${stage}`,
-			tags: {
-				Name: _("environment"),
-				StackRef: STACKREF_ROOT,
-				PackageName: PACKAGE_NAME,
+		const environment = new Environment(
+			_("environment"),
+			{
+				applicationId: __codestar.appconfig.application.id,
+				description: `(${PACKAGE_NAME}) "${DESCRIPTION}" in #${stage}`,
+				tags: {
+					Name: _("environment"),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
+				},
 			},
-		});
+			{
+				dependsOn: [s3.artifacts],
+			},
+		);
 
 		const strategy = new DeploymentStrategy(_("strategy"), {
 			deploymentDurationInMinutes: 5,
@@ -446,9 +459,12 @@ export = async () => {
 			},
 		});
 
-		const cloudmapEnvironment = {
+		const ref$Environment = {
 			AWS_CLOUDMAP_NAMESPACE_ID: datalayer.cloudmap.namespace.id,
 			AWS_CLOUDMAP_NAMESPACE_NAME: datalayer.cloudmap.namespace.name,
+			AWS_APPCONFIG_HOST: "http://localhost:2772",
+			AWS_APPCONFIG_APPLICATION: __codestar.appconfig.application.name,
+			AWS_APPCONFIG_ENVIRONMENT: appconfig.environment.name,
 		};
 
 		const atlasfile = (
@@ -468,41 +484,62 @@ export = async () => {
 				},
 			});
 
-			const configuration = new ConfigurationProfile(_(`${kind}-config`), {
-				applicationId: codestar.appconfig.application.id,
-				description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
-				locationUri: "hosted",
-				tags: {
-					Name: _(`${kind}-config`),
-					StackRef: STACKREF_ROOT,
-					PackageName: PACKAGE_NAME,
+			const configuration = new ConfigurationProfile(
+				_(`${kind}-config`),
+				{
+					applicationId: codestar.appconfig.application.id,
+					description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
+					locationUri: "hosted",
+					tags: {
+						Name: _(`${kind}-config`),
+						StackRef: STACKREF_ROOT,
+						PackageName: PACKAGE_NAME,
+					},
 				},
-			});
+				{
+					dependsOn: [object],
+				},
+			);
 
 			const version = new HostedConfigurationVersion(
 				_(`${kind}-config-version`),
 				{
 					applicationId: codestar.appconfig.application.id,
-					configurationProfileId: configuration.id,
+					configurationProfileId: configuration.configurationProfileId,
 					description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
 					content: stringcontent,
 					contentType: "application/json",
 				},
+				{
+					dependsOn: [object, configuration],
+				},
 			);
 
-			const deployment = new Deployment(_(`${kind}-config-deployment`), {
-				applicationId: codestar.appconfig.application.id,
-				environmentId: appconfig.environment.id,
-				configurationProfileId: configuration.id,
-				deploymentStrategyId: appconfig.strategy.id,
-				configurationVersion: version.id,
-				description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
-				tags: {
-					Name: _(`${kind}-config-deployment`),
-					StackRef: STACKREF_ROOT,
-					PackageName: PACKAGE_NAME,
+			const deployment = new Deployment(
+				_(`${kind}-config-deployment`),
+				{
+					applicationId: codestar.appconfig.application.id,
+					environmentId: appconfig.environment.environmentId,
+					configurationProfileId: configuration.configurationProfileId,
+					deploymentStrategyId: appconfig.strategy.id,
+					configurationVersion: version.versionNumber.apply((v) => String(v)),
+					description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
+					tags: {
+						Name: _(`${kind}-config-deployment`),
+						StackRef: STACKREF_ROOT,
+						PackageName: PACKAGE_NAME,
+					},
 				},
-			});
+				{
+					dependsOn: [
+						object,
+						configuration,
+						appconfig.environment,
+						appconfig.strategy,
+						version,
+					],
+				},
+			);
 
 			return {
 				object,
@@ -519,6 +556,35 @@ export = async () => {
 				atlasfile(named, { path, content }),
 			]),
 		);
+		const appconfigEnvironment = all([
+			codestar.appconfig.application.name,
+			appconfig.environment.name,
+		]).apply(([applicationName, environmentName]) => {
+			return {
+				AWS_APPCONFIG_HOST: "http://localhost:2772",
+				AWS_APPCONFIG_APPLICATION: applicationName,
+				AWS_APPCONFIG_ENVIRONMENT: environmentName,
+			};
+		});
+		const configpath = (file: keyof typeof ATLASFILE_PATHS) => {
+			return all([appconfigEnvironment]).apply(([appconfigenvironment]) => {
+				const applicationName = appconfigenvironment.AWS_APPCONFIG_APPLICATION;
+				const environmentName = appconfigenvironment.AWS_APPCONFIG_ENVIRONMENT;
+				return interpolate`/applications/${applicationName}/environments/${environmentName}/${atlas[file].configuration.name}`;
+			});
+		};
+
+		let AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
+			let prefetch = [];
+			for (const af of Object.keys(atlas)) {
+				if (af) {
+					prefetch.push(af);
+				}
+			}
+			return Output.create(
+				prefetch.map((af) => configpath(af as keyof typeof ATLASFILE_PATHS)),
+			);
+		})().apply((list) => list.join(","));
 
 		const memorySize = context.environment.isProd ? 512 : 256;
 		const timeout = context.environment.isProd ? 18 : 11;
@@ -554,7 +620,7 @@ export = async () => {
 					// TODO: RIP mapping
 					`arn:aws:lambda:us-west-2:359756378197:layer:AWS-AppConfig-Extension-Arm64:132`,
 				],
-				environment: all([cloudmapEnvironment]).apply(([cloudmapEnv]) => {
+				environment: all([ref$Environment]).apply(([cloudmapEnv]) => {
 					return {
 						variables: {
 							NODE_OPTIONS: [
@@ -570,6 +636,8 @@ export = async () => {
 									}
 								: {}),
 							...cloudmapEnv,
+							...appconfigEnvironment,
+							AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
 							...(ENVIRONMENT !== undefined && typeof ENVIRONMENT === "function"
 								? Object.fromEntries(
 										Object.entries(ENVIRONMENT(dereferenced$))
@@ -966,7 +1034,7 @@ export = async () => {
 										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
 									]),
 							// atlasfiles
-							Object.entries(ATLASFILE_PATHS).flatMap(([name, path]) => {
+							...Object.entries(ATLASFILE_PATHS).flatMap(([name, { path }]) => {
 								const objectKey = `$ATLASFILE_${name.toUpperCase()}_KEY`;
 								return [
 									`echo "Rendering Atlasfile: ${name}"`,
@@ -1242,9 +1310,14 @@ export = async () => {
 	})();
 
 	const codepipeline = (() => {
+		const randomid = new RandomId(_("deploy-id"), {
+			byteLength: 4,
+		});
+		const pipelineName = _("deploy").replace(/[^a-zA-Z0-9_]/g, "-");
 		const pipeline = new Pipeline(
 			_("deploy"),
 			{
+				name: interpolate`${pipelineName}-${randomid.hex}`,
 				pipelineType: "V2",
 				roleArn: farRole.arn,
 				executionMode: "QUEUED",
@@ -1301,7 +1374,7 @@ export = async () => {
 									Output.create([
 										...Object.entries(handler.atlas).map(([name, file]) => ({
 											name: name.toUpperCase(),
-											value: `${file.object.bucket}/${file.object.key}`,
+											value: interpolate`${file.object.bucket}/${file.object.key}`,
 										})),
 									]),
 								]).apply(

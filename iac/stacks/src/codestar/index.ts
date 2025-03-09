@@ -1,5 +1,5 @@
 import { inspect } from "node:util";
-import { Context } from "@levicape/fourtwo-pulumi";
+import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
 import { Application as AppconfigApplication } from "@pulumi/aws/appconfig";
 import { Application } from "@pulumi/aws/codedeploy";
 import { DeploymentConfig } from "@pulumi/aws/codedeploy/deploymentConfig";
@@ -81,7 +81,7 @@ export = async () => {
 										tagStatus: "untagged",
 										countType: "sinceImagePushed",
 										countUnit: "days",
-										countNumber: taggedTtl,
+										countNumber: untaggedTtl,
 									},
 									action: {
 										type: "expire",

@@ -39,14 +39,14 @@ catalogs:
       version: 46.4.0
   default:
     '@levicape/fourtwo':
-      specifier: 0.10.0-main.23
-      version: 0.10.0-main.23
+      specifier: 0.10.1-main.1
+      version: 0.10.1-main.1
     '@levicape/fourtwo-builders':
-      specifier: 0.10.0-main.23
-      version: 0.10.0-main.23
+      specifier: 0.10.1-main.1
+      version: 0.10.1-main.1
     '@levicape/fourtwo-pulumi':
-      specifier: 0.10.0-main.23
-      version: 0.10.0-main.23
+      specifier: 0.10.1-main.1
+      version: 0.10.1-main.1
     '@levicape/paloma':
       specifier: 0.3.7-main.16
       version: 0.3.7-main.16
@@ -104,8 +104,8 @@ catalogs:
       specifier: ^0.4.3
       version: 0.4.3
     hono:
-      specifier: ^4.7.2
-      version: 4.7.2
+      specifier: ^4.7.4
+      version: 4.7.4
     hono-rate-limiter:
       specifier: ^0.4.2
       version: 0.4.2
@@ -199,6 +199,9 @@ catalogs:
     '@pulumi/pulumi':
       specifier: ^3.152.0
       version: 3.152.0
+    '@pulumi/random':
+      specifier: ^4.18.0
+      version: 4.18.0
   runtime-env:
     std-env:
       specifier: ^3.8.0
@@ -228,6 +231,9 @@ catalogs:
     '@tailwindcss/vite':
       specifier: ^4.0.0
       version: 4.0.0
+    autoprefixer:
+      specifier: ^10.4.17
+      version: 10.4.20
     tailwindcss:
       specifier: ^4.0.0
       version: 4.0.0
@@ -269,10 +275,10 @@ importers:
         version: 0.73.2(@effect/platform@0.77.2(effect@3.13.2))(effect@3.13.2)
       '@hono/node-server':
         specifier: catalog:hono
-        version: 1.13.8(hono@4.7.2)
+        version: 1.13.8(hono@4.7.4)
       '@hono/zod-validator':
         specifier: catalog:hono
-        version: 0.4.3(hono@4.7.2)(zod@3.24.2)
+        version: 0.4.3(hono@4.7.4)(zod@3.24.2)
       '@loglayer/transport-aws-lambda-powertools':
         specifier: catalog:log-loglayer
         version: 3.0.2(@aws-lambda-powertools/logger@2.14.0)
@@ -296,10 +302,10 @@ importers:
         version: 3.13.2
       hono:
         specifier: catalog:hono
-        version: 4.7.2
+        version: 4.7.4
       hono-rate-limiter:
         specifier: catalog:hono
-        version: 0.4.2(hono@4.7.2)
+        version: 0.4.2(hono@4.7.4)
       jsonwebtoken:
         specifier: catalog:crypto
         version: 9.0.2
@@ -339,7 +345,7 @@ importers:
         version: 1.9.4
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
       '@levicape/spork-atlas':
         specifier: 'workspace:'
         version: link:packages/atlas
@@ -418,7 +424,7 @@ importers:
         version: link:../..
       hono:
         specifier: catalog:hono
-        version: 4.7.2
+        version: 4.7.4
       ts-proto:
         specifier: catalog:protobuf
         version: 2.6.1
@@ -446,7 +452,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
       yaml:
         specifier: catalog:parse-yaml
         version: 2.7.0
@@ -455,13 +461,13 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
       '@levicape/fourtwo-builders':
         specifier: 'catalog:'
-        version: 0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
       '@levicape/fourtwo-pulumi':
         specifier: 'catalog:'
-        version: 0.10.0-main.23(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
+        version: 0.10.1-main.1(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
       '@pulumi/aws':
         specifier: catalog:pulumi
         version: 6.69.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
@@ -480,6 +486,9 @@ importers:
       '@pulumi/pulumi':
         specifier: catalog:pulumi
         version: 3.152.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
+      '@pulumi/random':
+        specifier: catalog:pulumi
+        version: 4.18.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
       destr:
         specifier: catalog:parse-json
         version: 2.0.3
@@ -513,7 +522,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
+        version: 0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
 
   packages/atlas:
     dependencies:
@@ -571,10 +580,10 @@ importers:
         version: 3.13.2
       hono:
         specifier: catalog:hono
-        version: 4.7.2
+        version: 4.7.4
       hono-rate-limiter:
         specifier: catalog:hono
-        version: 0.4.2(hono@4.7.2)
+        version: 0.4.2(hono@4.7.4)
       std-env:
         specifier: catalog:runtime-env
         version: 3.8.0
@@ -611,10 +620,10 @@ importers:
         version: 3.13.2
       hono:
         specifier: catalog:hono
-        version: 4.7.2
+        version: 4.7.4
       honox:
         specifier: catalog:hono
-        version: 0.1.38(hono@4.7.2)
+        version: 0.1.38(hono@4.7.4)
       std-env:
         specifier: catalog:runtime-env
         version: 3.8.0
@@ -627,19 +636,22 @@ importers:
         version: 1.9.4
       '@hono/vite-build':
         specifier: catalog:hono
-        version: 1.3.0(hono@4.7.2)
+        version: 1.3.0(hono@4.7.4)
       '@hono/vite-dev-server':
         specifier: catalog:hono
-        version: 0.19.0(hono@4.7.2)
+        version: 0.19.0(hono@4.7.4)
       '@hono/vite-ssg':
         specifier: catalog:hono
-        version: 0.1.1(hono@4.7.2)
+        version: 0.1.1(hono@4.7.4)
       '@tailwindcss/vite':
         specifier: catalog:web-style
         version: 4.0.0(vite@6.0.11(@types/node@22.13.5)(jiti@2.4.2)(lightningcss@1.29.1)(tsx@4.19.3)(yaml@2.7.0))
       '@types/node':
         specifier: catalog:types
         version: 22.13.5
+      autoprefixer:
+        specifier: catalog:web-style
+        version: 10.4.20(postcss@8.5.3)
       tailwindcss:
         specifier: catalog:web-style
         version: 4.0.0
@@ -660,7 +672,7 @@ importers:
         version: 3.751.0(@aws-sdk/client-dynamodb@3.751.0)
       hono-rate-limiter:
         specifier: ^0.4.2
-        version: 0.4.2(hono@4.7.2)
+        version: 0.4.2(hono@4.7.4)
     devDependencies:
       '@biomejs/biome':
         specifier: catalog:lint
@@ -1129,6 +1141,7 @@ packages:
 
   '@effect/schema@0.75.5':
     resolution: {integrity: sha512-TQInulTVCuF+9EIbJpyLP6dvxbQJMphrnRqgexm/Ze39rSjfhJuufF7XvU3SxTgg3HnL7B/kpORTJbHhlE6thw==}
+    deprecated: this package has been merged into the main effect package
     peerDependencies:
       effect: ^3.9.2
 
@@ -1530,17 +1543,17 @@ packages:
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
 
-  '@levicape/fourtwo-builders@0.10.0-main.23':
-    resolution: {integrity: sha512-Ltn3KTN5tulSVrRxl9w4f+T9z9YZ+dqs5ndwIo2r4m4g/lk2HS+cMpQNMaB/tPXse5CMbuGFqneqzs+fONlBEA==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.10.0-main.23/5b9caf0d6608525846ea4cf452dd7829fbcd4afd}
+  '@levicape/fourtwo-builders@0.10.1-main.1':
+    resolution: {integrity: sha512-mekOYi08mGTB36fmjyx1tRMtpYZkTqMkiy8cfKgU7WA+4M+GTGB486YJr5aaLIDXyq/OX7XL5YU/GB3B/hsSdQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.10.1-main.1/fcf24093a0b916b4646b257dc4bf50c96ba64def}
     engines: {node: ^22}
 
-  '@levicape/fourtwo-pulumi@0.10.0-main.23':
-    resolution: {integrity: sha512-z1U9Xd58Vf+c/BWpLzDfj0PWPjiYkUL9jZw3PKvF480tBC10CbEhgZ+kpbDYmVsTHXv8lyLic3aa5lP9fB/1mg==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.10.0-main.23/d326cf8dd5fa88aceb7c20c59e68f92a0ac05173}
+  '@levicape/fourtwo-pulumi@0.10.1-main.1':
+    resolution: {integrity: sha512-3ZlS4AFDUqG3eMRfa3KsJptUMNuOlNS5gCnJz5QPPxoSqhZJk46pGpft555DoYgMr4TBcVh31DF3FsFgbqlaGQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.10.1-main.1/7cde890592aad3b2a3a4ed52411a0de7d4da31df}
     engines: {node: ^22}
 
-  '@levicape/fourtwo@0.10.0-main.23':
-    resolution: {integrity: sha512-3np/x9YQ5lJEFF2WyBuCw1am15IJFeOnYN6IyBk+oIko3G/y0kDQ98sEG7xMgFA+G8gAzI+qZKD9XDmUOaLYBg==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.10.0-main.23/e97ddde1868a7836ebde783721c0a8d5eea5e364}
-    engines: {node: 22.12.0}
+  '@levicape/fourtwo@0.10.1-main.1':
+    resolution: {integrity: sha512-EsPra4i7EE9u4dQY3kpBAoKZFaUv/lemkuF1nt+GsjwUoapc3/+NVoW+4m5EDAN6WON4Dhd+hiBTBCU80AmcUQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo/0.10.1-main.1/31da5070f9ae7a02e3ec9bba732f8d513bf1f0a9}
+    engines: {node: 22.13.0}
     hasBin: true
 
   '@levicape/paloma@0.3.7-main.16':
@@ -1953,6 +1966,9 @@ packages:
 
   '@pulumi/query@0.3.0':
     resolution: {integrity: sha512-xfo+yLRM2zVjVEA4p23IjQWzyWl1ZhWOGobsBqRpIarzLvwNH/RAGaoehdxlhx4X92302DrpdIFgTICMN4P38w==}
+
+  '@pulumi/random@4.18.0':
+    resolution: {integrity: sha512-6joE5/jhadtWmwuMh3YtDB1kA3G4pDLVhk+l5mSxe/kuf+ejQ1w+LnfbpRi9iinwPl2AqzfDp9IheksTxIwzFA==}
 
   '@rollup/rollup-android-arm-eabi@4.32.0':
     resolution: {integrity: sha512-G2fUQQANtBPsNwiVFg4zKiPQyjVKZCUdQUol53R8E71J7AsheRMV/Yv/nB8giOcOVqP7//eB5xPqieBYZe9bGg==}
@@ -2703,6 +2719,13 @@ packages:
     resolution: {integrity: sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==}
     engines: {node: '>=8.0.0'}
 
+  autoprefixer@10.4.20:
+    resolution: {integrity: sha512-XY25y5xSv/wEoqzDyXXME4AFfkZI0P23z6Fs3YgymDnKJkCGOnkL0iTxCa85UTqaSgfcqyf3UA6+c7wUvx/16g==}
+    engines: {node: ^10 || ^12 || >=14}
+    hasBin: true
+    peerDependencies:
+      postcss: ^8.1.0
+
   aws4fetch@1.0.20:
     resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
@@ -2744,6 +2767,11 @@ packages:
     resolution: {integrity: sha512-yQbXgO/OSZVD2IsiLlro+7Hf6Q18EJrKSEsdoMzKePKXct3gvD8oLcOQdIzGupr5Fj+EDe8gO/lxc1BzfMpxvA==}
     engines: {node: '>=8'}
 
+  browserslist@4.24.4:
+    resolution: {integrity: sha512-KDi1Ny1gSePi1vm0q4oxSF8b4DR44GF4BbmS2YdhPLOEqd8pDviZOGH/GsmRwoWJ2+5Lr085X7naowMwKHDG1A==}
+    engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
+    hasBin: true
+
   buffer-equal-constant-time@1.0.1:
     resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
 
@@ -2779,6 +2807,9 @@ packages:
   camelcase@6.3.0:
     resolution: {integrity: sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==}
     engines: {node: '>=10'}
+
+  caniuse-lite@1.0.30001702:
+    resolution: {integrity: sha512-LoPe/D7zioC0REI5W73PeR1e1MLCipRGq/VkovJnd6Df+QVqT+vT33OXCp8QUd7kA7RZrHWxb1B36OQKI/0gOA==}
 
   case-anything@2.1.13:
     resolution: {integrity: sha512-zlOQ80VrQ2Ue+ymH5OuM/DlDq64mEm+B9UTdHULv5osUMD6HalNTblf2b1u/m6QecjsnOkBpqVZ+XPwIVsy7Ng==}
@@ -3111,6 +3142,9 @@ packages:
   effect@3.13.2:
     resolution: {integrity: sha512-/w+CPqHDJ33Wq7xC4YKAchrEEPtjvxh563xH9kDTZp99seNYBoBs87vl8DJwartEjj+KLQLP8PzoDne+XmGT2A==}
 
+  electron-to-chromium@1.5.113:
+    resolution: {integrity: sha512-wjT2O4hX+wdWPJ76gWSkMhcHAV2PTMX+QetUCPYEdCIe+cxmgzzSSiGRCKW8nuh4mwKZlpv0xvoW7OF2X+wmHg==}
+
   emoji-regex@10.4.0:
     resolution: {integrity: sha512-EC+0oUMY1Rqm4O6LLrgjtYDvcVYTy7chDnM4Q7030tP4Kwj3u/pR6gP9ygnp2CJMK5Gq+9Q2oqmrFJAz01DXjw==}
 
@@ -3330,6 +3364,9 @@ packages:
     resolution: {integrity: sha512-hGfm/slu0ZabnNt4oaRZ6uREyfCj6P4fT/n6A1rGV+Z0VdGXjfOhVUpkn6qVQONHGIFwmveGXyDs75+nr6FM8w==}
     engines: {node: '>= 6'}
 
+  fraction.js@4.3.7:
+    resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
+
   front-matter@4.0.2:
     resolution: {integrity: sha512-I8ZuJ/qG92NWX8i5x1Y8qyj3vizhXS31OxjKDu3LKP+7/qBgfIKValiZIEwoVoJKUHlhWtYrktkxV1XsX+pPlg==}
 
@@ -3487,8 +3524,8 @@ packages:
     peerDependencies:
       hono: ^4.1.1
 
-  hono@4.7.2:
-    resolution: {integrity: sha512-8V5XxoOF6SI12jkHkzX/6aLBMU5GEF5g387EjVSQipS0DlxWgWGSMeEayY3CRBjtTUQYwLHx9JYouWqKzy2Vng==}
+  hono@4.7.4:
+    resolution: {integrity: sha512-Pst8FuGqz3L7tFF+u9Pu70eI0xa5S3LPUmrNd5Jm8nTHze9FxLTK9Kaj5g/k4UcwuJSXTP65SyHOPLrffpcAJg==}
     engines: {node: '>=16.9.0'}
 
   honox@0.1.38:
@@ -4122,6 +4159,9 @@ packages:
   node-machine-id@1.1.12:
     resolution: {integrity: sha512-QNABxbrPa3qEIfrE6GOJ7BYIuignnJw7iQ2YPbc3Nla1HzRJjXzZOiikfF8m7eAMfichLt3M4VgLOetqgDmgGQ==}
 
+  node-releases@2.0.19:
+    resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
+
   node-source-walk@7.0.1:
     resolution: {integrity: sha512-3VW/8JpPqPvnJvseXowjZcirPisssnBuDikk6JIZ8jQzF7KJQX52iPFX4RYYxLycYH7IbMRSPUOga/esVjy5Yg==}
     engines: {node: '>=18'}
@@ -4134,6 +4174,10 @@ packages:
   normalize-package-data@6.0.2:
     resolution: {integrity: sha512-V6gygoYb/5EmNI+MEGrWkC+e6+Rr7mTmfHrxDbLzxQogBkgzo76rkok0Am6thgSF7Mv2nLOajAJj5vDJZEFn7g==}
     engines: {node: ^16.14.0 || >=18.0.0}
+
+  normalize-range@0.1.2:
+    resolution: {integrity: sha512-bdok/XvKII3nUpklnV6P2hxtMNrCboOjAcyBuQnWEhO665FwrSNRxU+AqpsyvO6LgGYPspN+lu5CLtw4jPRKNA==}
+    engines: {node: '>=0.10.0'}
 
   normalize-url@6.1.0:
     resolution: {integrity: sha512-DlL+XwOy3NxAQ8xuC0okPgK46iuVNAK01YN7RueYBqqFeGsBjV9XmCAzAdgt+667bCl5kPh9EqKKDwnaPG1I7A==}
@@ -4390,6 +4434,9 @@ packages:
   postcss-selector-parser@6.1.2:
     resolution: {integrity: sha512-Q8qQfPiZ+THO/3ZrOrO0cJJKfpYCagtMUkXbnEfmgUjwXg6z/WBeOyS9APBBPCTSiDV+s4SwQGu8yFsiMRIudg==}
     engines: {node: '>=4'}
+
+  postcss-value-parser@4.2.0:
+    resolution: {integrity: sha512-1NNCs6uurfkVbeXG4S8JFT9t19m45ICnif8zWLd5oPSZ50QnwMfK+H3jv408d4jw/7Bttv5axS5IiHoLaVNHeQ==}
 
   postcss-values-parser@6.0.2:
     resolution: {integrity: sha512-YLJpK0N1brcNJrs9WatuJFtHaV9q5aAOj+S4DI5S7jgHlRfm0PIbDCAFRYMQD5SHq7Fy6xsDhyutgS0QOAs0qw==}
@@ -5038,6 +5085,12 @@ packages:
   upath@1.2.0:
     resolution: {integrity: sha512-aZwGpamFO61g3OlfT7OQCHqhGnW43ieH9WZeP7QxN/G/jS4jfqUkZxoryvJgVPEcrl5NL/ggHsSmLMHuH64Lhg==}
     engines: {node: '>=4'}
+
+  update-browserslist-db@1.1.3:
+    resolution: {integrity: sha512-UxhIZQ+QInVdunkDAaiazvvT/+fXL5Osr0JZlJulepYu6Jd7qJtDZjlur0emRlT71EN3ScPoE7gvsuIKKNavKw==}
+    hasBin: true
+    peerDependencies:
+      browserslist: '>= 4.21.0'
 
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
@@ -6406,27 +6459,27 @@ snapshots:
       protobufjs: 7.4.0
       yargs: 17.7.2
 
-  '@hono/node-server@1.13.8(hono@4.7.2)':
+  '@hono/node-server@1.13.8(hono@4.7.4)':
     dependencies:
-      hono: 4.7.2
+      hono: 4.7.4
 
-  '@hono/vite-build@1.3.0(hono@4.7.2)':
+  '@hono/vite-build@1.3.0(hono@4.7.4)':
     dependencies:
-      hono: 4.7.2
+      hono: 4.7.4
 
-  '@hono/vite-dev-server@0.19.0(hono@4.7.2)':
+  '@hono/vite-dev-server@0.19.0(hono@4.7.4)':
     dependencies:
-      '@hono/node-server': 1.13.8(hono@4.7.2)
-      hono: 4.7.2
+      '@hono/node-server': 1.13.8(hono@4.7.4)
+      hono: 4.7.4
       minimatch: 9.0.5
 
-  '@hono/vite-ssg@0.1.1(hono@4.7.2)':
+  '@hono/vite-ssg@0.1.1(hono@4.7.4)':
     dependencies:
-      hono: 4.7.2
+      hono: 4.7.4
 
-  '@hono/zod-validator@0.4.3(hono@4.7.2)(zod@3.24.2)':
+  '@hono/zod-validator@0.4.3(hono@4.7.4)(zod@3.24.2)':
     dependencies:
-      hono: 4.7.2
+      hono: 4.7.4
       zod: 3.24.2
 
   '@isaacs/cliui@8.0.2':
@@ -6481,9 +6534,9 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@levicape/fourtwo-builders@0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)':
+  '@levicape/fourtwo-builders@0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)':
     dependencies:
-      '@levicape/fourtwo': 0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
+      '@levicape/fourtwo': 0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)
     transitivePeerDependencies:
       - '@middy/core'
       - bufferutil
@@ -6497,7 +6550,7 @@ snapshots:
       - tedious
       - utf-8-validate
 
-  '@levicape/fourtwo-pulumi@0.10.0-main.23(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)':
+  '@levicape/fourtwo-pulumi@0.10.1-main.1(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)':
     dependencies:
       '@pulumi/aws': 6.69.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
       '@pulumi/pulumi': 3.152.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
@@ -6507,7 +6560,7 @@ snapshots:
       - ts-node
       - typescript
 
-  '@levicape/fourtwo@0.10.0-main.23(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)':
+  '@levicape/fourtwo@0.10.1-main.1(pg-native@3.2.0)(pg@8.13.3(pg-native@3.2.0))(projen@0.71.163)':
     dependencies:
       '@aws-lambda-powertools/logger': 2.14.0
       '@aws/codecatalyst-workflows-sdk': 0.1.5-preview.6(projen@0.71.163)
@@ -7087,6 +7140,15 @@ snapshots:
       - supports-color
 
   '@pulumi/query@0.3.0': {}
+
+  '@pulumi/random@4.18.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)':
+    dependencies:
+      '@pulumi/pulumi': 3.152.0(ts-node@10.9.2(@swc/core@1.10.11(@swc/helpers@0.5.15))(@types/node@22.13.5)(typescript@5.7.3))(typescript@5.7.3)
+    transitivePeerDependencies:
+      - bluebird
+      - supports-color
+      - ts-node
+      - typescript
 
   '@rollup/rollup-android-arm-eabi@4.32.0':
     optional: true
@@ -7875,6 +7937,16 @@ snapshots:
 
   atomic-sleep@1.0.0: {}
 
+  autoprefixer@10.4.20(postcss@8.5.3):
+    dependencies:
+      browserslist: 4.24.4
+      caniuse-lite: 1.0.30001702
+      fraction.js: 4.3.7
+      normalize-range: 0.1.2
+      picocolors: 1.1.1
+      postcss: 8.5.3
+      postcss-value-parser: 4.2.0
+
   aws4fetch@1.0.20: {}
 
   axios@1.7.9:
@@ -7928,6 +8000,13 @@ snapshots:
     dependencies:
       fill-range: 7.1.1
 
+  browserslist@4.24.4:
+    dependencies:
+      caniuse-lite: 1.0.30001702
+      electron-to-chromium: 1.5.113
+      node-releases: 2.0.19
+      update-browserslist-db: 1.1.3(browserslist@4.24.4)
+
   buffer-equal-constant-time@1.0.1: {}
 
   buffer-from@1.1.2: {}
@@ -7974,6 +8053,8 @@ snapshots:
   callsites@3.1.0: {}
 
   camelcase@6.3.0: {}
+
+  caniuse-lite@1.0.30001702: {}
 
   case-anything@2.1.13: {}
 
@@ -8274,6 +8355,8 @@ snapshots:
       '@standard-schema/spec': 1.0.0
       fast-check: 3.23.2
 
+  electron-to-chromium@1.5.113: {}
+
   emoji-regex@10.4.0: {}
 
   emoji-regex@8.0.0: {}
@@ -8518,6 +8601,8 @@ snapshots:
       es-set-tostringtag: 2.1.0
       mime-types: 2.1.35
 
+  fraction.js@4.3.7: {}
+
   front-matter@4.0.2:
     dependencies:
       js-yaml: 3.14.1
@@ -8696,20 +8781,20 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
-  hono-rate-limiter@0.4.2(hono@4.7.2):
+  hono-rate-limiter@0.4.2(hono@4.7.4):
     dependencies:
-      hono: 4.7.2
+      hono: 4.7.4
 
-  hono@4.7.2: {}
+  hono@4.7.4: {}
 
-  honox@0.1.38(hono@4.7.2):
+  honox@0.1.38(hono@4.7.4):
     dependencies:
       '@babel/generator': 7.25.6
       '@babel/parser': 7.25.6
       '@babel/traverse': 7.25.6
       '@babel/types': 7.25.6
-      '@hono/vite-dev-server': 0.19.0(hono@4.7.2)
-      hono: 4.7.2
+      '@hono/vite-dev-server': 0.19.0(hono@4.7.4)
+      hono: 4.7.4
       jsonc-parser: 3.3.1
       precinct: 12.1.2
     optionalDependencies:
@@ -9276,6 +9361,8 @@ snapshots:
 
   node-machine-id@1.1.12: {}
 
+  node-releases@2.0.19: {}
+
   node-source-walk@7.0.1:
     dependencies:
       '@babel/parser': 7.26.9
@@ -9289,6 +9376,8 @@ snapshots:
       hosted-git-info: 7.0.2
       semver: 7.7.1
       validate-npm-package-license: 3.0.4
+
+  normalize-range@0.1.2: {}
 
   normalize-url@6.1.0: {}
 
@@ -9649,6 +9738,8 @@ snapshots:
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
+
+  postcss-value-parser@4.2.0: {}
 
   postcss-values-parser@6.0.2(postcss@8.5.3):
     dependencies:
@@ -10304,6 +10395,12 @@ snapshots:
   universalify@2.0.1: {}
 
   upath@1.2.0: {}
+
+  update-browserslist-db@1.1.3(browserslist@4.24.4):
+    dependencies:
+      browserslist: 4.24.4
+      escalade: 3.2.0
+      picocolors: 1.1.1
 
   util-deprecate@1.0.2: {}
 

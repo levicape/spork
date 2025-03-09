@@ -1,5 +1,5 @@
-/** @jsxImportSource @levicape/fourtwo */
 /** @jsxRuntime automatic */
+/** @jsxImportSource @levicape/fourtwo */
 
 import {
 	GithubJobBuilder,
@@ -40,9 +40,7 @@ export default async () => (
 	<GithubWorkflowX
 		name="on Push: Compile, Lint, Test all workspace packages"
 		on={{
-			push: {
-				branches: ["main"],
-			},
+			push: {},
 		}}
 		env={{
 			...register("NPM_REGISTRY_PROTOCOL", "https"),

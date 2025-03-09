@@ -1,4 +1,6 @@
-import { type FC, Fragment, type PropsWithChildren } from "hono/jsx";
+import type { FC, PropsWithChildren } from "hono/jsx";
+import { Fragment } from "hono/jsx";
+import { DesignSystem } from "./DesignSystem";
 
 const HeaderRoot: FC<PropsWithChildren> = ({ children }) => (
 	<Fragment>
@@ -21,8 +23,11 @@ const HeaderRoot: FC<PropsWithChildren> = ({ children }) => (
 		{children}
 	</Fragment>
 );
+
 export const AppBody: FC<PropsWithChildren> = ({ children }) => (
 	<body>
-		<HeaderRoot>{children}</HeaderRoot>
+		<DesignSystem>
+			<HeaderRoot>{children}</HeaderRoot>
+		</DesignSystem>
 	</body>
 );

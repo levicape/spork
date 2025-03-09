@@ -1,75 +1,88 @@
 import type {
 	CodeCatalystComputeSpec,
-	CodeCatalystTriggersSpec,
 	CodeCatalystWorkflowExpressions,
 } from "@levicape/fourtwo/codecatalyst";
-import type { GithubWorkflowExpressions } from "@levicape/fourtwo/jsx/github/GithubWorkflowX";
+import type { GithubOn } from "@levicape/fourtwo/github";
 
-export const CODECATALYST_CI_MATRIX = [
+const ENVIRONMENT = "elm_pst_3";
+export const GITHUB_CI_MATRIX = [
 	{
-		name: "Main__Image_Preview_Deploy_Push__current",
+		name: "Dispatch: Preview, Deploy, Push",
 		region: "us-west-2",
-		triggers: [],
+		triggers: {
+			workflow_dispatch: {},
+		} satisfies GithubOn,
 		pipeline: {
-			install: undefined as unknown as CodeCatalystWorkflowProps<
+			install: undefined as unknown as GithubWorkflowProps<
 				boolean,
 				boolean
 			>["pipeline"]["install"],
 			environment: {
-				name: "current",
+				name: ENVIRONMENT,
 			},
-			image: true as const,
 			preview: true as const,
 			deploy: true as const,
 			push: true as const,
 		},
 	},
 	{
-		name: "Main__Image_Preview_Deploy__current",
+		name: "on Schedule: Preview, Deploy",
 		region: "us-west-2",
-		triggers: [
-			{
-				Type: "SCHEDULE" as const,
-				Expression: "0 0 * * ? *",
-				Branches: ["main"],
-			},
-		],
+		triggers: {
+			schedule: [
+				{
+					cron: "0 0 * * *",
+				},
+			],
+		} satisfies GithubOn,
 		pipeline: {
-			install: undefined as unknown as CodeCatalystWorkflowProps<
+			install: undefined as unknown as GithubWorkflowProps<
 				boolean,
 				boolean
 			>["pipeline"]["install"],
 			environment: {
-				name: "current",
+				name: ENVIRONMENT,
 			},
-			image: true as const,
 			preview: true as const,
 			deploy: true as const,
 			push: false as const,
 		},
 	},
 	{
-		name: "Main__Image_Preview__current",
+		name: "Dispatch: Preview",
 		region: "us-west-2",
-		triggers: [
-			{
-				Type: "PULLREQUEST" as const,
-				Events: ["OPEN", "REVISION"] as const,
-				Branches: ["main"],
-			},
-		],
+		triggers: {
+			workflow_dispatch: {},
+		} satisfies GithubOn,
 		pipeline: {
-			install: undefined as unknown as CodeCatalystWorkflowProps<
+			install: undefined as unknown as GithubWorkflowProps<
 				boolean,
 				boolean
 			>["pipeline"]["install"],
 			environment: {
-				name: "current",
+				name: ENVIRONMENT,
 			},
-			image: true as const,
 			preview: true as const,
 			deploy: false as const,
 			push: false as const,
+		},
+	},
+	{
+		name: "Dispatch: Delete",
+		region: "us-west-2",
+		triggers: {
+			workflow_dispatch: {},
+		} satisfies GithubOn,
+		pipeline: {
+			install: undefined as unknown as GithubWorkflowProps<
+				boolean,
+				boolean
+			>["pipeline"]["install"],
+			environment: {
+				name: ENVIRONMENT,
+			},
+			preview: true as const,
+			delete: true as const,
 		},
 	},
 ].map((ci) => {
@@ -86,15 +99,15 @@ export const CODECATALYST_CI_MATRIX = [
 		},
 	};
 	return ci;
-}) satisfies Array<CodeCatalystWorkflowProps<boolean, boolean>>;
+}) satisfies Array<GithubWorkflowProps<boolean, boolean>>;
 
-export type CodeCatalystWorkflowProps<
+export type GithubWorkflowProps<
 	Preview extends boolean,
 	Deploy extends boolean,
 > = {
 	name: string;
 	region: string;
-	triggers: CodeCatalystTriggersSpec[];
+	triggers: GithubOn;
 	compute?: CodeCatalystComputeSpec;
 	pipeline: {
 		install: {
@@ -103,16 +116,13 @@ export type CodeCatalystWorkflowProps<
 				{
 					scope: string;
 					token: (
-						expresssions:
-							| typeof CodeCatalystWorkflowExpressions
-							| typeof GithubWorkflowExpressions,
+						expresssions: typeof CodeCatalystWorkflowExpressions,
 					) => string;
 					protocol: string;
 					host: string;
 				}
 			>;
 		};
-		image?: Preview extends true ? true : false;
 	} & (Preview extends true
 		? {
 				environment: {
@@ -131,8 +141,10 @@ export type CodeCatalystWorkflowProps<
 		(Deploy extends true
 			? {
 					push?: boolean;
+					delete?: false;
 				}
 			: {
 					push?: false;
+					delete?: boolean;
 				});
 };
