@@ -1,7 +1,7 @@
 ########################################
 # THIS FILE WAS AUTOMATICALLY GENERATED, DO NOT MODIFY
 ########################################
-name: "on Release: [released] Publish @levicape/(spork, spork-atlas, protobuf-spork-stands) to Github"
+name: "@levicape_spork"
 on:
   release:
     types:
@@ -223,9 +223,9 @@ jobs:
 
 ########################################
 ########################################
-#**:_$~- {"$$":"head","filename":"[release(released)]Publish tagged module to npm.yml","source":"iac/workflows/github/release/Publish tagged module to npm.js"}
+#**:_$~- {"$$":"head","filename":"[release(released)] - Publish - [@levicape_spork].yml","source":"iac/workflows/github/release/Publish.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"ef17751e52c04aadd16817f58cb35a6b9b31753b3f37bed21836d20d20ae9395"}
-#**:_$~- {"$$":"footer","started":"2025-02-28T07:38:52.592Z","now":"2025-02-28T07:38:52.600Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"9438fd9e860345e598ab11d1f80776d9cad6a35a385f2d5ae3248aa6c2353000"}
+#**:_$~- {"$$":"footer","started":"2025-03-09T01:40:06.898Z","now":"2025-03-09T01:40:07.002Z","elapsed":"104ms"}
 # END OF GENERATED FILE
 

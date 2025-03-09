@@ -1,5 +1,5 @@
 import { inspect } from "node:util";
-import { Context } from "@levicape/fourtwo-pulumi";
+import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
 import { SecurityGroup } from "@pulumi/aws/ec2/securityGroup";
 import { AccessPoint } from "@pulumi/aws/efs/accessPoint";
 import { FileSystem } from "@pulumi/aws/efs/fileSystem";

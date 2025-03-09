@@ -1,5 +1,5 @@
-/** @jsxImportSource @levicape/fourtwo */
 /** @jsxRuntime automatic */
+/** @jsxImportSource @levicape/fourtwo */
 
 import {
 	GithubJobBuilder,
@@ -16,9 +16,8 @@ import {
 import { NodeGhaConfiguration } from "../push/CI.js";
 
 type CompileAndPublishProps = {
-	packageName: string;
 	cwd?: string;
-	compile?: string;
+	packageName: string;
 };
 
 const compileAndPublish = [
@@ -40,17 +39,12 @@ export default (
 		compileAndPublish?: CompileAndPublishProps[];
 	}) =>
 	async () => {
-		const {
+		let {
 			current: { register, context: _$_, env },
 		} = GithubWorkflowExpressions;
 
-		const CompileAndPublish = (props: CompileAndPublishProps) => {
-			const { cwd, packageName, compile } = {
-				compile: "build",
-				...props,
-			};
-
-			const shortname = packageName.split("/").pop();
+		let CompileAndPublish = ({ cwd, packageName }: CompileAndPublishProps) => {
+			let shortname = packageName.split("/").pop();
 			return (
 				<GithubJobX
 					id={`publish_${shortname}`}
@@ -84,7 +78,7 @@ export default (
 									return (
 										<>
 											<GithubStepNodeInstallX {...node} />
-											<GithubStepNodeScriptsX {...node} scripts={[compile]} />
+											<GithubStepNodeScriptsX {...node} scripts={["build"]} />
 											<GithubStepNodeScriptsX {...node} scripts={["lint"]} />
 											<GithubStepNodeScriptsX {...node} scripts={["test"]} />
 										</>
@@ -121,15 +115,14 @@ export default (
 			);
 		};
 
-		const packageScope =
-			props.compileAndPublish?.[0]?.packageName.split("/")[0];
-		const names = props.compileAndPublish
-			?.map((props) => props.packageName.split("/").pop())
-			.join(", ");
+		let packageScope = props.compileAndPublish?.[0]?.packageName.replace(
+			/[^a-zA-Z0-9-_@]/g,
+			"_",
+		);
 
 		return (
 			<GithubWorkflowX
-				name={`on Release: [released] Publish ${packageScope}/(${names}) to Github`}
+				name={`${packageScope ?? "UNKNOWN_PACKAGE"}`}
 				on={{
 					release: {
 						types: ["released"],
@@ -148,6 +141,4 @@ export default (
 			</GithubWorkflowX>
 		);
 	}
-)({
-	compileAndPublish,
-});
+)({ compileAndPublish });

@@ -19,10 +19,10 @@ export default defineConfig(({mode}) => {
       plugins: [client({
         input: [
           './app/style.css',
-      ]})],
+      ]}),      
+    ],
     }
   };
-    
   return {
     build: {
       emptyOutDir: false,

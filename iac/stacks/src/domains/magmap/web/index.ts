@@ -4,8 +4,8 @@ import {
 	CodeBuildBuildspecBuilder,
 	CodeBuildBuildspecEnvBuilder,
 	CodeBuildBuildspecResourceLambdaPhaseBuilder,
-} from "@levicape/fourtwo-builders";
-import { Context } from "@levicape/fourtwo-pulumi";
+} from "@levicape/fourtwo-builders/commonjs/index.cjs";
+import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
 import { EventRule, EventTarget } from "@pulumi/aws/cloudwatch";
 import { Project } from "@pulumi/aws/codebuild";
 import { Pipeline } from "@pulumi/aws/codepipeline";
@@ -22,8 +22,9 @@ import { BucketOwnershipControls } from "@pulumi/aws/s3/bucketOwnershipControls"
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
 import { BucketWebsiteConfigurationV2 } from "@pulumi/aws/s3/bucketWebsiteConfigurationV2";
-import { type Output, all } from "@pulumi/pulumi";
+import { type Output, all, interpolate } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
+import { RandomId } from "@pulumi/random/RandomId";
 import { stringify } from "yaml";
 import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
@@ -129,9 +130,15 @@ export = async () => {
 				www: false,
 				...props,
 			};
+			const randomid = new RandomId(_(`${name}-id`), {
+				byteLength: 4,
+			});
+
+			const urlsafe = _(name).replace(/[^a-zA-Z0-9]/g, "-");
 			const bucket = new Bucket(
 				_(name),
 				{
+					bucket: interpolate`${urlsafe}-${randomid.hex}`,
 					acl: "private",
 					forceDestroy: !context.environment.isProd,
 					tags: {
@@ -516,130 +523,141 @@ export = async () => {
 	})();
 
 	const codepipeline = (() => {
-		const pipeline = new Pipeline(_("deploy"), {
-			pipelineType: "V2",
-			roleArn: farRole.arn,
-			executionMode: "QUEUED",
-			artifactStores: [
-				{
-					location: s3.pipeline.bucket.bucket,
-					type: "S3",
-				},
-			],
-			stages: [
-				{
-					name: "Source",
-					actions: [
-						{
-							name: "Image",
-							namespace: "SourceImage",
-							category: "Source",
-							owner: "AWS",
-							provider: "ECR",
-							version: "1",
-							outputArtifacts: ["source_image"],
-							configuration: all([codestar.ecr.repository.name]).apply(
-								([repositoryName]) => {
-									return {
-										RepositoryName: repositoryName,
-										ImageTag: stage,
-									};
-								},
-							),
-						},
-					],
-				},
-				{
-					name: "StaticWWW",
-					actions: [
-						{
-							runOrder: 1,
-							name: "ExtractImage",
-							namespace: "StaticWWWExtractImage",
-							category: "Build",
-							owner: "AWS",
-							provider: "CodeBuild",
-							version: "1",
-							inputArtifacts: ["source_image"],
-							outputArtifacts: [codebuild.spec.artifactIdentifier],
-							configuration: all([
-								codestar.ecr.repository.arn,
-								codestar.ecr.repository.name,
-								codestar.ecr.repository.url,
-								codebuild.project.name,
-								s3.staticwww.bucket.bucket,
-							]).apply(
-								([
-									repositoryArn,
-									repositoryName,
-									repositoryUrl,
-									projectName,
-									bucketName,
-								]) => {
-									return {
-										ProjectName: projectName,
-										EnvironmentVariables: JSON.stringify([
-											{
-												name: "STACKREF_CODESTAR_ECR_REPOSITORY_ARN",
-												value: repositoryArn,
-												type: "PLAINTEXT",
-											},
-											{
-												name: "STACKREF_CODESTAR_ECR_REPOSITORY_NAME",
-												value: repositoryName,
-												type: "PLAINTEXT",
-											},
-											{
-												name: "STACKREF_CODESTAR_ECR_REPOSITORY_URL",
-												value: repositoryUrl,
-												type: "PLAINTEXT",
-											},
-											{
-												name: "SOURCE_IMAGE_REPOSITORY",
-												value: "#{SourceImage.RepositoryName}",
-												type: "PLAINTEXT",
-											},
-											{
-												name: "SOURCE_IMAGE_URI",
-												value: "#{SourceImage.ImageURI}",
-												type: "PLAINTEXT",
-											},
-											{
-												name: "S3_STATICWWW_BUCKET",
-												value: bucketName,
-												type: "PLAINTEXT",
-											},
-										]),
-									};
-								},
-							),
-						},
-						{
-							runOrder: 2,
-							name: "UploadS3",
-							namespace: "StaticWWWUploadS3",
-							category: "Deploy",
-							owner: "AWS",
-							provider: "S3",
-							version: "1",
-							inputArtifacts: [codebuild.spec.artifactIdentifier],
-							configuration: all([s3.staticwww.bucket.bucket]).apply(
-								([BucketName]) => ({
-									BucketName,
-									Extract: "true",
-									CannedACL: "public-read",
-								}),
-							),
-						},
-					],
-				},
-			],
-			tags: {
-				Name: _("deploy"),
-				StackRef: STACKREF_ROOT,
-				PackageName: PACKAGE_NAME,
-			},
+		const randomid = new RandomId(_("deploy-id"), {
+			byteLength: 4,
 		});
+		const pipelineName = _("deploy").replace(/[^a-zA-Z0-9_]/g, "-");
+		const pipeline = new Pipeline(
+			_("deploy"),
+			{
+				name: interpolate`${pipelineName}-${randomid.hex}`,
+				pipelineType: "V2",
+				roleArn: farRole.arn,
+				executionMode: "QUEUED",
+				artifactStores: [
+					{
+						location: s3.pipeline.bucket.bucket,
+						type: "S3",
+					},
+				],
+				stages: [
+					{
+						name: "Source",
+						actions: [
+							{
+								name: "Image",
+								namespace: "SourceImage",
+								category: "Source",
+								owner: "AWS",
+								provider: "ECR",
+								version: "1",
+								outputArtifacts: ["source_image"],
+								configuration: all([codestar.ecr.repository.name]).apply(
+									([repositoryName]) => {
+										return {
+											RepositoryName: repositoryName,
+											ImageTag: stage,
+										};
+									},
+								),
+							},
+						],
+					},
+					{
+						name: "StaticWWW",
+						actions: [
+							{
+								runOrder: 1,
+								name: "ExtractImage",
+								namespace: "StaticWWWExtractImage",
+								category: "Build",
+								owner: "AWS",
+								provider: "CodeBuild",
+								version: "1",
+								inputArtifacts: ["source_image"],
+								outputArtifacts: [codebuild.spec.artifactIdentifier],
+								configuration: all([
+									codestar.ecr.repository.arn,
+									codestar.ecr.repository.name,
+									codestar.ecr.repository.url,
+									codebuild.project.name,
+									s3.staticwww.bucket.bucket,
+								]).apply(
+									([
+										repositoryArn,
+										repositoryName,
+										repositoryUrl,
+										projectName,
+										bucketName,
+									]) => {
+										return {
+											ProjectName: projectName,
+											EnvironmentVariables: JSON.stringify([
+												{
+													name: "STACKREF_CODESTAR_ECR_REPOSITORY_ARN",
+													value: repositoryArn,
+													type: "PLAINTEXT",
+												},
+												{
+													name: "STACKREF_CODESTAR_ECR_REPOSITORY_NAME",
+													value: repositoryName,
+													type: "PLAINTEXT",
+												},
+												{
+													name: "STACKREF_CODESTAR_ECR_REPOSITORY_URL",
+													value: repositoryUrl,
+													type: "PLAINTEXT",
+												},
+												{
+													name: "SOURCE_IMAGE_REPOSITORY",
+													value: "#{SourceImage.RepositoryName}",
+													type: "PLAINTEXT",
+												},
+												{
+													name: "SOURCE_IMAGE_URI",
+													value: "#{SourceImage.ImageURI}",
+													type: "PLAINTEXT",
+												},
+												{
+													name: "S3_STATICWWW_BUCKET",
+													value: bucketName,
+													type: "PLAINTEXT",
+												},
+											]),
+										};
+									},
+								),
+							},
+							{
+								runOrder: 2,
+								name: "UploadS3",
+								namespace: "StaticWWWUploadS3",
+								category: "Deploy",
+								owner: "AWS",
+								provider: "S3",
+								version: "1",
+								inputArtifacts: [codebuild.spec.artifactIdentifier],
+								configuration: all([s3.staticwww.bucket.bucket]).apply(
+									([BucketName]) => ({
+										BucketName,
+										Extract: "true",
+										CannedACL: "public-read",
+									}),
+								),
+							},
+						],
+					},
+				],
+				tags: {
+					Name: _("deploy"),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
+				},
+			},
+			{
+				dependsOn: [s3.pipeline.bucket, s3.artifacts.bucket, codebuild.project],
+			},
+		);
 
 		new RolePolicyAttachment(_("codepipeline-rolepolicy"), {
 			policyArn: ManagedPolicy.CodePipeline_FullAccess,

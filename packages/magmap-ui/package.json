@@ -40,7 +40,6 @@
     "module",
     "dist"
   ],
-  "http:dev": " LOG_LEVEL=5 pnpm run http:start --watch module; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
   "nx": {
     "targets": {
       "build:module": {

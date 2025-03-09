@@ -1,30 +1,40 @@
 import { Effect } from "effect";
-import { useCallback, useMemo, useState } from "hono/jsx";
+import { Suspense, useCallback, useMemo, useState } from "hono/jsx";
 
-export const App = () => {
+const waitFor = (ms: number) =>
+	new Promise((resolve) => setTimeout(resolve, ms));
+
+export const App = async () => {
 	const [count, setCount] = useState(0);
 
 	const task = useMemo(
 		() => Effect.sync(() => setCount((current) => current + 1)),
-		[setCount],
+		[],
 	);
 
 	const increment = useCallback(() => Effect.runSync(task), [task]);
 
+	await waitFor(3400);
+
 	return (
-		<main>
-			<h2 className={"text-2xl"}>hmr + Hono/jsx</h2>
-			<button type={"button"} onClick={increment}>
-				count is {count}
-			</button>
-			<div className="card">
-				<button type={"button"} onClick={() => setCount((count) => count + 1)}>
+		<Suspense
+			fallback={
+				<div className="card backdrop-blur-3xl bg-amber-300 border-8 rounded-lg">
+					<p>Loading...</p>
+				</div>
+			}
+		>
+			<main>
+				<h2 className={"text-2xl"}>hmr + Hono/jsx</h2>
+				<button type={"button"} onClick={increment}>
 					count is {count}
 				</button>
-				<p>
-					Edit <code>src/App.tsx</code>
-				</p>
-			</div>
-		</main>
+				<div className="card backdrop-blur-3xl bg-amber-300 border-8 rounded-lg">
+					<p>
+						Edit <code>src/App.tsx</code>
+					</p>
+				</div>
+			</main>
+		</Suspense>
 	);
 };

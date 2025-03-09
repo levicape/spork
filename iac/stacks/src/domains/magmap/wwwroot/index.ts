@@ -3,8 +3,8 @@ import {
 	CodeBuildBuildspecBuilder,
 	CodeBuildBuildspecEnvBuilder,
 	CodeBuildBuildspecResourceLambdaPhaseBuilder,
-} from "@levicape/fourtwo-builders";
-import { Context } from "@levicape/fourtwo-pulumi";
+} from "@levicape/fourtwo-builders/commonjs/index.cjs";
+import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
 import { Function as CloudfrontFunction } from "@pulumi/aws/cloudfront";
 import { Distribution } from "@pulumi/aws/cloudfront/distribution";
 import { OriginAccessIdentity } from "@pulumi/aws/cloudfront/originAccessIdentity";
@@ -23,6 +23,7 @@ import { CannedAcl } from "@pulumi/aws/types/enums/s3";
 import { Command } from "@pulumi/command/local";
 import { Output, all, interpolate } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
+import { RandomId } from "@pulumi/random/RandomId";
 import { VError } from "verror";
 import { stringify } from "yaml";
 import type { z } from "zod";
@@ -258,9 +259,15 @@ function handler(event) {
 			},
 		) => {
 			const { daysToRetain, ownership } = props;
+			const randomid = new RandomId(_(`${name}-id`), {
+				byteLength: 4,
+			});
+
+			const urlsafe = _(name).replace(/[^a-zA-Z0-9]/g, "-");
 			const bucket = new Bucket(
 				_(name),
 				{
+					bucket: interpolate`${urlsafe}-${randomid.hex}`,
 					acl: "private",
 					forceDestroy: !context.environment.isProd,
 					tags: {
