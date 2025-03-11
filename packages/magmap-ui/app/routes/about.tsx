@@ -1,6 +1,5 @@
 import { Effect } from "effect";
 import type { Context } from "hono";
-import { App } from "./$App.tsx";
 
 export default async function Home(_c: Context) {
 	const rendered = Date.now();
@@ -13,7 +12,9 @@ export default async function Home(_c: Context) {
 			<article className={"hidden"} suppressHydrationWarning>
 				<small>{rendered}</small>
 			</article>
-			<App />
+			<article>
+				<h1>About</h1>
+			</article>
 		</main>
 	);
 }

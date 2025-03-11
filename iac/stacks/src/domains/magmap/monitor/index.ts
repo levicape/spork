@@ -414,9 +414,10 @@ export = async () => {
 
 		const strategy = new DeploymentStrategy(_("strategy"), {
 			description: `(${WORKSPACE_PACKAGE_NAME}) "Monitor" in #${stage}`,
-			deploymentDurationInMinutes: 5,
+			deploymentDurationInMinutes: context.environment.isProd ? 12 : 2,
+			finalBakeTimeInMinutes: context.environment.isProd ? 16 : 3,
+			growthFactor: 10,
 			replicateTo: "NONE",
-			growthFactor: 30,
 			tags: {
 				Name: _("strategy"),
 				StackRef: STACKREF_ROOT,
@@ -621,7 +622,7 @@ export = async () => {
 				return interpolate`/applications/${applicationName}/environments/${environmentName}/${atlas[file].configuration.name}`;
 			});
 		};
-		let AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
+		const AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
 			let prefetch = [];
 			for (const af of Object.keys(atlas)) {
 				if (af) {
@@ -683,7 +684,6 @@ export = async () => {
 									}
 								: {}),
 							...cloudmapEnv,
-							...appconfigEnvironment,
 							AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
 							...(environment !== undefined && typeof environment === "function"
 								? Object.fromEntries(
@@ -1593,10 +1593,9 @@ export = async () => {
 			},
 			{
 				dependsOn: Object.values(canary).flatMap((canary) => [
-					canary.codebuild.extractimage.buildspec.upload,
-					canary.codebuild.updatelambda.buildspec.upload,
+					canary.codebuild.updatelambda.project,
+					canary.codebuild.extractimage.project,
 					canary.codedeploy.deploymentGroup,
-					canary.lambda.alias,
 				]),
 			},
 		);
@@ -1616,29 +1615,42 @@ export = async () => {
 		const { name } = $codestar.ecr.repository;
 
 		const EcrImageAction = (() => {
-			const rule = new EventRule(_("on-ecr-push"), {
-				description: `(${WORKSPACE_PACKAGE_NAME}) ECR image deploy pipeline trigger for tag "${stage}"`,
-				state: "ENABLED",
-				eventPattern: JSON.stringify({
-					source: ["aws.ecr"],
-					"detail-type": ["ECR Image Action"],
-					detail: {
-						"repository-name": [name],
-						"action-type": ["PUSH"],
-						result: ["SUCCESS"],
-						"image-tag": [stage],
+			const rule = new EventRule(
+				_("on-ecr-push"),
+				{
+					description: `(${WORKSPACE_PACKAGE_NAME}) ECR image deploy pipeline trigger for tag "${stage}"`,
+					state: "ENABLED",
+					eventPattern: JSON.stringify({
+						source: ["aws.ecr"],
+						"detail-type": ["ECR Image Action"],
+						detail: {
+							"repository-name": [name],
+							"action-type": ["PUSH"],
+							result: ["SUCCESS"],
+							"image-tag": [stage],
+						},
+					}),
+					tags: {
+						Name: _(`on-ecr-push`),
+						StackRef: STACKREF_ROOT,
 					},
-				}),
-				tags: {
-					Name: _(`on-ecr-push`),
-					StackRef: STACKREF_ROOT,
 				},
-			});
-			const target = new EventTarget(_("on-ecr-push-deploy"), {
-				rule: rule.name,
-				arn: codepipeline.pipeline.arn,
-				roleArn: farRole.arn,
-			});
+				{
+					deleteBeforeReplace: true,
+				},
+			);
+
+			const target = new EventTarget(
+				_("on-ecr-push-deploy"),
+				{
+					rule: rule.name,
+					arn: codepipeline.pipeline.arn,
+					roleArn: farRole.arn,
+				},
+				{
+					deleteBeforeReplace: true,
+				},
+			);
 
 			return {
 				targets: {
@@ -1685,7 +1697,6 @@ export = async () => {
 							},
 						},
 						{
-							dependsOn: group.map(([, handler]) => handler.alias),
 							deleteBeforeReplace: true,
 						},
 					);

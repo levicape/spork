@@ -419,6 +419,12 @@ Actions:
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
                 frontend:stack.dns.hostnames[1]=spork-codestar.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/codestar" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/codestar" --non-interactive --suppress-progress --diff --json
             - Run: |-
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-cognito.current" "$(pwd)/iac/stacks/src/cognito" "spork-cognito" "_pulumi/cognito" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-cognito.current" "$(pwd)/iac/stacks/src/cognito" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/cognito" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-cognito.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/cognito" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/cognito" --non-interactive --suppress-progress --diff --json
+            - Run: |-
                 source .pulumi-ci-helper && configure_stack "Preview" "spork-datalayer.current" "$(pwd)/iac/stacks/src/datalayer" "spork-datalayer" "_pulumi/datalayer" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-datalayer.current" "$(pwd)/iac/stacks/src/datalayer" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/datalayer" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
@@ -460,7 +466,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"[pr(OPEN,REVISION)(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"340381b2680aa07390958d46fb6df88aeae25303741fc7bf1a7fadcdee8a6b1c"}
-#**:_$~- {"$$":"footer","started":"2025-03-02T07:00:35.855Z","now":"2025-03-02T07:00:35.861Z","elapsed":"6ms"}
+#**:_$~- {"$$":"body","hashed":"df9adc6a3e905cfd21155aed396967034d4fee040f067a0d0c8f3c1e881844f5"}
+#**:_$~- {"$$":"footer","started":"2025-03-11T22:04:20.128Z","now":"2025-03-11T22:04:20.130Z","elapsed":"2ms"}
 # END OF GENERATED FILE
 

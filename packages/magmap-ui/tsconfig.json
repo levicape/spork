@@ -1,8 +1,38 @@
 {
-  "files": [],
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ESNext",
+    "module": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "types": [
+      "vite/client"
+    ],
+
+    /* Bundler mode */
+    "outDir": "module",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true,
+    "verbatimModuleSyntax": true,
+    "importHelpers": true,
+    "esModuleInterop": true,
+  },
+  "include": ["app", "vite.config.ts"],
+  "exclude": ["src/canary"],
   "references": [
-    { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.canary.json" },
-    { "path": "./tsconfig.node.json" }
   ]
 }
