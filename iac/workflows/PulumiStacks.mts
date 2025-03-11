@@ -27,6 +27,9 @@ export const CODECATALYST_PULUMI_STACKS: Array<{
 			stack: "codestar",
 		},
 		{
+			stack: "cognito",
+		},
+		{
 			stack: "datalayer",
 		},
 		{

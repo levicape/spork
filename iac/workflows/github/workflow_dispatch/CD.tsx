@@ -104,8 +104,8 @@ const cd = (matrix: GithubWorkflowProps<boolean, boolean>) => {
 									<>
 										{/* Verdaccio NPM mirror https://verdaccio.org */}
 										<GithubStepX
-											name="Set NPM Registry to Verdaccio:9200"
-											run={["pnpm set registry http://localhost:9200/"]}
+											name="Set NPM Registry to Verdaccio:31313"
+											run={["pnpm set registry http://localhost:31313/"]}
 										/>
 										{/* Install */}
 										<GithubStepNodeInstallX {...node} />
@@ -340,8 +340,6 @@ source .pulumi-helper.sh`,
 													".ci-env",
 												].join(" ")}`,
 												`rm -rf ${OUTPUT_PULUMI_PATH}`,
-												"pnpm store prune || true",
-												"corepack cache clean || true",
 											]}
 										/>
 									</>

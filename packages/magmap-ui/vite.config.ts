@@ -3,7 +3,6 @@ import adapter from '@hono/vite-dev-server/node';
 import ssg from '@hono/vite-ssg';
 import tailwindcss from "@tailwindcss/vite";
 import honox from 'honox/vite';
-import client from 'honox/vite/client';
 import { env } from "std-env";
 import { defineConfig } from 'vite';
 
@@ -16,16 +15,30 @@ const { PORT } = env;
 export default defineConfig(({mode}) => {
   if (mode === 'client') {
     return {
-      plugins: [client({
-        input: [
-          './app/style.css',
-      ]}),      
-    ],
+      build: {
+        rollupOptions: {
+          input: ['./app/client.ts', './app/style.css'],
+          output: {
+            entryFileNames: 'static/client.js',
+            chunkFileNames: 'static/assets/[name]-[hash].js',
+            assetFileNames: 'static/assets/[name].[ext]'
+          }
+        },
+        emptyOutDir: false
+      },
+      plugins: [
+        tailwindcss()
+      ]
     }
-  };
+  }
+
   return {
     build: {
       emptyOutDir: false,
+    },
+    ssr: {
+      external: ['react', 'react-dom'],
+      noExternal: true,
     },
     plugins: [
       tailwindcss(),
@@ -40,7 +53,6 @@ export default defineConfig(({mode}) => {
         },
       }),
       build({
-        entry,
         port: PORT ? Number(PORT) : undefined,
       }),
       ssg({

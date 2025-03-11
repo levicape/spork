@@ -19,4 +19,4 @@ ignores:
 - "ulid"
 - "verror"
 # ui
-- "autoprefixer"
+- "daisyui"

@@ -325,10 +325,11 @@ export = async () => {
 		);
 
 		const strategy = new DeploymentStrategy(_("strategy"), {
-			deploymentDurationInMinutes: 5,
-			replicateTo: "NONE",
 			description: `(${PACKAGE_NAME}) "${DESCRIPTION}" in #${stage}`,
+			deploymentDurationInMinutes: context.environment.isProd ? 12 : 2,
+			finalBakeTimeInMinutes: context.environment.isProd ? 16 : 3,
 			growthFactor: 10,
+			replicateTo: "NONE",
 			tags: {
 				Name: _("strategy"),
 				StackRef: STACKREF_ROOT,
@@ -561,7 +562,8 @@ export = async () => {
 				return interpolate`/applications/${applicationName}/environments/${environmentName}/${atlas[file].configuration.name}`;
 			});
 		};
-		let AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
+
+		const AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
 			let prefetch = [];
 			for (const af of Object.keys(atlas)) {
 				if (af) {
@@ -1539,7 +1541,7 @@ export = async () => {
 				},
 			},
 			{
-				dependsOn: [handler.codedeploy.deploymentGroup, handler.http.alias],
+				dependsOn: [handler.codedeploy.deploymentGroup],
 			},
 		);
 
