@@ -142,7 +142,7 @@ catalogs:
     '@bufbuild/buf': ^1.44.0
     ts-proto: ^2.6.1
   pulumi:
-    '@pulumi/aws': ^6.69.0
+    '@pulumi/aws': ^6.71.0
     '@pulumi/awsx': ^2.21.0
     '@pulumi/aws-native': ^1.25.0
     '@pulumi/command': ^1.0.1
