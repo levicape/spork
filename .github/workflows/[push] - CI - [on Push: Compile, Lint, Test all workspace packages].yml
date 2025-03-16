@@ -8,6 +8,7 @@ on:
 env:
   NPM_REGISTRY_PROTOCOL_LEVICAPE: https
   NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
+  LEVICAPE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build:
     name: Compile, Lint and Test all workspace packages
@@ -106,7 +107,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push] - CI - [on Push: Compile, Lint, Test all workspace packages].yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"cf3ee7e5f91bd75af1985b923b19b5cac6145eb6266a118d026092025e67311c"}
-#**:_$~- {"$$":"footer","started":"2025-03-16T03:44:13.589Z","now":"2025-03-16T03:44:13.607Z","elapsed":"18ms"}
+#**:_$~- {"$$":"body","hashed":"a6e68588e700ed471493a84f68c3422fdb7cc580a9b2e9d1feac16837bbec471"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T07:33:51.203Z","now":"2025-03-16T07:33:51.213Z","elapsed":"10ms"}
 # END OF GENERATED FILE
 

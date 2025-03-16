@@ -40,7 +40,7 @@ export default (
 	}) =>
 	async () => {
 		let {
-			current: { register, context: _$_, env },
+			current: { register, context: _$_, env, secret },
 		} = GithubWorkflowExpressions;
 
 		let CompileAndPublish = ({ cwd, packageName }: CompileAndPublishProps) => {
@@ -131,6 +131,7 @@ export default (
 				env={{
 					...register("NPM_REGISTRY_PROTOCOL_LEVICAPE", "https"),
 					...register("NPM_REGISTRY_HOST_LEVICAPE", "npm.pkg.github.com"),
+					...register("LEVICAPE_TOKEN", secret("GITHUB_TOKEN")),
 				}}
 			>
 				{props.compileAndPublish

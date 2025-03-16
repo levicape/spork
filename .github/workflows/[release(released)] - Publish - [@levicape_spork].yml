@@ -9,6 +9,7 @@ on:
 env:
   NPM_REGISTRY_PROTOCOL_LEVICAPE: https
   NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
+  LEVICAPE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   publish_spork:
     name: "@levicape/spork: Compile and publish to Github"
@@ -225,7 +226,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)] - Publish - [@levicape_spork].yml","source":"iac/workflows/github/release/Publish.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"38c50660d0ae8f7875c2b2ff46c09fdfb1d573399a7862a4fe532d791008605c"}
-#**:_$~- {"$$":"footer","started":"2025-03-16T03:44:15.898Z","now":"2025-03-16T03:44:15.907Z","elapsed":"9ms"}
+#**:_$~- {"$$":"body","hashed":"0b2709cd9030e1d63c421d5d64c20331fff1d44d97eeeeb5ced7ce119d86aae8"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T07:33:57.711Z","now":"2025-03-16T07:33:57.719Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 
