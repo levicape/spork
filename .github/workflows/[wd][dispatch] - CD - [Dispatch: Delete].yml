@@ -9,6 +9,9 @@ env:
   NPM_REGISTRY_PROTOCOL_LEVICAPE: https
   NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
   NPM_TOKEN_LEVICAPE: ${{ secrets.LEVICAPE_NPM_TOKEN }}
+  LEVICAPE_REGISTRY_HOST: npm.pkg.github.com/
+  LEVICAPE_REGISTRY: https://npm.pkg.github.com
+  LEVICAPE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NODE_NO_WARNINGS: "1"
   NPM_CONFIG_UPDATE_NOTIFIER: "false"
   FRONTEND_HOSTNAME: at.levicape.cloud
@@ -239,7 +242,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[wd][dispatch] - CD - [Dispatch: Delete].yml","source":"iac/workflows/github/workflow_dispatch/CD.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"21b93f4890ca73ac9f80364928f0e2adb41dbb130c852c3c096636936f95d9d2"}
-#**:_$~- {"$$":"footer","started":"2025-03-16T06:10:07.634Z","now":"2025-03-16T06:10:07.636Z","elapsed":"2ms"}
+#**:_$~- {"$$":"body","hashed":"6b9764a9c2b2902b998b4797f94b166b789cdcf84accd98204146452b79869a7"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T13:20:49.705Z","now":"2025-03-16T13:20:49.707Z","elapsed":"2ms"}
 # END OF GENERATED FILE
 

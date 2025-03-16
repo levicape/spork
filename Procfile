@@ -4,4 +4,3 @@ store: pnpm store status
 deploy: pnpm --filter $DEPLOY_FILTER --prod $DEPLOY_ARGS deploy $DEPLOY_OUTPUT || true; ls -la $DEPLOY_OUTPUT || true; echo "procfile deploy to $DEPLOY_OUTPUT complete"; sleep 1200s;
 # DEPLOY_ARGS= --verify-store-integrity=false --node-linker=hoisted --prefer-offline
 project: [[ -z $PROJECT_PATH ]] && echo "Project: $PROJECT_PATH ; this: $_" || echo 'PROJECT_PATH not set'; pnpm -C $PROJECT_PATH run $PROJECT_COMMAND
-web: echo 'Required by GCP buildpack';
