@@ -13,7 +13,7 @@ import {
 } from "@levicape/fourtwo/github";
 
 const {
-	current: { register, context: _$_, env },
+	current: { register, context: _$_, env, secret },
 } = GithubWorkflowExpressions;
 
 export const NodeGhaConfiguration = ({
@@ -45,6 +45,7 @@ export default async () => (
 		env={{
 			...register("NPM_REGISTRY_PROTOCOL_LEVICAPE", "https"),
 			...register("NPM_REGISTRY_HOST_LEVICAPE", "npm.pkg.github.com"),
+			...register("LEVICAPE_TOKEN", secret("GITHUB_TOKEN")),
 		}}
 	>
 		<GithubJobX
