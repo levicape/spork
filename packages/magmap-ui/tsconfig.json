@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ESNext",
     "module": "ESNext",
     "useDefineForClassFields": true,
@@ -15,8 +14,11 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "isolatedModules": true,
-    "moduleDetection": "force",
+    "moduleDetection": "auto",
     "noEmit": true,
+    "declaration": true,
+    "declarationMap": true,
+    "inlineSourceMap": true,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
 
@@ -30,7 +32,7 @@
     "importHelpers": true,
     "esModuleInterop": true,
   },
-  "include": ["app", "vite.config.ts"],
+  "include": ["app", "vite.config.mts"],
   "exclude": ["src/canary"],
   "references": [
     { "path": "./tsconfig.canary.json" },

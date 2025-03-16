@@ -1,5 +1,5 @@
-import { SporkHonoHttpServer } from "@levicape/spork/hono";
-import { HonoGuardAuthentication } from "@levicape/spork/hono/guard";
+import { SporkHonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServerBuilder";
+import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/security/HonoGuardAuthentication";
 import type { Context as HonoContext } from "hono";
 import { Hono } from "hono/quick";
 

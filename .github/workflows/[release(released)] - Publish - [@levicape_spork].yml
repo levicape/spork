@@ -7,8 +7,8 @@ on:
     types:
       - released
 env:
-  NPM_REGISTRY_PROTOCOL: https
-  NPM_REGISTRY_HOST: npm.pkg.github.com
+  NPM_REGISTRY_PROTOCOL_LEVICAPE: https
+  NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
 jobs:
   publish_spork:
     name: "@levicape/spork: Compile and publish to Github"
@@ -20,8 +20,8 @@ jobs:
       - name: Verify registry URL
         continue-on-error: true
         run: |-
-          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}";
-          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }};
+          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}";
+          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }};
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup pnpm
@@ -30,7 +30,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -64,8 +64,8 @@ jobs:
         run: pnpm run lint;
       - name: "Run package.json: test"
         run: pnpm run test;
-      - name: "Run package.json: prepublish"
-        run: pnpm run prepublish;
+      - name: "Run package.json: prepublishOnly"
+        run: pnpm run prepublishOnly;
       - name: Increment version
         env:
           RELEVANT_SHA: ${{ github.event.release.target_commitish || github.sha }}
@@ -91,8 +91,8 @@ jobs:
       - name: Verify registry URL
         continue-on-error: true
         run: |-
-          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}";
-          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }};
+          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}";
+          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }};
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup pnpm
@@ -101,7 +101,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -135,8 +135,8 @@ jobs:
         run: pnpm run lint;
       - name: "Run package.json: test"
         run: pnpm run test;
-      - name: "Run package.json: prepublish"
-        run: pnpm run prepublish;
+      - name: "Run package.json: prepublishOnly"
+        run: pnpm run prepublishOnly;
       - name: Increment version
         env:
           RELEVANT_SHA: ${{ github.event.release.target_commitish || github.sha }}
@@ -162,8 +162,8 @@ jobs:
       - name: Verify registry URL
         continue-on-error: true
         run: |-
-          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}";
-          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }};
+          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}";
+          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }};
       - name: Checkout
         uses: actions/checkout@v2
       - name: Setup pnpm
@@ -172,7 +172,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -206,8 +206,8 @@ jobs:
         run: pnpm run lint;
       - name: "Run package.json: test"
         run: pnpm run test;
-      - name: "Run package.json: prepublish"
-        run: pnpm run prepublish;
+      - name: "Run package.json: prepublishOnly"
+        run: pnpm run prepublishOnly;
       - name: Increment version
         env:
           RELEVANT_SHA: ${{ github.event.release.target_commitish || github.sha }}
@@ -225,7 +225,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)] - Publish - [@levicape_spork].yml","source":"iac/workflows/github/release/Publish.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"9438fd9e860345e598ab11d1f80776d9cad6a35a385f2d5ae3248aa6c2353000"}
-#**:_$~- {"$$":"footer","started":"2025-03-09T01:40:06.898Z","now":"2025-03-09T01:40:07.002Z","elapsed":"104ms"}
+#**:_$~- {"$$":"body","hashed":"38c50660d0ae8f7875c2b2ff46c09fdfb1d573399a7862a4fe532d791008605c"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T03:44:15.898Z","now":"2025-03-16T03:44:15.907Z","elapsed":"9ms"}
 # END OF GENERATED FILE
 

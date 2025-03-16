@@ -45,6 +45,10 @@ export const SporkDatalayerStackExportsZod = z
 					arn: z.string(),
 					name: z.string(),
 				}),
+				automation: z.object({
+					arn: z.string(),
+					name: z.string(),
+				}),
 			}),
 		}),
 		spork_datalayer_cloudmap: z.object({

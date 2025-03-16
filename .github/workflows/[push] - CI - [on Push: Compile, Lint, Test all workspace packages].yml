@@ -6,8 +6,8 @@ on:
   push:
     {}
 env:
-  NPM_REGISTRY_PROTOCOL: https
-  NPM_REGISTRY_HOST: npm.pkg.github.com
+  NPM_REGISTRY_PROTOCOL_LEVICAPE: https
+  NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
 jobs:
   build:
     name: Compile, Lint and Test all workspace packages
@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -71,7 +71,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -106,7 +106,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[push] - CI - [on Push: Compile, Lint, Test all workspace packages].yml","source":"iac/workflows/github/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"d6562d285bad7e923a324754d0ab1dd51147b3b40a123f77db7610ad74d4eec3"}
-#**:_$~- {"$$":"footer","started":"2025-03-09T00:58:20.232Z","now":"2025-03-09T00:58:20.239Z","elapsed":"7ms"}
+#**:_$~- {"$$":"body","hashed":"cf3ee7e5f91bd75af1985b923b19b5cac6145eb6266a118d026092025e67311c"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T03:44:13.589Z","now":"2025-03-16T03:44:13.607Z","elapsed":"18ms"}
 # END OF GENERATED FILE
 

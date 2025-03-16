@@ -18,8 +18,5 @@ ignores:
 - "ts-proto"
 - "ulid"
 - "verror"
-# ui
-- "@base-ui-components/react"
-- "daisyui"
-- "jotai"
-- "react-router"
+# io
+- "loglayer"

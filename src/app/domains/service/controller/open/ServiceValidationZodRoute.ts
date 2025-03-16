@@ -6,7 +6,7 @@ export const ServiceValidationZodSchema = z.literal("sesame");
 
 export const ServiceValidationZodRoute = <App extends Hono>(app: App) => {
 	return app.get(
-		"/open",
+		"/liveness",
 		zValidator("query", ServiceValidationZodSchema),
 		(c) => {
 			return c.json({

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { type FC, type PropsWithChildren, Suspense } from "react";
+import { Router } from "../routes/index/$AtomicRouter";
 import { DesignSystem } from "./DesignSystem";
 
 const { Shell, Header, Menubar, Layout, Fallback } = DesignSystem;
@@ -54,5 +55,6 @@ export const AppBody: FC<PropsWithChildren> = ({ children }) => (
 		<Shell>
 			<HeaderRoot>{children}</HeaderRoot>
 		</Shell>
+		<Router />
 	</body>
 );

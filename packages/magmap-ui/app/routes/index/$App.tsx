@@ -1,6 +1,6 @@
 import { Suspense, use, useCallback, useMemo, useState } from "react";
-import { SuspenseGuard } from "../ui/Client";
-import { DesignSystem } from "../ui/DesignSystem";
+import { SuspenseGuard } from "../../ui/Client";
+import { DesignSystem } from "../../ui/DesignSystem";
 
 const ExpensiveComponent = ({ wait }: { wait: Promise<unknown> }) => {
 	SuspenseGuard();
@@ -27,35 +27,25 @@ const ExpensiveComponent = ({ wait }: { wait: Promise<unknown> }) => {
 	);
 };
 
-const Content = ({
-	wait,
-}: {
-	wait: Promise<unknown>;
-}) => {
-	SuspenseGuard();
-
-	return (
-		<section className="card p-2 bg-ironstone-300 border-8 rounded-lg">
-			<ExpensiveComponent wait={wait} />
-		</section>
-	);
-};
-
 export const App = () => {
 	const wait = useMemo(
 		() =>
 			new Promise((resolve) => {
-				setTimeout(resolve, 2000);
+				setTimeout(resolve, 300);
 			}),
 		[],
 	);
 
 	return (
-		<article>
-			<h2>{"Cloudscape <3 HonoX"}</h2>
-			<Suspense fallback={<DesignSystem.Fallback />}>
-				<Content wait={wait} />
-			</Suspense>
+		<article className={"hero-content"}>
+			<div className="join join-vertical gap-4">
+				<h2 className={"join-item"}>{"Cloudscape <3 HonoX"}</h2>
+				<Suspense fallback={<DesignSystem.Fallback />}>
+					<section className="card join-item p-2 bg-ironstone-300 border-8 rounded-lg">
+						<ExpensiveComponent wait={wait} />
+					</section>
+				</Suspense>
+			</div>
 		</article>
 	);
 };

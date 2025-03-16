@@ -1,18 +1,9 @@
-import { Effect } from "effect";
 import type { Context } from "hono";
-import { App } from "./$App.tsx";
+import { App } from "./index/$App.tsx";
 
 export default async function Home(_c: Context) {
-	const rendered = Date.now();
-
-	await Effect.runPromise(
-		Effect.promise(() => new Promise((resolve) => setTimeout(resolve, 1200))),
-	);
 	return (
-		<main>
-			<article className={"hidden"} suppressHydrationWarning>
-				<small>{rendered}</small>
-			</article>
+		<main className="hero">
 			<App />
 		</main>
 	);
