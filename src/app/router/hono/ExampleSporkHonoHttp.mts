@@ -2,10 +2,12 @@ import { Hono } from "hono";
 import { createMiddleware } from "hono/factory";
 import { AuthenticatedRouter } from "../../domains/authenticated/AuthenticatedRouter.mjs";
 import { SporkHonoHttpServer } from "./HonoHttpServerBuilder.mjs";
+import { HonoGuardLogging } from "./guard/log/HonoGuardLogging.mjs";
 
 export const { server, handler } = await SporkHonoHttpServer((app) =>
 	app
 		.basePath("/base")
+		.use(HonoGuardLogging({}))
 		.get("/test123", async (c) => {
 			c.get("Logging")?.info("Hello, world!");
 			c.json({ message: `Hello, ${Hono.name}!` });

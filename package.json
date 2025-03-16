@@ -74,16 +74,10 @@
     "node": "22.13.0"
   },
   "exports": {
-    "./*": "./module/app/*.mjs",
-    "./hono": "./module/app/router/hono/HonoHttpServerBuilder.mjs",
-    "./hono/guard": "./module/app/router/hono/guard/HonoHttpGuard.mjs",
-    "./hono/middleware": "./module/app/router/hono/middleware/HonoHttpMiddleware.mjs",
-    "./hono/*": "./module/app/router/hono/*.mjs"
+    "./*": "./module/app/*.mjs"
   },
   "files": [
     "module",
-    "iac",
-    "protocols",
     "output"
   ],
   "license": "AGPL-3.0-only",
@@ -175,7 +169,7 @@
       }
     }
   },
-  "packageManager": "pnpm@9.15.7+sha512.ed98f9c748442673c46964b70345bd2282c9b305e8eae539b34ab31d6ef24ef8dd59d8b55f27466f705500b009d9c113471cf87e544f3d5036b297330c26e996",
+  "packageManager": "pnpm@9.15.9+sha512.68046141893c66fad01c079231128e9afb89ef87e2691d69e4d40eee228988295fd4682181bae55b58418c3a253bde65a505ec7c5f9403ece5cc3cd37dcf2531",
   "pnpm": {
     "supportedArchitectures": {
       "os": [
@@ -207,7 +201,7 @@
     "dx:image": "$npm_package_config_packageexecutor nx pack:build iac-images-application --verbose",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx dx:sync && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will recompile iac files and check package.json dependencies.\"",
-    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
+    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublishOnly",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile packages, run dx:lint and format package.json and verify all exports are valid. \"",
     "dx:sync": "$npm_package_config_packageexecutor nx dx:sync:pre && $npm_package_config_packageexecutor nx nx:sync",
     "dx:sync:pre": "echo \"Starting sync dx. This will generate all the workflows and sync them with the repository.\"",
@@ -215,18 +209,18 @@
     "generate:protocols": "$npm_package_config_packageexecutor tsx $npm_package_config_binpath code gen --root \"./protocols\" --command \"$(which $npm_package_config_packagemanager) run build\" --artifact gen --destination $npm_package_config_protocols --clean",
     "http:dev": "rm nohup.out || true; nohup $npm_package_config_packageexecutor tsc -w & echo $! > .pidfile.tsc && LOG_LEVEL=5 pnpm run http:start --watch module; kill $(cat .pidfile.tsc) || true; rm -f .pidfile.tsc || true",
     "http:start": "node --enable-source-maps --no-force-async-hooks-checks --use-largepages=on $npm_package_config_clipath server start $npm_package_config_server --port ${PORT:-64128}",
-    "lint": "$npm_package_config_packageexecutor nx exec -- biome check $npm_package_config_lintpaths",
-    "lint:format": "$npm_package_config_packageexecutor nx exec -- biome check --write $npm_package_config_lintpaths",
-    "lint:unsafe": "$npm_package_config_packageexecutor nx exec -- biome check --write --unsafe $npm_package_config_lintpaths",
-    "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
-    "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
-    "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
-    "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
+    "lint": "$npm_package_config_packageexecutor biome check $npm_package_config_lintpaths",
+    "lint:format": "$npm_package_config_packageexecutor biome check --write $npm_package_config_lintpaths",
+    "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_lintpaths",
+    "package:deps": "$npm_package_config_packageexecutor depcheck",
+    "package:fix": "$npm_package_config_packageexecutor syncpack fix-mismatches",
+    "package:format": "$npm_package_config_packageexecutor syncpack format",
+    "package:update": "$npm_package_config_packageexecutor syncpack update",
     "postclean:packages": "$npm_package_config_packagemanager install --ignore-scripts --prefer-offline && sleep 2s",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish --no-cloud --verbose",
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
-    "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
-    "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
+    "prelint": "$npm_package_config_packageexecutor biome format $npm_package_config_lintpaths",
+    "prepublishOnly": "$npm_package_config_packageexecutor publint --strict",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'",
     "xx:workflow": "$npm_package_config_packageexecutor nx run-many -t build,lint,test--parallel=1 --verbose --no-cloud && $npm_package_config_packageexecutor nx run-many -t package:deps,prepublish --parallel=1 --verbose --no-cloud"

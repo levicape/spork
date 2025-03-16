@@ -20,7 +20,7 @@ type CompileAndPublishProps = {
 	packageName: string;
 };
 
-const compileAndPublish = [
+const compileAndPublish: CompileAndPublishProps[] = [
 	{
 		packageName: "@levicape/spork",
 	},
@@ -32,7 +32,7 @@ const compileAndPublish = [
 		packageName: "@levicape/protobuf-spork-stands",
 		cwd: "protocols/stands",
 	},
-] satisfies CompileAndPublishProps[];
+];
 
 export default (
 	(props: {
@@ -65,8 +65,8 @@ export default (
 								name={"Verify registry URL"}
 								continueOnError={true}
 								run={[
-									`echo "NPM_REGISTRY_URL: ${env("NPM_REGISTRY_PROTOCOL")}://${env("NPM_REGISTRY_HOST")}"`,
-									`curl -v --insecure ${env("NPM_REGISTRY_PROTOCOL")}://${env("NPM_REGISTRY_HOST")}`,
+									`echo "NPM_REGISTRY_URL: ${env("NPM_REGISTRY_PROTOCOL_LEVICAPE")}://${env("NPM_REGISTRY_HOST_LEVICAPE")}"`,
+									`curl -v --insecure ${env("NPM_REGISTRY_PROTOCOL_LEVICAPE")}://${env("NPM_REGISTRY_HOST_LEVICAPE")}`,
 								]}
 							/>
 							<GithubStepCheckoutX />
@@ -87,7 +87,7 @@ export default (
 							</GithubStepNodeSetupX>
 							<GithubStepNodeScriptsX
 								configuration={NodeGhaConfiguration({ env })}
-								scripts={["prepublish"]}
+								scripts={["prepublishOnly"]}
 							/>
 							<GithubStepX
 								name={"Increment version"}
@@ -129,8 +129,8 @@ export default (
 					},
 				}}
 				env={{
-					...register("NPM_REGISTRY_PROTOCOL", "https"),
-					...register("NPM_REGISTRY_HOST", "npm.pkg.github.com"),
+					...register("NPM_REGISTRY_PROTOCOL_LEVICAPE", "https"),
+					...register("NPM_REGISTRY_HOST_LEVICAPE", "npm.pkg.github.com"),
 				}}
 			>
 				{props.compileAndPublish

@@ -1,10 +1,23 @@
-import { R_OK, W_OK } from "node:constants";
-import { accessSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { ensureFileSync } from "fs-extra";
-import { process } from "std-env";
+import { ensureFileSync } from "fs-extra/esm";
+import { isNode, process } from "std-env";
 import { z } from "zod";
 import { envsubst } from "./transform/Envsubst.mjs";
+import { fileURLToPath } from "./transform/FileUrlToPath.mjs";
+
+let accessSync: (path: string, mode: number) => void;
+let constants: {
+	R_OK: number;
+	W_OK: number;
+} = { R_OK: 0, W_OK: 0 };
+if (isNode) {
+	// @ts-ignore
+	const { accessSync: _accessSync, constants: _constants } = await import(
+		"node:fs"
+	);
+	accessSync = _accessSync;
+	constants = _constants;
+}
+const { R_OK, W_OK } = constants;
 
 /**
  * AtlasEnvironment configuration interface for environment variables.
@@ -37,7 +50,7 @@ export const AtlasEnvironmentZod = z.object({
 		.refine(
 			(path) => {
 				if (path) {
-					const filepath = fileURLToPath(path);
+					const filepath = fileURLToPath(path, "/");
 					if (path.startsWith("file://")) {
 						try {
 							accessSync(filepath, R_OK);

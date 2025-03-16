@@ -21,14 +21,18 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "catalog:protobuf",
+    "@hono/zod-validator": "catalog:hono",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "workspace:",
     "@levicape/spork-atlas": "workspace:",
     "effect": "catalog:effect",
     "hono": "catalog:hono",
     "hono-rate-limiter": "catalog:hono",
+    "loglayer": "catalog:log-loglayer",
+    "serialize-error": "catalog:error",
     "std-env": "catalog:runtime-env",
-    "ts-proto": "catalog:protobuf"
+    "ts-proto": "catalog:protobuf",
+    "zod": "catalog:schema-zod"
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
@@ -38,6 +42,9 @@
   },
   "engines": {
     "node": "22"
+  },
+  "exports": {
+    "./*": "./module/*.mjs"
   },
   "files": [
     "module",
@@ -59,7 +66,8 @@
       },
       "build:tsc": {
         "dependsOn": [
-          "@levicape/spork:build:module"
+          "@levicape/spork:build:module",
+          "@levicape/spork-atlas:build:module"
         ]
       },
       "dx:lint": {
@@ -122,7 +130,7 @@
     "clean:modules": "rm -rf $npm_package_config_modulepath",
     "dx:precommit": "$npm_package_config_packageexecutor nx dx:precommit:pre && $npm_package_config_packageexecutor nx package:deps",
     "dx:precommit:pre": "echo \"Starting precommit dx. This will check package.json dependencies.\"",
-    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublish",
+    "dx:prepublish": "$npm_package_config_packageexecutor nx dx:lint && $npm_package_config_packageexecutor nx prepublishOnly",
     "dx:prepublish:pre": "echo \"Starting prepublish dx. This will compile the package, lint it, format package.json and verify all exports are valid. \"",
     "dx:test": "$npm_package_config_packagescript clean && $npm_package_config_packagescript build && $npm_package_config_packagescript test",
     "generate:i18n": "NODE_NO_WARNINGS=1 NPM_CONFIG_UPDATE_NOTIFIER=false $npm_package_config_packageexecutor spork code gen --root \"../../i18n\" --command \"$(which $npm_package_config_packagemanager) --silent run build\" --artifact module --destination $npm_package_config_i18n --clean",
@@ -136,12 +144,12 @@
     "lint:unsafe": "$npm_package_config_packageexecutor biome check --write --unsafe $npm_package_config_srcpaths",
     "package:deps": "$npm_package_config_packageexecutor nx exec -- depcheck",
     "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
-    "package:format": "$npm_package_config_packageexecutor nx exec -- syncpack format",
-    "package:update": "$npm_package_config_packageexecutor nx exec -- syncpack update",
+    "package:format": "$npm_package_config_packageexecutor syncpack format",
+    "package:update": "$npm_package_config_packageexecutor syncpack update",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish  --verbose --no-cloud",
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
-    "prelint": "$npm_package_config_packageexecutor nx exec -- biome format $npm_package_config_lintpaths",
-    "prepublish": "$npm_package_config_packageexecutor nx exec -- publint --strict",
+    "prelint": "$npm_package_config_packageexecutor biome format $npm_package_config_lintpaths",
+    "prepublishOnly": "$npm_package_config_packageexecutor publint --strict",
     "start": "$npm_package_config_packageexecutor spork server start $npm_package_config_server --port $PORT",
     "test": "$npm_package_config_packageexecutor nx nx:test --verbose --no-cloud",
     "test:module": "echo 'node --test  \"module/**/*.test.js\"'"

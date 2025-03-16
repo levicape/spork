@@ -60,11 +60,11 @@ export const healthcheck = new Canary(
 			trace.metadataOnly([
 				events,
 				{ a: 1, b: "Y" },
-				client["~"].Spork.Magmap.test123.$url({}),
+				client["~"].Spork.Magmap.atlas.$url({}),
 				{ a: "Z", b: 2 },
 			]);
 			{
-				const response = await client["!"].v1.Service.open.$get({
+				const response = await client["!"].v1.Service.liveness.$get({
 					query: "sesame",
 				});
 				const json = await response.json();
@@ -72,7 +72,7 @@ export const healthcheck = new Canary(
 			}
 
 			{
-				const response = await client["!"].v1.Service.open.$get({
+				const response = await client["!"].v1.Service.liveness.$get({
 					query: "spaghetti" as "sesame",
 				});
 				const json = await response.json();

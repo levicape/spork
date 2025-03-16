@@ -1,13 +1,21 @@
-import { appendFileSync, readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import { inspect } from "node:util";
 import { destr } from "destr";
 import { deserializeError, serializeError } from "serialize-error";
-import { env, process } from "std-env";
+import { env, isNode, process } from "std-env";
 import VError from "verror";
 import { AtlasEnvironmentZod } from "../AtlasEnvironment.mjs";
+import { fileURLToPath } from "../transform/FileUrlToPath.mjs";
 import { type Prefix, type Route, RoutePathsZod } from "./RouteResource.mjs";
 import { CaddyfileReverseProxy } from "./caddy/Caddyfile.mjs";
+
+let readFileSync: (path: string, mode: string) => string;
+let appendFileSync: (path: string, data: string) => void;
+if (isNode) {
+	const { readFileSync: _readFileSync, appendFileSync: _appendFileSync } =
+		await import("node:fs");
+	// @ts-ignore
+	readFileSync = _readFileSync;
+	appendFileSync = _appendFileSync;
+}
 
 /**
  * Internal data structure for each Topology entry
@@ -75,7 +83,7 @@ export function AtlasRoutes<Paths extends Prefix>(
 	const { ATLAS_ROUTES, ATLAS_CADDYFILE } = parsedEnv.data ?? {};
 	if (!parsedEnv.success) {
 		console.error(
-			`AtlasEnvZod failed to parse env: ${inspect(parsedEnv.error.flatten(), { depth: null })}\n`,
+			`AtlasEnvZod failed to parse env: ${JSON.stringify(parsedEnv.error.flatten())}\n`,
 		);
 
 		deferExit();
@@ -95,29 +103,23 @@ export function AtlasRoutes<Paths extends Prefix>(
 		///
 		// Read file
 		//
-		const filepath = fileURLToPath(ATLAS_ROUTES);
+		const filepath = fileURLToPath(ATLAS_ROUTES, "/");
 		let file: string | undefined;
 		try {
 			file = readFileSync(filepath, "utf-8");
 			resolved = destr(file);
 		} catch (error) {
 			console.error(
-				`Atlas failed to parse ATLAS_ROUTES: ${inspect(
-					{
-						filepath,
-						file,
-						resolved,
-					},
-					{ depth: null },
-				)}\n`,
+				`Atlas failed to parse ATLAS_ROUTES: ${JSON.stringify({
+					filepath,
+					file,
+					resolved,
+				})}\n`,
 			);
 			console.error(
-				inspect(
-					{
-						error: serializeError(error),
-					},
-					{ depth: null },
-				),
+				JSON.stringify({
+					error: serializeError(error),
+				}),
 			);
 
 			deferExit();
@@ -135,11 +137,11 @@ export function AtlasRoutes<Paths extends Prefix>(
 		if (!result.success) {
 			console.error(`Filename: ${ATLAS_ROUTES} \n`);
 			console.error("Raw: \n");
-			console.error(inspect(file, { depth: null }));
+			console.error(JSON.stringify(file));
 			console.error("\n Parsed:\n");
-			console.error(inspect(resolved, { depth: null }));
+			console.error(JSON.stringify(resolved));
 			console.error(
-				`\n RoutePathsZod failed validation: ${inspect(result.error.flatten(), { depth: null })}\n`,
+				`\n RoutePathsZod failed validation: ${JSON.stringify(result.error.flatten())}\n`,
 			);
 			deferExit();
 			throw new VError(

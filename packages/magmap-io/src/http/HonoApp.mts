@@ -1,5 +1,6 @@
-import { SporkHonoHttpServer } from "@levicape/spork/hono";
-import { HonoGuardAuthentication } from "@levicape/spork/hono/guard/HonoHttpGuard";
+import { zValidator } from "@hono/zod-validator";
+import { SporkHonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServerBuilder";
+import { HonoGuardLogging } from "@levicape/spork/router/hono/guard/log/HonoGuardLogging";
 import type { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
 import type {
@@ -7,8 +8,11 @@ import type {
 	LambdaContext,
 	LambdaEvent,
 } from "hono/aws-lambda";
+import { HTTPException } from "hono/http-exception";
+import { deserializeError, serializeError } from "serialize-error";
 import { env } from "std-env";
-import { HTTP_BASE_PATH } from "./Atlas.mjs";
+import { z } from "zod";
+import { HTTP_BASE_PATH, MagmapRoutemap } from "./Atlas.mjs";
 
 // import { getConnInfo } from "@hono/node-server/conninfo";
 const getConnInfo = (c: Parameters<typeof SporkRateLimiterKeyGenerator>[0]) => {
@@ -80,11 +84,73 @@ export const { server, stream } = await SporkHonoHttpServer((app) =>
 			}),
 		)
 		.basePath(HTTP_BASE_PATH)
-		.get(
-			"/test123",
-			HonoGuardAuthentication(() => Promise.resolve(true)),
+		.use(HonoGuardLogging({}))
+		.get("/atlas", async (c) => {
+			return c.json({
+				data: {
+					magmap: {
+						atlas: {
+							routes: MagmapRoutemap,
+						},
+					},
+				},
+			});
+		})
+		.post(
+			"/atlas/routes/!/status",
+			zValidator(
+				"query",
+				z.object({
+					route: z.string(),
+				}),
+			),
 			async (c) => {
-				return c.json({ message: `Hello, world!` });
+				let { route } = c.req.valid("query");
+				if (MagmapRoutemap[route as "/~/Spork/Magmap"] === undefined) {
+					throw new HTTPException(200, {
+						res: new Response(
+							JSON.stringify({
+								error: {
+									message: `Route ${route} not found`,
+									code: "RouteNotFound",
+								},
+							}),
+							{
+								headers: { "Content-Type": "application/json" },
+							},
+						),
+					});
+				}
+				let liveness: Error | Response = await fetch(
+					MagmapRoutemap[route as "/~/Spork/Magmap"].instance(),
+				).catch((e) => {
+					c.var.Logging?.withMetadata({
+						AtlasRoutes: {
+							status: {
+								error: serializeError(e),
+							},
+						},
+					}).error(`Error fetching liveness for route ${route}: ${e}`);
+					return deserializeError(e);
+				});
+
+				return c.json({
+					data: {
+						magmap: {
+							atlas: {
+								[route]: {
+									liveness:
+										liveness instanceof Response
+											? {
+													status: liveness.status,
+													statusText: liveness.statusText,
+												}
+											: liveness,
+								},
+							},
+						},
+					},
+				});
 			},
 		),
 );

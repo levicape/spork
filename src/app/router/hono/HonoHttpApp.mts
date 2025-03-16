@@ -3,12 +3,10 @@ import { Hono } from "hono/quick";
 import { ServiceHonoRouter } from "../../domains/service/ServiceHonoRouter.js";
 import { WellknownHonoRouter } from "../../domains/wellknown/WellknownHonoRouter.mjs";
 import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
-import {
-	type HonoHttpMiddlewareStandard,
-	HonoLoggingContext,
-} from "./middleware/HonoHttpMiddleware.mjs";
+import type { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
 import { Hono404Handler } from "./middleware/exception/Hono404Handler.js";
 import { HonoExceptionMiddleware } from "./middleware/exception/HonoExceptionMiddleware.mjs";
+import { HonoLoggingContext } from "./middleware/log/HonoLoggingContext.mjs";
 
 let _factory: () => Hono;
 export const SporkHonoFactory = (factory: () => Hono) => {

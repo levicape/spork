@@ -1,10 +1,10 @@
 import { createMiddleware } from "hono/factory";
 import VError from "verror";
-import type { HonoBearerAuthMiddleware } from "../../middleware/HonoHttpMiddleware.mjs";
 import {
 	type HonoHttpAuthenticationBearerContext,
 	HonoHttpAuthenticationBearerPrincipal,
 } from "../../middleware/security/HonoAuthenticationBearer.mjs";
+import type { HonoBearerAuthMiddleware } from "../../middleware/security/HonoBearerAuth.mjs";
 
 export const HonoGuardAuthentication = (
 	guard: (context: HonoHttpAuthenticationBearerContext) => Promise<boolean>,

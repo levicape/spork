@@ -6,8 +6,9 @@ on:
   workflow_dispatch:
     {}
 env:
-  NPM_REGISTRY_PROTOCOL: https
-  NPM_REGISTRY_HOST: npm.pkg.github.com
+  NPM_REGISTRY_PROTOCOL_LEVICAPE: https
+  NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
+  NPM_TOKEN_LEVICAPE: ${{ secrets.LEVICAPE_NPM_TOKEN }}
   NODE_NO_WARNINGS: "1"
   NPM_CONFIG_UPDATE_NOTIFIER: "false"
   FRONTEND_HOSTNAME: at.levicape.cloud
@@ -30,7 +31,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL }}://${{ env.NPM_REGISTRY_HOST }}
+          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -53,15 +54,13 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.json') }}
           restore-keys: ${{ runner.os }}-pnpm-store-
       - name: Set NPM Registry to Verdaccio:31313
-        run: pnpm set registry http://localhost:31313/;
+        run: pnpm set registry http://localhost:31313;
       - if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
         name: List Dependencies
         continue-on-error: true
         run: pnpm list;
       - name: Install Dependencies
         run: pnpm install;
-      - name: Reset Nx Cache
-        run: pnpm exec nx reset || true;
       - name: Build image
         run: pnpm exec nx pack:build iac-images-application --verbose;
       - name: Verify AWS credentials
@@ -240,7 +239,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[wd][dispatch] - CD - [Dispatch: Preview].yml","source":"iac/workflows/github/workflow_dispatch/CD.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"279126a59c858d2f4c6bb3bdd8483b9885b9f1f0ffb9d67b680085cc47032e93"}
-#**:_$~- {"$$":"footer","started":"2025-03-11T22:04:20.139Z","now":"2025-03-11T22:04:20.141Z","elapsed":"2ms"}
+#**:_$~- {"$$":"body","hashed":"26674107d6379c68aaf349edc938efd87d977e81d69f47e43d3e13bfe4c340a6"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T06:10:07.631Z","now":"2025-03-16T06:10:07.633Z","elapsed":"2ms"}
 # END OF GENERATED FILE
 
