@@ -28,7 +28,7 @@ export const NodeGhaConfiguration = ({
 		},
 		registry: {
 			scope: "@levicape",
-			host: `${e("NPM_REGISTRY_PROTOCOL_LEVICAPE")}://${e("NPM_REGISTRY_HOST_LEVICAPE")}`,
+			host: `${e("LEVICAPE_REGISTRY")}`,
 			secret,
 		},
 		version: {
@@ -43,8 +43,8 @@ export default async () => (
 			push: {},
 		}}
 		env={{
-			...register("NPM_REGISTRY_PROTOCOL_LEVICAPE", "https"),
-			...register("NPM_REGISTRY_HOST_LEVICAPE", "npm.pkg.github.com"),
+			...register("LEVICAPE_REGISTRY_HOST", "npm.pkg.github.com/"),
+			...register("LEVICAPE_REGISTRY", "https://npm.pkg.github.com"),
 			...register("LEVICAPE_TOKEN", secret("GITHUB_TOKEN")),
 		}}
 	>

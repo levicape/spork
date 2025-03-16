@@ -36,6 +36,9 @@ export const NodeGhaConfiguration = ({
 		},
 		registry: {
 			scope: "@levicape",
+			/**
+			 * @see iac/stacks/codestar
+			 */
 			host: `${e("NPM_REGISTRY_PROTOCOL_LEVICAPE")}://${e("NPM_REGISTRY_HOST_LEVICAPE")}`,
 			secret,
 		},

@@ -61,15 +61,37 @@ export default (
 					}
 					steps={
 						<>
+							<GithubStepCheckoutX />
+							<GithubStepX
+								name="Remove project .npmrc"
+								run={(() => {
+									const rootWorkspaceNpmrc = (() => {
+										let pathSegments = cwd
+											?.split("/")
+											.filter((segment) => segment.length > 0)
+											.map((segment) => "..")
+											.join("/");
+										if (pathSegments) {
+											return `${pathSegments}/.npmrc`;
+										}
+										return `.npmrc`;
+									})();
+
+									return [
+										`if [ -f ${rootWorkspaceNpmrc} ]; then rm ${rootWorkspaceNpmrc}; fi`,
+										`if [ -f .npmrc ]; then rm .npmrc; fi`,
+									];
+								})()}
+							/>
 							<GithubStepX
 								name={"Verify registry URL"}
 								continueOnError={true}
 								run={[
-									`echo "NPM_REGISTRY_URL: ${env("NPM_REGISTRY_PROTOCOL_LEVICAPE")}://${env("NPM_REGISTRY_HOST_LEVICAPE")}"`,
-									`curl -v --insecure ${env("NPM_REGISTRY_PROTOCOL_LEVICAPE")}://${env("NPM_REGISTRY_HOST_LEVICAPE")}`,
+									`echo "NPM_REGISTRY_URL: ${env("LEVICAPE_REGISTRY")}"`,
+									`echo "NPM_REGISTRY_HOST: ${env("LEVICAPE_REGISTRY_HOST")}"`,
+									`curl -v --insecure ${env("LEVICAPE_REGISTRY")}`,
 								]}
 							/>
-							<GithubStepCheckoutX />
 							<GithubStepNodeSetupX
 								configuration={NodeGhaConfiguration({ env })}
 								options={{}}
@@ -95,7 +117,7 @@ export default (
 									"export PREID=$RELEVANT_SHA",
 									"export PREID=${PREID:0:10}",
 									`export ARGS="--git-tag-version=false --commit-hooks=false"`,
-									`npm version ${_$_("github.event.release.tag_name")}-$PREID.${_$_("github.run_number")} $ARGS --allow-same-version`,
+									`npm version ${_$_("github.event.release.tag_name")}-\${PREID:-unknown}.${_$_("github.run_number")} $ARGS --allow-same-version`,
 								]}
 								env={{
 									RELEVANT_SHA: _$_(
@@ -129,8 +151,8 @@ export default (
 					},
 				}}
 				env={{
-					...register("NPM_REGISTRY_PROTOCOL_LEVICAPE", "https"),
-					...register("NPM_REGISTRY_HOST_LEVICAPE", "npm.pkg.github.com"),
+					...register("LEVICAPE_REGISTRY_HOST", "npm.pkg.github.com/"),
+					...register("LEVICAPE_REGISTRY", "https://npm.pkg.github.com"),
 					...register("LEVICAPE_TOKEN", secret("GITHUB_TOKEN")),
 				}}
 			>
