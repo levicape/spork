@@ -7,8 +7,8 @@ on:
     types:
       - released
 env:
-  NPM_REGISTRY_PROTOCOL_LEVICAPE: https
-  NPM_REGISTRY_HOST_LEVICAPE: npm.pkg.github.com
+  LEVICAPE_REGISTRY_HOST: npm.pkg.github.com/
+  LEVICAPE_REGISTRY: https://npm.pkg.github.com
   LEVICAPE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   publish_spork:
@@ -18,20 +18,23 @@ jobs:
       packages: write
       contents: read
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Remove project .npmrc
+        run: rm .npmrc;
       - name: Verify registry URL
         continue-on-error: true
         run: |-
-          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}";
-          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }};
-      - name: Checkout
-        uses: actions/checkout@v2
+          echo "NPM_REGISTRY_URL: ${{ env.LEVICAPE_REGISTRY }}";
+          echo "NPM_REGISTRY_HOST: ${{ env.LEVICAPE_REGISTRY_HOST }}";
+          curl -v --insecure ${{ env.LEVICAPE_REGISTRY }};
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
       - name: Setup Node 22.13.0
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
+          registry-url: ${{ env.LEVICAPE_REGISTRY }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -74,7 +77,7 @@ jobs:
           export PREID=$RELEVANT_SHA;
           export PREID=${PREID:0:10};
           export ARGS="--git-tag-version=false --commit-hooks=false";
-          npm version ${{ github.event.release.tag_name }}-$PREID.${{ github.run_number }} $ARGS --allow-same-version;
+          npm version ${{ github.event.release.tag_name }}-${PREID:-unknown}.${{ github.run_number }} $ARGS --allow-same-version;
       - if: success()
         name: Publish to npm
         continue-on-error: true
@@ -89,20 +92,23 @@ jobs:
       run:
         working-directory: packages/atlas
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Remove project .npmrc
+        run: rm .npmrc;
       - name: Verify registry URL
         continue-on-error: true
         run: |-
-          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}";
-          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }};
-      - name: Checkout
-        uses: actions/checkout@v2
+          echo "NPM_REGISTRY_URL: ${{ env.LEVICAPE_REGISTRY }}";
+          echo "NPM_REGISTRY_HOST: ${{ env.LEVICAPE_REGISTRY_HOST }}";
+          curl -v --insecure ${{ env.LEVICAPE_REGISTRY }};
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
       - name: Setup Node 22.13.0
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
+          registry-url: ${{ env.LEVICAPE_REGISTRY }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -145,7 +151,7 @@ jobs:
           export PREID=$RELEVANT_SHA;
           export PREID=${PREID:0:10};
           export ARGS="--git-tag-version=false --commit-hooks=false";
-          npm version ${{ github.event.release.tag_name }}-$PREID.${{ github.run_number }} $ARGS --allow-same-version;
+          npm version ${{ github.event.release.tag_name }}-${PREID:-unknown}.${{ github.run_number }} $ARGS --allow-same-version;
       - if: success()
         name: Publish to npm
         continue-on-error: true
@@ -160,20 +166,23 @@ jobs:
       run:
         working-directory: protocols/stands
     steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Remove project .npmrc
+        run: rm .npmrc;
       - name: Verify registry URL
         continue-on-error: true
         run: |-
-          echo "NPM_REGISTRY_URL: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}";
-          curl -v --insecure ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }};
-      - name: Checkout
-        uses: actions/checkout@v2
+          echo "NPM_REGISTRY_URL: ${{ env.LEVICAPE_REGISTRY }}";
+          echo "NPM_REGISTRY_HOST: ${{ env.LEVICAPE_REGISTRY_HOST }}";
+          curl -v --insecure ${{ env.LEVICAPE_REGISTRY }};
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
       - name: Setup Node 22.13.0
         uses: actions/setup-node@v4
         with:
           node-version: 22.13.0
-          registry-url: ${{ env.NPM_REGISTRY_PROTOCOL_LEVICAPE }}://${{ env.NPM_REGISTRY_HOST_LEVICAPE }}
+          registry-url: ${{ env.LEVICAPE_REGISTRY }}
           cache: pnpm
           cache-dependency-path: pnpm-lock.yaml
           scope: "@levicape"
@@ -216,7 +225,7 @@ jobs:
           export PREID=$RELEVANT_SHA;
           export PREID=${PREID:0:10};
           export ARGS="--git-tag-version=false --commit-hooks=false";
-          npm version ${{ github.event.release.tag_name }}-$PREID.${{ github.run_number }} $ARGS --allow-same-version;
+          npm version ${{ github.event.release.tag_name }}-${PREID:-unknown}.${{ github.run_number }} $ARGS --allow-same-version;
       - if: success()
         name: Publish to npm
         continue-on-error: true
@@ -226,7 +235,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)] - Publish - [@levicape_spork].yml","source":"iac/workflows/github/release/Publish.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"0b2709cd9030e1d63c421d5d64c20331fff1d44d97eeeeb5ced7ce119d86aae8"}
-#**:_$~- {"$$":"footer","started":"2025-03-16T07:33:57.711Z","now":"2025-03-16T07:33:57.719Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"719da484c053cc0b8658a0f1661d7e0b7b0d3be7d8fd62fe1c70780d77432495"}
+#**:_$~- {"$$":"footer","started":"2025-03-16T12:00:52.151Z","now":"2025-03-16T12:00:52.160Z","elapsed":"9ms"}
 # END OF GENERATED FILE
 
