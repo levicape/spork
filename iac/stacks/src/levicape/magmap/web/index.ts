@@ -38,14 +38,30 @@ import {
 } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
-import { SporkHttpStackExportsZod } from "../../../http/exports";
+import {
+	SporkHttpStackExportsZod,
+	SporkHttpStackrefRoot,
+} from "../../../http/exports";
+import {
+	SporkMagmapChannelsStackExportsZod,
+	SporkMagmapChannelsStackrefRoot,
+} from "../channels/exports";
+import {
+	SporkMagmapClientOauthRoutes,
+	SporkMagmapClientStackExportsZod,
+	SporkMagmapClientStackrefRoot,
+} from "../client/exports";
 import {
 	SporkMagmapHttpStackExportsZod,
 	SporkMagmapHttpStackrefRoot,
 } from "../http/exports";
+import { SporkMagmapWWWRootSubdomain } from "../wwwroot/exports";
+
 import { SporkMagmapWebStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork-magmap-ui" as const;
+const SUBDOMAIN =
+	process.env["STACKREF_SUBDOMAIN"] ?? SporkMagmapWWWRootSubdomain;
 const DEPLOY_DIRECTORY = "dist" as const;
 const MANIFEST_PATH = "/_web/routemap.json" as const;
 
@@ -57,6 +73,7 @@ const STACKREF_CONFIG = {
 				servicecatalog:
 					SporkApplicationStackExportsZod.shape
 						.spork_application_servicecatalog,
+				sns: SporkApplicationStackExportsZod.shape.spork_application_sns,
 			},
 		},
 		codestar: {
@@ -75,9 +92,20 @@ const STACKREF_CONFIG = {
 				iam: SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
 			},
 		},
-		http: {
+		[SporkHttpStackrefRoot]: {
 			refs: {
 				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
+			},
+		},
+		[SporkMagmapClientStackrefRoot]: {
+			refs: {
+				cognito:
+					SporkMagmapClientStackExportsZod.shape.spork_magmap_client_cognito,
+			},
+		},
+		[SporkMagmapChannelsStackrefRoot]: {
+			refs: {
+				sns: SporkMagmapChannelsStackExportsZod.shape.spork_magmap_channels_sns,
 			},
 		},
 		[SporkMagmapHttpStackrefRoot]: {
@@ -373,12 +401,18 @@ export = async () => {
 		})();
 	}
 
-	const codebuild = (() => {
+	const extractimage = (() => {
 		const deployStage = "staticwww";
 		const deployAction = "extractimage";
 		const artifactIdentifier = `${deployStage}_${deployAction}`;
 
 		const { codeartifact, ssm } = dereferenced$.codestar;
+		// TODO (stackref) => client; // Allow customizing the OIDC.js output
+		const { client: oidcClient, domain } =
+			dereferenced$[SporkMagmapClientStackrefRoot].cognito.operations;
+		const { clientId, userPoolId } = oidcClient;
+		let { domain: domainName } = domain ?? {};
+		domainName = domainName?.split(".").slice(2).join(".");
 		const buildspec = (() => {
 			const content = stringify(
 				new CodeBuildBuildspecBuilder()
@@ -482,17 +516,45 @@ export = async () => {
 								`ls -al $CODEBUILD_SRC_DIR/.${deployAction} || true`,
 								`ls -al $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY} || true`,
 								`du -sh $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY} || true`,
+								// OIDC
+								...(domainName !== undefined
+									? [
+											...Object.entries({
+												OAUTH_PUBLIC_OIDC_AUTHORITY: `https://cognito-idp.${context?.environment?.aws?.region}.amazonaws.com/${userPoolId}`,
+												OAUTH_PUBLIC_OIDC_CLIENT_ID: clientId,
+												OAUTH_PUBLIC_OIDC_REDIRECT_URI: `https://${domainName}/${SporkMagmapClientOauthRoutes.callback}`,
+												OAUTH_PUBLIC_OIDC_RESPONSE_TYPE: "code",
+												OAUTH_PUBLIC_OIDC_SCOPE: "openid profile email",
+												OAUTH_PUBLIC_OIDC_POST_LOGOUT_REDIRECT_URI: `https://${domainName}/${SporkMagmapClientOauthRoutes.logout}`,
+												OAUTH_PUBLIC_OIDC_SILENT_REDIRECT_URI: `https://${domainName}/${SporkMagmapClientOauthRoutes.renew}`,
+											}).flatMap(([key, value]) => [
+												`export ${key}="${value}"`,
+												`echo $${key}`,
+											]),
+											`cat $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js || true`,
+											`cat $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js | envsubst  > $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js.tmp`,
+											`echo "oidc.js: $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js"`,
+											`cat $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js || true`,
+											`echo "oidc.js.tmp: $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js.tmp"`,
+											`cat $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js.tmp || true`,
+											`mv $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js.tmp $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js`,
+											`cat $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY}/_window/oidc.js`,
+										]
+									: []),
 								"aws s3 ls s3://$S3_STATICWWW_BUCKET",
 							]),
 					})
 					.build(),
 			);
 
-			const upload = new BucketObjectv2(_("buildspec-upload"), {
-				bucket: s3.artifacts.bucket.bucket,
-				content,
-				key: "Buildspec.yml",
-			});
+			const upload = new BucketObjectv2(
+				_(`${artifactIdentifier}-buildspec-upload`),
+				{
+					bucket: s3.artifacts.bucket.bucket,
+					content,
+					key: `${artifactIdentifier}/Buildspec.yml`,
+				},
+			);
 
 			return {
 				content,
@@ -506,6 +568,8 @@ export = async () => {
 				{
 					description: `(${PACKAGE_NAME}) Deploy pipeline "${deployStage}" stage: "${deployAction}"`,
 					buildTimeout: 14,
+					queuedTimeout: 60 * 6,
+					concurrentBuildLimit: 1,
 					serviceRole: automationRole.arn,
 					artifacts: {
 						type: "CODEPIPELINE",
@@ -543,6 +607,235 @@ export = async () => {
 							{
 								name: "S3_STATICWWW_BUCKET",
 								value: s3.staticwww.bucket.bucket,
+								type: "PLAINTEXT",
+							},
+						],
+					},
+					source: {
+						type: "CODEPIPELINE",
+						buildspec: buildspec.content,
+					},
+					tags: {
+						Name: _(artifactIdentifier),
+						StackRef: STACKREF_ROOT,
+						PackageName: PACKAGE_NAME,
+						DeployStage: deployStage,
+						Action: deployAction,
+					},
+				},
+				{
+					dependsOn: [buildspec.upload, s3.staticwww.bucket],
+				},
+			);
+
+			return {
+				project,
+			};
+		})();
+
+		return {
+			...project,
+			spec: {
+				artifactIdentifier,
+				buildspec,
+			},
+		};
+	})();
+
+	const publishchange = (() => {
+		const deployStage = "staticwww";
+		const deployAction = "publishchangelog";
+		const artifactIdentifier = `${deployStage}_${deployAction}`;
+
+		const buildspec = (() => {
+			const content = stringify(
+				new CodeBuildBuildspecBuilder()
+					.setVersion("0.2")
+					.setEnv(
+						new CodeBuildBuildspecEnvBuilder().setVariables({
+							SOURCE_IMAGE_REPOSITORY: "<SOURCE_IMAGE_REPOSITORY>",
+							SOURCE_IMAGE_URI: "<SOURCE_IMAGE_URI>",
+							SNS_CHANGELOG_TOPIC: "<SNS_CHANGELOG_TOPIC>",
+						}),
+					)
+					.setPhases({
+						build:
+							new CodeBuildBuildspecResourceLambdaPhaseBuilder().setCommands([
+								"env",
+								[
+									"aws",
+									"sns",
+									"publish",
+									"--topic-arn ${SNS_CHANGELOG_TOPIC}",
+									`--message "${PACKAGE_NAME}|\${SOURCE_IMAGE_REPOSITORY}|\${SOURCE_IMAGE_URI}"`,
+									"--region $AWS_REGION",
+								].join(" "),
+							]),
+					})
+					.build(),
+			);
+
+			const upload = new BucketObjectv2(
+				_(`${artifactIdentifier}-buildspec-upload`),
+				{
+					bucket: s3.artifacts.bucket.bucket,
+					content,
+					key: `${artifactIdentifier}/Buildspec.yml`,
+				},
+			);
+
+			return {
+				content,
+				upload,
+			};
+		})();
+
+		const project = (() => {
+			const project = new Project(
+				_(artifactIdentifier),
+				{
+					description: `(${PACKAGE_NAME}) Deploy pipeline "${deployStage}" stage: "${deployAction}"`,
+					buildTimeout: 14,
+					queuedTimeout: 60 * 8,
+					concurrentBuildLimit: 1,
+					serviceRole: automationRole.arn,
+					artifacts: {
+						type: "CODEPIPELINE",
+						artifactIdentifier,
+					},
+					environment: {
+						type: "ARM_CONTAINER",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
+						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
+						environmentVariables: [
+							{
+								name: "SOURCE_IMAGE_REPOSITORY",
+								value: "SourceImage.RepositoryName",
+								type: "PLAINTEXT",
+							},
+							{
+								name: "SOURCE_IMAGE_URI",
+								value: "SourceImage.ImageUri",
+								type: "PLAINTEXT",
+							},
+							{
+								name: "SNS_CHANGELOG_TOPIC",
+								value: "<SNS_CHANGELOG_TOPIC>",
+								type: "PLAINTEXT",
+							},
+						],
+					},
+					source: {
+						type: "CODEPIPELINE",
+						buildspec: buildspec.content,
+					},
+					tags: {
+						Name: _(artifactIdentifier),
+						StackRef: STACKREF_ROOT,
+						PackageName: PACKAGE_NAME,
+						DeployStage: deployStage,
+						Action: deployAction,
+					},
+				},
+				{
+					dependsOn: [buildspec.upload, s3.staticwww.bucket],
+				},
+			);
+
+			return {
+				project,
+			};
+		})();
+
+		return {
+			...project,
+			spec: {
+				artifactIdentifier,
+				buildspec,
+			},
+		};
+	})();
+
+	const publishrevalidate = (() => {
+		const deployStage = "staticwww";
+		const deployAction = "publishrevalidate";
+		const artifactIdentifier = `${deployStage}_${deployAction}`;
+
+		const buildspec = (() => {
+			const content = stringify(
+				new CodeBuildBuildspecBuilder()
+					.setVersion("0.2")
+					.setEnv(
+						new CodeBuildBuildspecEnvBuilder().setVariables({
+							SOURCE_IMAGE_REPOSITORY: "<SOURCE_IMAGE_REPOSITORY>",
+							SOURCE_IMAGE_URI: "<SOURCE_IMAGE_URI>",
+							SNS_REVALIDATE_TOPIC: "<SNS_REVALIDATE_TOPIC>",
+						}),
+					)
+					.setPhases({
+						build:
+							new CodeBuildBuildspecResourceLambdaPhaseBuilder().setCommands([
+								"env",
+								"set -o noglob",
+								[
+									"aws",
+									"sns",
+									"publish",
+									"--topic-arn ${SNS_REVALIDATE_TOPIC}",
+									`--message "${PACKAGE_NAME}|/*|${SUBDOMAIN}"`,
+									"--region $AWS_REGION",
+								].join(" "),
+							]),
+					})
+					.build(),
+			);
+
+			const upload = new BucketObjectv2(
+				_(`${artifactIdentifier}-buildspec-upload`),
+				{
+					bucket: s3.artifacts.bucket.bucket,
+					content,
+					key: `${artifactIdentifier}/Buildspec.yml`,
+				},
+			);
+
+			return {
+				content,
+				upload,
+			};
+		})();
+
+		const project = (() => {
+			const project = new Project(
+				_(artifactIdentifier),
+				{
+					description: `(${PACKAGE_NAME}) Deploy pipeline "${deployStage}" stage: "${deployAction}"`,
+					buildTimeout: 14,
+					queuedTimeout: 60 * 8,
+					concurrentBuildLimit: 1,
+					serviceRole: automationRole.arn,
+					artifacts: {
+						type: "CODEPIPELINE",
+						artifactIdentifier,
+					},
+					environment: {
+						type: "ARM_CONTAINER",
+						computeType: AwsCodeBuildContainerRoundRobin.next().value,
+						image: "aws/codebuild/amazonlinux-aarch64-standard:3.0",
+						environmentVariables: [
+							{
+								name: "SOURCE_IMAGE_REPOSITORY",
+								value: "SourceImage.RepositoryName",
+								type: "PLAINTEXT",
+							},
+							{
+								name: "SOURCE_IMAGE_URI",
+								value: "SourceImage.ImageUri",
+								type: "PLAINTEXT",
+							},
+							{
+								name: "SNS_REVALIDATE_TOPIC",
+								value: "<SNS_REVALIDATE_TOPIC>",
 								type: "PLAINTEXT",
 							},
 						],
@@ -631,12 +924,12 @@ export = async () => {
 								provider: "CodeBuild",
 								version: "1",
 								inputArtifacts: ["source_image"],
-								outputArtifacts: [codebuild.spec.artifactIdentifier],
+								outputArtifacts: [extractimage.spec.artifactIdentifier],
 								configuration: all([
 									codestar.ecr.repository.arn,
 									codestar.ecr.repository.name,
 									codestar.ecr.repository.url,
-									codebuild.project.name,
+									extractimage.project.name,
 									s3.staticwww.bucket.bucket,
 								]).apply(
 									([
@@ -692,13 +985,84 @@ export = async () => {
 								owner: "AWS",
 								provider: "S3",
 								version: "1",
-								inputArtifacts: [codebuild.spec.artifactIdentifier],
+								inputArtifacts: [extractimage.spec.artifactIdentifier],
 								configuration: all([s3.staticwww.bucket.bucket]).apply(
 									([BucketName]) => ({
 										BucketName,
 										Extract: "true",
 										CannedACL: "public-read",
 									}),
+								),
+							},
+							{
+								runOrder: 3,
+								name: "PublishChangelog",
+								namespace: "StaticWWWPublishChangelog",
+								category: "Build",
+								owner: "AWS",
+								provider: "CodeBuild",
+								version: "1",
+								inputArtifacts: ["source_image"],
+								configuration: all([publishchange.project.name]).apply(
+									([projectName]) => {
+										return {
+											ProjectName: projectName,
+											EnvironmentVariables: JSON.stringify([
+												{
+													name: "SOURCE_IMAGE_REPOSITORY",
+													value: "#{SourceImage.RepositoryName}",
+													type: "PLAINTEXT",
+												},
+												{
+													name: "SOURCE_IMAGE_URI",
+													value: "#{SourceImage.ImageURI}",
+													type: "PLAINTEXT",
+												},
+												{
+													name: "SNS_CHANGELOG_TOPIC",
+													value:
+														dereferenced$.application.sns.changelog.topic.arn,
+													type: "PLAINTEXT",
+												},
+											]),
+										};
+									},
+								),
+							},
+							{
+								runOrder: 3,
+								name: "PublishRevalidate",
+								namespace: "StaticWWWPublishRevalidate",
+								category: "Build",
+								owner: "AWS",
+								provider: "CodeBuild",
+								version: "1",
+								inputArtifacts: ["source_image"],
+								configuration: all([publishrevalidate.project.name]).apply(
+									([projectName]) => {
+										return {
+											ProjectName: projectName,
+											EnvironmentVariables: JSON.stringify([
+												{
+													name: "SOURCE_IMAGE_REPOSITORY",
+													value: "#{SourceImage.RepositoryName}",
+													type: "PLAINTEXT",
+												},
+												{
+													name: "SOURCE_IMAGE_URI",
+													value: "#{SourceImage.ImageURI}",
+													type: "PLAINTEXT",
+												},
+												{
+													name: "SNS_REVALIDATE_TOPIC",
+													value:
+														dereferenced$[SporkMagmapChannelsStackrefRoot].sns
+															.revalidate.topic.arn,
+													type: "PLAINTEXT",
+												},
+											]),
+										};
+									},
 								),
 							},
 						],
@@ -711,7 +1075,12 @@ export = async () => {
 				},
 			},
 			{
-				dependsOn: [s3.pipeline.bucket, s3.artifacts.bucket, codebuild.project],
+				dependsOn: [
+					s3.pipeline.bucket,
+					s3.artifacts.bucket,
+					extractimage.project,
+					publishchange.project,
+				],
 			},
 		);
 
@@ -766,8 +1135,8 @@ export = async () => {
 		s3.staticwww.bucket.bucketDomainName,
 		s3.staticwww.website?.websiteEndpoint ?? "",
 		s3.staticwww.website?.websiteDomain ?? "",
-		codebuild.project.arn,
-		codebuild.project.name,
+		extractimage.project.arn,
+		extractimage.project.name,
 		codepipeline.pipeline.arn,
 		codepipeline.pipeline.name,
 		eventbridge.EcrImageAction.rule.arn,

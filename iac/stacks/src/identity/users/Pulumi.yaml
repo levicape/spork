@@ -1,4 +1,5 @@
-description: Cognito identity and user pools
+description: |
+  Cognito userpool configuration
 runtime:
   name: nodejs
   options:

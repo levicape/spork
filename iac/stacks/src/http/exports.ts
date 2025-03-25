@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { RouteMapZod } from "../RouteMap";
 
+export const SporkHttpStackrefRoot = "http";
+
 export const SporkHttpStackExportsZod = z
 	.object({
 		spork_http_cloudmap: z.object({

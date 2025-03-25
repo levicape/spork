@@ -419,11 +419,17 @@ Actions:
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
                 frontend:stack.dns.hostnames[1]=spork-codestar.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/codestar" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/codestar" --non-interactive --suppress-progress --diff --json
             - Run: |-
-                source .pulumi-ci-helper && configure_stack "Preview" "spork-cognito.current" "$(pwd)/iac/stacks/src/cognito" "spork-cognito" "_pulumi/cognito" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-cognito.current" "$(pwd)/iac/stacks/src/cognito" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/cognito" 'aws:skipMetadataApiCheck=false
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-identity-oidc.current" "$(pwd)/iac/stacks/src/identity/oidc" "spork-identity-oidc" "_pulumi/identity_oidc" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-identity-oidc.current" "$(pwd)/iac/stacks/src/identity/oidc" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/identity/oidc" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-cognito.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/cognito" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/cognito" --non-interactive --suppress-progress --diff --json
+                frontend:stack.dns.hostnames[1]=spork-identity-oidc.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/identity/oidc" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/identity/oidc" --non-interactive --suppress-progress --diff --json
+            - Run: |-
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-identity-users.current" "$(pwd)/iac/stacks/src/identity/users" "spork-identity-users" "_pulumi/identity_users" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-identity-users.current" "$(pwd)/iac/stacks/src/identity/users" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/identity/users" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-identity-users.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/identity/users" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/identity/users" --non-interactive --suppress-progress --diff --json
             - Run: |-
                 source .pulumi-ci-helper && configure_stack "Preview" "spork-datalayer.current" "$(pwd)/iac/stacks/src/datalayer" "spork-datalayer" "_pulumi/datalayer" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-datalayer.current" "$(pwd)/iac/stacks/src/datalayer" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/datalayer" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
@@ -431,42 +437,60 @@ Actions:
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
                 frontend:stack.dns.hostnames[1]=spork-datalayer.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/datalayer" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/datalayer" --non-interactive --suppress-progress --diff --json
             - Run: |-
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-dns-root.current" "$(pwd)/iac/stacks/src/dns/root" "spork-dns-root" "_pulumi/dns_root" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-dns-root.current" "$(pwd)/iac/stacks/src/dns/root" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/dns/root" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-dns-root.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/dns/root" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/dns/root" --non-interactive --suppress-progress --diff --json
+            - Run: |-
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-channels.current" "$(pwd)/iac/stacks/src/levicape/magmap/channels" "spork-magmap-channels" "_pulumi/levicape_magmap_channels" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-channels.current" "$(pwd)/iac/stacks/src/levicape/magmap/channels" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/channels" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-magmap-channels.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/levicape/magmap/channels" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/levicape/magmap/channels" --non-interactive --suppress-progress --diff --json
+            - Run: |-
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-client.current" "$(pwd)/iac/stacks/src/levicape/magmap/client" "spork-magmap-client" "_pulumi/levicape_magmap_client" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-client.current" "$(pwd)/iac/stacks/src/levicape/magmap/client" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/client" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-magmap-client.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/levicape/magmap/client" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/levicape/magmap/client" --non-interactive --suppress-progress --diff --json
+            - Run: |-
                 source .pulumi-ci-helper && configure_stack "Preview" "spork-http.current" "$(pwd)/iac/stacks/src/http" "spork-http" "_pulumi/http" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-http.current" "$(pwd)/iac/stacks/src/http" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/http" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
                 frontend:stack.dns.hostnames[1]=spork-http.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/http" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/http" --non-interactive --suppress-progress --diff --json
             - Run: |-
-                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-http.current" "$(pwd)/iac/stacks/src/domains/magmap/http" "spork-magmap-http" "_pulumi/domains_magmap_http" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-http.current" "$(pwd)/iac/stacks/src/domains/magmap/http" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/http" 'aws:skipMetadataApiCheck=false
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-http.current" "$(pwd)/iac/stacks/src/levicape/magmap/http" "spork-magmap-http" "_pulumi/levicape_magmap_http" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-http.current" "$(pwd)/iac/stacks/src/levicape/magmap/http" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/http" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-magmap-http.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/domains/magmap/http" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/http" --non-interactive --suppress-progress --diff --json
+                frontend:stack.dns.hostnames[1]=spork-magmap-http.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/levicape/magmap/http" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/levicape/magmap/http" --non-interactive --suppress-progress --diff --json
             - Run: |-
-                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-web.current" "$(pwd)/iac/stacks/src/domains/magmap/web" "spork-magmap-web" "_pulumi/domains_magmap_web" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-web.current" "$(pwd)/iac/stacks/src/domains/magmap/web" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/web" 'aws:skipMetadataApiCheck=false
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-web.current" "$(pwd)/iac/stacks/src/levicape/magmap/web" "spork-magmap-web" "_pulumi/levicape_magmap_web" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-web.current" "$(pwd)/iac/stacks/src/levicape/magmap/web" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/web" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-magmap-web.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/domains/magmap/web" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/web" --non-interactive --suppress-progress --diff --json
+                frontend:stack.dns.hostnames[1]=spork-magmap-web.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/levicape/magmap/web" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/levicape/magmap/web" --non-interactive --suppress-progress --diff --json
             - Run: |-
-                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-monitor.current" "$(pwd)/iac/stacks/src/domains/magmap/monitor" "spork-magmap-monitor" "_pulumi/domains_magmap_monitor" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-monitor.current" "$(pwd)/iac/stacks/src/domains/magmap/monitor" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/monitor" 'aws:skipMetadataApiCheck=false
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-monitor.current" "$(pwd)/iac/stacks/src/levicape/magmap/monitor" "spork-magmap-monitor" "_pulumi/levicape_magmap_monitor" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-monitor.current" "$(pwd)/iac/stacks/src/levicape/magmap/monitor" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/monitor" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-magmap-monitor.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/domains/magmap/monitor" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/monitor" --non-interactive --suppress-progress --diff --json
+                frontend:stack.dns.hostnames[1]=spork-magmap-monitor.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/levicape/magmap/monitor" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/levicape/magmap/monitor" --non-interactive --suppress-progress --diff --json
             - Run: |-
-                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-wwwroot.current" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" "spork-magmap-wwwroot" "_pulumi/domains_magmap_wwwroot" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-wwwroot.current" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" 'aws:skipMetadataApiCheck=false
+                source .pulumi-ci-helper && configure_stack "Preview" "spork-magmap-wwwroot.current" "$(pwd)/iac/stacks/src/levicape/magmap/wwwroot" "spork-magmap-wwwroot" "_pulumi/levicape_magmap_wwwroot" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-wwwroot.current" "$(pwd)/iac/stacks/src/levicape/magmap/wwwroot" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/wwwroot" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
                 frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-magmap-wwwroot.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/domains/magmap/wwwroot" --non-interactive --suppress-progress --diff --json
+                frontend:stack.dns.hostnames[1]=spork-magmap-wwwroot.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/levicape/magmap/wwwroot" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/levicape/magmap/wwwroot" --non-interactive --suppress-progress --diff --json
             - Run: du -sh _pulumi
 
 ########################################
 ########################################
 #**:_$~- {"$$":"head","filename":"[pr(OPEN,REVISION)(b:main)]CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"df9adc6a3e905cfd21155aed396967034d4fee040f067a0d0c8f3c1e881844f5"}
-#**:_$~- {"$$":"footer","started":"2025-03-11T22:04:20.128Z","now":"2025-03-11T22:04:20.130Z","elapsed":"2ms"}
+#**:_$~- {"$$":"body","hashed":"bcc37241a1064e1b7d850ef00001e71b05023aea9d213e7151b17e0dff7bc2c3"}
+#**:_$~- {"$$":"footer","started":"2025-03-24T23:34:42.747Z","now":"2025-03-24T23:34:42.750Z","elapsed":"3ms"}
 # END OF GENERATED FILE
 

@@ -1,6 +1,7 @@
 {
   "files": {
     "ignore": [
+      "**/dist",
       "**/commonjs",
       "**/module",
       "**/node_modules",

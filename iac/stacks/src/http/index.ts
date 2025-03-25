@@ -19,7 +19,6 @@ import { Project } from "@pulumi/aws/codebuild";
 import { DeploymentGroup } from "@pulumi/aws/codedeploy/deploymentGroup";
 import { Pipeline } from "@pulumi/aws/codepipeline";
 import { getRole } from "@pulumi/aws/iam/getRole";
-import { RolePolicy } from "@pulumi/aws/iam/rolePolicy";
 import { Alias, Function as LambdaFn, Runtime } from "@pulumi/aws/lambda";
 import { FunctionUrl } from "@pulumi/aws/lambda/functionUrl";
 import {
@@ -48,7 +47,7 @@ import {
 } from "../application/exports";
 import { SporkCodestarStackExportsZod } from "../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../datalayer/exports";
-import type { SporkWWWRootRoute } from "../wwwroot/routes";
+import type { SporkWWWRootRoute } from "../wwwintra/routes";
 import { SporkHttpStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork" as const;
@@ -134,7 +133,6 @@ const ENVIRONMENT = (
 		),
 	} as const;
 };
-
 export = async () => {
 	// Stack references
 	const dereferenced$ = await $deref(STACKREF_CONFIG);
@@ -334,40 +332,8 @@ export = async () => {
 
 	// Compute
 	const handler = await (async ({ datalayer, codestar }, cloudwatch) => {
-		const role = datalayer.iam.roles.lambda.name;
 		const roleArn = datalayer.iam.roles.lambda.arn;
 		const loggroup = cloudwatch.function.loggroup;
-
-		const lambdaPolicyDocument = all([loggroup.arn]).apply(([loggroupArn]) => {
-			return {
-				Version: "2012-10-17",
-				Statement: [
-					{
-						Effect: "Allow",
-						Action: [
-							"ec2:CreateNetworkInterface",
-							"ec2:DescribeNetworkInterfaces",
-							"ec2:DeleteNetworkInterface",
-						],
-						Resource: "*",
-					},
-					{
-						Effect: "Allow",
-						Action: [
-							"logs:CreateLogGroup",
-							"logs:CreateLogStream",
-							"logs:PutLogEvents",
-						],
-						Resource: loggroupArn,
-					},
-				],
-			};
-		});
-
-		new RolePolicy(_("function-policy"), {
-			role,
-			policy: lambdaPolicyDocument.apply((lpd) => JSON.stringify(lpd)),
-		});
 
 		const zip = new BucketObjectv2(_("zip"), {
 			bucket: s3.artifacts.bucket,
@@ -545,7 +511,7 @@ export = async () => {
 		const memorySize = context.environment.isProd ? 512 : 256;
 		const timeout = context.environment.isProd ? 18 : 11;
 		const lambda = new LambdaFn(
-			_("function"),
+			_("fn"),
 			{
 				description: `(${PACKAGE_NAME}) "${DESCRIPTION ?? `HTTP lambda`}" in #${stage}`,
 				role: roleArn,
@@ -652,7 +618,7 @@ export = async () => {
 					},
 				),
 				tags: {
-					Name: _("function"),
+					Name: _("fn"),
 					StackRef: STACKREF_ROOT,
 					Handler: "Http",
 					PackageName: PACKAGE_NAME,
@@ -666,6 +632,9 @@ export = async () => {
 
 		const hostnames: string[] =
 			context?.frontend?.dns?.hostnames
+				?.map((hostname) => {
+					return hostname.replaceAll(/[^a-zA-Z0-9.-]/g, "-");
+				})
 				?.map((host) => [`https://${host}`, `https://www.${host}`])
 				.reduce((acc, current) => [...acc, ...current], []) ?? [];
 
@@ -983,7 +952,7 @@ export = async () => {
 							`aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $STACKREF_CODESTAR_ECR_REPOSITORY_URL`,
 							"docker pull $SOURCE_IMAGE_URI",
 							"docker images",
-							`export NPM_REGISTRY=$(cat .codeartifact-repository)`,
+							"export NPM_REGISTRY=$(cat .codeartifact-repository)",
 							[
 								...[
 									"docker run",
@@ -1016,7 +985,7 @@ export = async () => {
 							`docker cp $(cat .container):/tmp/${PIPELINE_STAGE} $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
-							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/node_modules || true`,
+							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE}/node_modules`,
 							// bootstrap binary
 							...(LLRT_ARCH
 								? [

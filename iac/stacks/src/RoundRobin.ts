@@ -25,7 +25,7 @@ export const RoundRobin = <Choices extends string>(
 		const period = props?.period ?? 1;
 		const max = list.length;
 		let current = 0;
-		let index = 0;
+		let index = Math.floor(Math.random() * max);
 
 		while (true) {
 			yield list[index];

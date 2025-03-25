@@ -17,16 +17,24 @@
         "{projectRoot}/output/esbuild"
       ]
     },
-    "generate:protocols": {
-      "cache": true,
-      "outputs": [
-        "{projectRoot}/src/_protocols"
-      ]
-    },
     "http:build": {
       "cache": true,
       "outputs": [
         "{projectRoot}/output/http"
+      ]
+    },
+    "staticwww:build": {
+      "cache": true,
+      "outputs": [
+        "{projectRoot}/output/staticwww",
+        "{projectRoot}/dist"
+      ]
+    },    
+    "serverwww:build": {
+      "cache": true,
+      "outputs": [
+        "{projectRoot}/output/serverwww",
+        "{projectRoot}/dist"
       ]
     }
   }

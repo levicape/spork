@@ -5,12 +5,16 @@ import {
 	CodeBuildBuildspecResourceLambdaPhaseBuilder,
 } from "@levicape/fourtwo-builders/commonjs/index.cjs";
 import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
+import { Certificate } from "@pulumi/aws/acm";
 import { Function as CloudfrontFunction } from "@pulumi/aws/cloudfront";
+import type { DistributionArgs } from "@pulumi/aws/cloudfront/distribution";
 import { Distribution } from "@pulumi/aws/cloudfront/distribution";
 import { OriginAccessIdentity } from "@pulumi/aws/cloudfront/originAccessIdentity";
 import { Project } from "@pulumi/aws/codebuild";
 import { getRole } from "@pulumi/aws/iam/getRole";
-import { Permission } from "@pulumi/aws/lambda";
+import { CallbackFunction, Permission, Runtime } from "@pulumi/aws/lambda";
+import { Provider } from "@pulumi/aws/provider";
+import { Record as DnsRecord } from "@pulumi/aws/route53";
 import { Bucket } from "@pulumi/aws/s3/bucket";
 import { BucketAclV2 } from "@pulumi/aws/s3/bucketAclV2";
 import { BucketLifecycleConfigurationV2 } from "@pulumi/aws/s3/bucketLifecycleConfigurationV2";
@@ -19,12 +23,14 @@ import { BucketOwnershipControls } from "@pulumi/aws/s3/bucketOwnershipControls"
 import { BucketPublicAccessBlock } from "@pulumi/aws/s3/bucketPublicAccessBlock";
 import { BucketServerSideEncryptionConfigurationV2 } from "@pulumi/aws/s3/bucketServerSideEncryptionConfigurationV2";
 import { BucketVersioningV2 } from "@pulumi/aws/s3/bucketVersioningV2";
+import { type TopicEvent, TopicEventSubscription } from "@pulumi/aws/sns";
+import { Topic } from "@pulumi/aws/sns/topic";
 import { CannedAcl } from "@pulumi/aws/types/enums/s3";
 import { Command } from "@pulumi/command/local";
-import { Output, all, interpolate } from "@pulumi/pulumi";
+import { Output, all, interpolate, log } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
 import { RandomId } from "@pulumi/random/RandomId";
-import { VError } from "verror";
+import VError from "verror";
 import { stringify } from "yaml";
 import type { z } from "zod";
 import {
@@ -37,6 +43,15 @@ import {
 	SporkApplicationRoot,
 	SporkApplicationStackExportsZod,
 } from "../../../application/exports";
+import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
+import {
+	SporkDnsRootStackExportsZod,
+	SporkDnsRootStackrefRoot,
+} from "../../../dns/root/exports";
+import {
+	SporkMagmapChannelsStackExportsZod,
+	SporkMagmapChannelsStackrefRoot,
+} from "../channels/exports";
 import {
 	SporkMagmapHttpStackExportsZod,
 	SporkMagmapHttpStackrefRoot,
@@ -45,9 +60,14 @@ import {
 	SporkMagmapWebStackExportsZod,
 	SporkMagmapWebStackrefRoot,
 } from "../web/exports";
-import { SporkMagmapWWWRootExportsZod } from "./exports";
+import {
+	SporkMagmapWWWRootExportsZod,
+	SporkMagmapWWWRootSubdomain,
+} from "./exports";
 
 const WORKSPACE_PACKAGE_NAME = "@levicape/spork";
+const SUBDOMAIN =
+	process.env["STACKREF_SUBDOMAIN"] ?? SporkMagmapWWWRootSubdomain;
 
 const ROUTE_MAP = ({
 	[SporkMagmapHttpStackrefRoot]: http,
@@ -72,6 +92,22 @@ const STACKREF_CONFIG = {
 				servicecatalog:
 					SporkApplicationStackExportsZod.shape
 						.spork_application_servicecatalog,
+			},
+		},
+		datalayer: {
+			refs: {
+				iam: SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
+			},
+		},
+		[SporkDnsRootStackrefRoot]: {
+			refs: {
+				route53: SporkDnsRootStackExportsZod.shape.spork_dns_root_route53,
+				acm: SporkDnsRootStackExportsZod.shape.spork_dns_root_acm,
+			},
+		},
+		[SporkMagmapChannelsStackrefRoot]: {
+			refs: {
+				sns: SporkMagmapChannelsStackExportsZod.shape.spork_magmap_channels_sns,
 			},
 		},
 		[SporkMagmapHttpStackrefRoot]: {
@@ -339,7 +375,7 @@ function handler(event) {
 			let acl: undefined | BucketAclV2;
 			if (ownership) {
 				const ownership = new BucketOwnershipControls(
-					_("logs-ownership"),
+					_(`${name}-ownership`),
 					{
 						bucket: bucket.bucket,
 						rule: {
@@ -353,7 +389,7 @@ function handler(event) {
 				);
 
 				acl = new BucketAclV2(
-					_("logs-acl"),
+					_(`${name}-acl`),
 					{
 						bucket: bucket.bucket,
 						acl: CannedAcl.Private,
@@ -447,18 +483,21 @@ function handler(event) {
 	////////
 	// TLS
 	//////
-	//// Certificate
-	// TODO: stackref, application stack should set up root dns delegation. Include R53 resources and provision certificate in wwwtls stack
-	let certificate: undefined | { arn: string } = undefined as unknown as {
-		arn: string;
-	};
+	const acm = dereferenced$[SporkDnsRootStackrefRoot]?.acm;
+	const certificate =
+		acm?.certificate !== undefined && acm?.certificate !== null
+			? Certificate.get(_("certificate"), acm.certificate.arn, undefined, {
+					provider: new Provider("us-east-1", {
+						region: "us-east-1",
+					}),
+				})
+			: undefined;
 	//
 
 	////////
 	// CDN
 	//////
 	//
-	// const hostnames = context.frontend?.dns?.hostnames ?? [];
 	const identity = new OriginAccessIdentity(_("oai"), {
 		comment: `OAI for ${context.prefix}`,
 	});
@@ -467,160 +506,177 @@ function handler(event) {
 	const defaultOriginDomain = origins.find(
 		(o) => o.prefix === "" && o.s3,
 	)?.domainName;
+
+	const distributionArgs: (props: {
+		logPrefix: string;
+	}) => DistributionArgs = ({ logPrefix }) => ({
+		enabled: true,
+		comment: `CDN ${logPrefix} for ${context.prefix}`,
+		httpVersion: "http2and3",
+		priceClass: "PriceClass_100",
+		isIpv6Enabled: true,
+		...(certificate
+			? {
+					aliases: [
+						certificate.domainName.apply((domainName) => {
+							if (domainName.startsWith("*.")) return domainName.slice(2);
+							return domainName;
+						}),
+						certificate.domainName.apply((domainName) => {
+							if (domainName.startsWith("*.")) {
+								return domainName;
+							}
+							return `*.${domainName}`;
+						}),
+					],
+					viewerCertificate: {
+						minimumProtocolVersion: "TLSv1.2_2021",
+						acmCertificateArn: certificate?.arn,
+						sslSupportMethod: "sni-only",
+					},
+				}
+			: {
+					viewerCertificate: {
+						cloudfrontDefaultCertificate: true,
+					},
+				}),
+		origins:
+			origins === undefined
+				? []
+				: all([origins, identity.cloudfrontAccessIdentityPath]).apply(
+						([origins, cloudfrontAccessIdentityPath]) => {
+							const applied = [
+								...origins
+									.filter(({ originId }) => {
+										return originId === defaultOriginDomain;
+									})
+									.map(({ originId, domainName }) => ({
+										originId,
+										domainName,
+										s3OriginConfig: {
+											originAccessIdentity: cloudfrontAccessIdentityPath,
+										},
+									})),
+								...origins
+									.filter(({ originId }) => {
+										return originId !== defaultOriginDomain;
+									})
+									.map(({ originId, domainName }) => ({
+										originId,
+										domainName,
+										customOriginConfig: {
+											httpPort: 80,
+											httpsPort: 443,
+											originProtocolPolicy:
+												originId === "default__origin__assets"
+													? "http-only"
+													: "https-only",
+											originReadTimeout: 20,
+											originSslProtocols: ["TLSv1.2"],
+										},
+									})),
+							];
+							return applied;
+						},
+					),
+		defaultCacheBehavior: {
+			cachePolicyId: isCompute
+				? AwsCloudfrontCachePolicy.DISABLED
+				: AwsCloudfrontCachePolicy.OPTIMIZED,
+			targetOriginId: isCompute
+				? "default__origin__compute"
+				: (defaultOriginDomain ?? ""),
+			functionAssociations: [
+				{
+					functionArn: isCompute ? hostHeaderInjection.arn : rewriteUrls.arn,
+					eventType: "viewer-request",
+				},
+			],
+			viewerProtocolPolicy: "redirect-to-https",
+			allowedMethods: isCompute
+				? ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
+				: ["HEAD", "GET", "OPTIONS"],
+			cachedMethods: ["HEAD", "GET", "OPTIONS"],
+			compress: true,
+			originRequestPolicyId: isCompute
+				? AwsCloudfrontRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER
+				: undefined,
+		},
+		orderedCacheBehaviors:
+			origins === undefined
+				? []
+				: all([origins]).apply(([origins]) => {
+						const allorigins = origins
+							.filter(({ originId }) => {
+								return (
+									originId !== defaultOriginDomain &&
+									originId !== "default__origin__compute"
+								);
+							})
+							.flatMap(({ prefix, originId: targetOriginId }) => {
+								return {
+									pathPattern: `${prefix}/*`,
+									targetOriginId,
+									cachePolicyId:
+										targetOriginId === "default__origin__assets"
+											? AwsCloudfrontCachePolicy.OPTIMIZED
+											: AwsCloudfrontCachePolicy.DISABLED,
+									originRequestPolicyId:
+										AwsCloudfrontRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+									viewerProtocolPolicy: "redirect-to-https",
+									allowedMethods: [
+										"HEAD",
+										"DELETE",
+										"POST",
+										"GET",
+										"OPTIONS",
+										"PUT",
+										"PATCH",
+									],
+									functionAssociations: targetOriginId.startsWith(
+										"default__origin",
+									)
+										? [
+												{
+													functionArn:
+														targetOriginId === "default__origin__assets"
+															? rewriteUrls.arn
+															: hostHeaderInjection.arn,
+													eventType: "viewer-request",
+												},
+											]
+										: undefined,
+									cachedMethods: ["HEAD", "GET"],
+									compress: targetOriginId === "default__origin__assets",
+								};
+							});
+						return allorigins;
+					}),
+		loggingConfig: {
+			bucket: s3.logs.bucket.bucketDomainName,
+			includeCookies: false,
+			prefix: logPrefix,
+		},
+		restrictions: {
+			geoRestriction: {
+				restrictionType: "whitelist",
+				locations: ["US", "CA"],
+			},
+		},
+		tags: {
+			Name: _("cdn"),
+			awsApplication: dereferenced$.application.servicecatalog.application.tag,
+			StackRef: STACKREF_ROOT,
+			WORKSPACE_PACKAGE_NAME,
+		},
+	});
+
 	const cache = new Distribution(
 		_("cdn"),
 		{
-			enabled: true,
-			comment: `CDN for ${context.prefix}`,
-			httpVersion: "http2and3",
-			priceClass: "PriceClass_100",
-			isIpv6Enabled: true,
-			// aliases: hostnames
-			// 	?.filter((hostname) => {
-			// 		return hostname !== "localhost";
-			// 	})
-			// 	.flatMap((hostname) => [hostname, `www.${hostname}`]),
-			...(certificate
-				? {
-						viewerCertificate: {
-							acmCertificateArn: certificate?.arn,
-							cloudfrontDefaultCertificate: !context.environment.isProd,
-						},
-					}
-				: {
-						viewerCertificate: {
-							cloudfrontDefaultCertificate: true,
-						},
-					}),
-			origins:
-				origins === undefined
-					? []
-					: all([origins, identity.cloudfrontAccessIdentityPath]).apply(
-							([origins, cloudfrontAccessIdentityPath]) => {
-								const applied = [
-									...origins
-										.filter(({ originId }) => {
-											return originId === defaultOriginDomain;
-										})
-										.map(({ originId, domainName }) => ({
-											originId,
-											domainName,
-											s3OriginConfig: {
-												originAccessIdentity: cloudfrontAccessIdentityPath,
-											},
-										})),
-									...origins
-										.filter(({ originId }) => {
-											return originId !== defaultOriginDomain;
-										})
-										.map(({ originId, domainName }) => ({
-											originId,
-											domainName,
-											customOriginConfig: {
-												httpPort: 80,
-												httpsPort: 443,
-												originProtocolPolicy:
-													originId === "default__origin__assets"
-														? "http-only"
-														: "https-only",
-												originReadTimeout: 20,
-												originSslProtocols: ["TLSv1.2"],
-											},
-										})),
-								];
-								return applied;
-							},
-						),
-			defaultCacheBehavior: {
-				cachePolicyId: isCompute
-					? AwsCloudfrontCachePolicy.DISABLED
-					: AwsCloudfrontCachePolicy.OPTIMIZED,
-				targetOriginId: isCompute
-					? "default__origin__compute"
-					: (defaultOriginDomain ?? ""),
-				functionAssociations: [
-					{
-						functionArn: isCompute ? hostHeaderInjection.arn : rewriteUrls.arn,
-						eventType: "viewer-request",
-					},
-				],
-				viewerProtocolPolicy: "redirect-to-https",
-				allowedMethods: isCompute
-					? ["HEAD", "DELETE", "POST", "GET", "OPTIONS", "PUT", "PATCH"]
-					: ["HEAD", "GET", "OPTIONS"],
-				cachedMethods: ["HEAD", "GET", "OPTIONS"],
-				compress: true,
-				originRequestPolicyId: isCompute
-					? AwsCloudfrontRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER
-					: undefined,
-			},
-			orderedCacheBehaviors:
-				origins === undefined
-					? []
-					: all([origins]).apply(([origins]) => {
-							const allorigins = origins
-								.filter(({ originId }) => {
-									return (
-										originId !== defaultOriginDomain &&
-										originId !== "default__origin__compute"
-									);
-								})
-								.flatMap(({ prefix, originId: targetOriginId }) => {
-									return {
-										pathPattern: `${prefix}/*`,
-										targetOriginId,
-										cachePolicyId:
-											targetOriginId === "default__origin__assets"
-												? AwsCloudfrontCachePolicy.OPTIMIZED
-												: AwsCloudfrontCachePolicy.DISABLED,
-										originRequestPolicyId:
-											AwsCloudfrontRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-										viewerProtocolPolicy: "redirect-to-https",
-										allowedMethods: [
-											"HEAD",
-											"DELETE",
-											"POST",
-											"GET",
-											"OPTIONS",
-											"PUT",
-											"PATCH",
-										],
-										functionAssociations: targetOriginId.startsWith(
-											"default__origin",
-										)
-											? [
-													{
-														functionArn:
-															targetOriginId === "default__origin__assets"
-																? rewriteUrls.arn
-																: hostHeaderInjection.arn,
-														eventType: "viewer-request",
-													},
-												]
-											: undefined,
-										cachedMethods: ["HEAD", "GET"],
-										compress: targetOriginId === "default__origin__assets",
-									};
-								});
-							return allorigins;
-						}),
-			loggingConfig: {
-				bucket: s3.logs.bucket.bucketDomainName,
-				includeCookies: false,
-				prefix: "",
-			},
-			restrictions: {
-				geoRestriction: {
-					restrictionType: "none",
-				},
-			},
-			tags: {
-				Name: _("cdn"),
-				awsApplication:
-					dereferenced$.application.servicecatalog.application.tag,
-				StackRef: STACKREF_ROOT,
-				WORKSPACE_PACKAGE_NAME,
-			},
+			...distributionArgs({
+				logPrefix: "cache",
+			}),
 		},
 		{ dependsOn: [...(s3.logs.acl ? [s3.logs.acl] : [])] },
 	);
@@ -711,6 +767,8 @@ function handler(event) {
 					artifacts: {
 						type: "NO_ARTIFACTS",
 					},
+					concurrentBuildLimit: 1,
+					queuedTimeout: 7,
 					environment: {
 						type: "ARM_CONTAINER",
 						computeType: AwsCodeBuildContainerRoundRobin.next().value,
@@ -746,10 +804,12 @@ function handler(event) {
 		})();
 
 		return {
-			...project,
-			spec: {
-				artifactIdentifier,
-				buildspec,
+			invalidate: {
+				...project,
+				spec: {
+					artifactIdentifier,
+					buildspec,
+				},
 			},
 		};
 	})();
@@ -758,15 +818,150 @@ function handler(event) {
 	new Command(
 		_("invalidate-command"),
 		{
-			create: interpolate`aws codebuild start-build --project-name ${codebuild.project.name}`,
+			create: interpolate`aws codebuild start-build --project-name ${codebuild.invalidate.project.name}`,
+			triggers: [Date.now().toString()],
 		},
 		{
 			deleteBeforeReplace: true,
 			replaceOnChanges: ["*"],
-			dependsOn: [codebuild.project, codebuild.spec.buildspec.upload, cache],
+			dependsOn: [
+				codebuild.invalidate.project,
+				codebuild.invalidate.spec.buildspec.upload,
+				cache,
+			],
 		},
 	);
 	//
+
+	/////
+	/// Lambda handler for revalidate SNS topic
+	//
+	const { iam } = dereferenced$["datalayer"];
+	const { automation } = iam.roles;
+	(() => {
+		const revalidateTopicArn =
+			dereferenced$[SporkMagmapChannelsStackrefRoot].sns.revalidate.topic.arn;
+		const topic = Topic.get(_("revalidate-topic"), revalidateTopicArn);
+
+		if (topic) {
+			log.info(
+				JSON.stringify({
+					Revalidate: {
+						event: "Registering revalidate handler",
+						timestamp: new Date().toISOString(),
+					},
+				}),
+			);
+
+			new TopicEventSubscription(
+				_("revalidate-on-event"),
+				topic,
+				new CallbackFunction(_("revalidate"), {
+					description: `(${WORKSPACE_PACKAGE_NAME}) ${context.prefix} - revalidate topic handler`,
+					architectures: ["arm64"],
+					callback: async (event: TopicEvent, context) => {
+						const codebuild = await import("@aws-sdk/client-codebuild");
+						const { CODEBUILD_INVALIDATE_PROJECT_NAME } = process.env;
+						console.log({
+							Revalidate: {
+								event: JSON.stringify(event),
+								context: JSON.stringify(context),
+								codebuild,
+								env: {
+									CODEBUILD_INVALIDATE_PROJECT_NAME,
+								},
+							},
+						});
+
+						const client = new codebuild.CodeBuildClient({});
+						const response = await client.send(
+							new codebuild.StartBuildCommand({
+								projectName: CODEBUILD_INVALIDATE_PROJECT_NAME,
+							}),
+						);
+
+						console.log({
+							Revalidate: {
+								response: JSON.stringify(response),
+							},
+						});
+					},
+					environment: {
+						variables: {
+							NODE_ENV: "production",
+							LOG_LEVEL: "5",
+							CODEBUILD_INVALIDATE_PROJECT_NAME:
+								codebuild.invalidate.project.name,
+						},
+					},
+					loggingConfig: {
+						logFormat: "JSON",
+						applicationLogLevel: "DEBUG",
+						systemLogLevel: "DEBUG",
+					},
+					role: automation.arn,
+					runtime: Runtime.NodeJS22dX,
+					tags: {
+						Name: _("revalidate-lambda"),
+						StackRef: STACKREF_ROOT,
+						WORKSPACE_PACKAGE_NAME,
+					},
+					timeout: 15,
+				}),
+			);
+		} else {
+			log.warn(
+				JSON.stringify({
+					Revalidate: {
+						message: "Revalidate topic not found",
+						timestamp: new Date().toISOString(),
+					},
+				}),
+			);
+		}
+	})();
+
+	// DNS Record
+	const route53 = dereferenced$[SporkDnsRootStackrefRoot].route53;
+	if (route53?.zone && certificate) {
+		new DnsRecord(
+			_("dns"),
+			{
+				zoneId: route53.zone.hostedZoneId,
+				name: SUBDOMAIN,
+				type: "A",
+				aliases: [
+					{
+						name: cache.domainName,
+						zoneId: cache.hostedZoneId,
+						evaluateTargetHealth: false,
+					},
+				],
+			},
+			{
+				deleteBeforeReplace: true,
+			},
+		);
+
+		new DnsRecord(
+			_("dns-aaaa"),
+			{
+				zoneId: route53.zone.hostedZoneId,
+				name: SUBDOMAIN,
+				type: "AAAA",
+				aliases: [
+					{
+						name: cache.domainName,
+						zoneId: cache.hostedZoneId,
+						evaluateTargetHealth: false,
+					},
+				],
+			},
+			{
+				deleteBeforeReplace: true,
+			},
+		);
+	}
 
 	////////
 	//// Outputs
@@ -813,7 +1008,7 @@ function handler(event) {
 
 	const codebuildProjectsOutput = Output.create(
 		Object.fromEntries(
-			Object.entries({ invalidate: codebuild }).map(([key, resources]) => {
+			Object.entries(codebuild).map(([key, resources]) => {
 				return [
 					key,
 					all([
@@ -841,7 +1036,6 @@ function handler(event) {
 			}>
 		>,
 	);
-
 	const $http = dereferenced$[SporkMagmapHttpStackrefRoot];
 	const $web = dereferenced$[SporkMagmapWebStackrefRoot];
 
