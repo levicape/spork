@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LambdaRouteResourceZod, RouteMapZod } from "../../../RouteMap";
+import { LambdaRouteResourceZod } from "../../../RouteMap";
 
 export const SporkMagmapHttpStackrefRoot = "magmap-http" as const;
 

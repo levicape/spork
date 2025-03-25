@@ -5,12 +5,12 @@ import { all, interpolate } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
 import { RandomId } from "@pulumi/random/RandomId";
 import type { z } from "zod";
-import { $deref } from "../Stack";
+import { $deref } from "../../Stack";
 import {
 	SporkApplicationRoot,
 	SporkApplicationStackExportsZod,
-} from "../application/exports";
-import { SporkCognitoStackExportsZod } from "./exports";
+} from "../../application/exports";
+import { SporkIdentityOidcStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork";
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
@@ -43,36 +43,12 @@ export = async () => {
 	const identityPoolName = _("identitypool").replace(/[^a-zA-Z0-9_]/g, "-");
 	const identityPool = new IdentityPool(_("identitypool"), {
 		identityPoolName: interpolate`${identityPoolName}-${identityPoolId.hex}`,
+		developerProviderName: _("developer-provider"),
 		tags: {
 			Name: _("identitypool"),
 			PackageName: PACKAGE_NAME,
 		},
 	});
-
-	// Helper function to create a User Pool
-	// const createUserPool = async (name: string, config: any) => {
-	// 	const userPool = new UserPool(_(`userpool-${name}`), {
-	// 		adminCreateUserConfig: {
-	// 			AllowAdminCreateUserOnly: true,
-	// 		},
-	// 		tags: {
-	// 			PackageName: PACKAGE_NAME,
-	// 		},
-	// 		...config, // Allow for overrides or additional config
-	// 	});
-
-	// 	const userPoolClient = new UserPoolClient(_(`userpool-client-${name}`), {
-	// 		userPoolId: userPool.id,
-	// 	});
-
-	// 	const userPoolDomain = new UserPoolDomain(_(`userpool-domain-${name}`), {
-	// 		userPoolId: userPool.id,
-	// 		domain: `${name}-org`, // Consider a more robust domain naming strategy
-	// 	});
-
-	// 	return { users, client, domain };
-	// };
-
 	const identityPoolOutput = all([
 		identityPool.arn,
 		identityPool.identityPoolName,
@@ -108,12 +84,12 @@ export = async () => {
 
 	return all([identityPoolOutput]).apply(([idpool]) => {
 		const exported = {
-			spork_cognito_identity_pool: {
+			spork_identity_oidc_cognito: {
 				pool: idpool,
 			},
-		} satisfies z.infer<typeof SporkCognitoStackExportsZod>;
+		} satisfies z.infer<typeof SporkIdentityOidcStackExportsZod>;
 
-		const validate = SporkCognitoStackExportsZod.safeParse(exported);
+		const validate = SporkIdentityOidcStackExportsZod.safeParse(exported);
 		if (!validate.success) {
 			error(`Validation failed: ${JSON.stringify(validate.error, null, 2)}`);
 			warn(inspect(exported, { depth: null }));

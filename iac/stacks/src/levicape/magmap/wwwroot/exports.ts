@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const SporkMagmapWWWRootSubdomain = "magmap" as const;
+
 /**
  * 	@see Cloudfront distributions are not provisioned immediately.
  *  An undefined distribution means that it is not yet available,

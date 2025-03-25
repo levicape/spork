@@ -27,28 +27,45 @@ export const CODECATALYST_PULUMI_STACKS: Array<{
 			stack: "codestar",
 		},
 		{
-			stack: "cognito",
+			stack: "identity/oidc",
+			name: "identity-oidc",
+		},
+		{
+			stack: "identity/users",
+			name: "identity-users",
 		},
 		{
 			stack: "datalayer",
 		},
 		{
+			stack: "dns/root",
+			name: "dns-root",
+		},
+		{
+			stack: "levicape/magmap/channels",
+			name: "magmap-channels",
+		},
+		{
+			stack: "levicape/magmap/client",
+			name: "magmap-client",
+		},
+		{
 			stack: "http",
 		},
 		{
-			stack: "domains/magmap/http",
+			stack: "levicape/magmap/http",
 			name: "magmap-http",
 		},
 		{
-			stack: "domains/magmap/web",
+			stack: "levicape/magmap/web",
 			name: "magmap-web",
 		},
 		{
-			stack: "domains/magmap/monitor",
+			stack: "levicape/magmap/monitor",
 			name: "magmap-monitor",
 		},
 		{
-			stack: "domains/magmap/wwwroot",
+			stack: "levicape/magmap/wwwroot",
 			name: "magmap-wwwroot",
 		},
 	] as const

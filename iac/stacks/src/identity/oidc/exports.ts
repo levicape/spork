@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-export const SporkCognitoStackExportsZod = z
+export const SporkIdentityOidcStackrefRoot = "identity-oidc";
+
+export const SporkIdentityOidcStackExportsZod = z
 	.object({
-		spork_cognito_identity_pool: z.object({
+		spork_identity_oidc_cognito: z.object({
 			pool: z.object({
 				arn: z.string(),
 				identityPoolName: z.string(),

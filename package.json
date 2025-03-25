@@ -43,6 +43,7 @@
     "hono": "catalog:hono",
     "hono-rate-limiter": "catalog:hono",
     "jsonwebtoken": "catalog:crypto",
+    "jose": "catalog:crypto-jwk",
     "loglayer": "catalog:log-loglayer",
     "pino": "catalog:log-pino",
     "pino-pretty": "catalog:log-pino",

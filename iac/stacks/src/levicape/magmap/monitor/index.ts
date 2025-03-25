@@ -433,7 +433,6 @@ export = async () => {
 		}: { datalayer: typeof $datalayer; codestar: typeof $codestar },
 		cw: typeof cloudwatch,
 	) => {
-		const role = datalayer.iam.roles.lambda.name;
 		const roleArn = datalayer.iam.roles.lambda.arn;
 
 		const loggroup = new LogGroup(_(`${name}-log`), {
@@ -446,37 +445,6 @@ export = async () => {
 				Monitor: name,
 				MonitorPackageName: packageName,
 			},
-		});
-
-		const lambdaPolicyDocument = all([loggroup.arn]).apply(([loggroupArn]) => {
-			return {
-				Version: "2012-10-17",
-				Statement: [
-					{
-						Effect: "Allow",
-						Action: [
-							"ec2:CreateNetworkInterface",
-							"ec2:DescribeNetworkInterfaces",
-							"ec2:DeleteNetworkInterface",
-						],
-						Resource: "*",
-					},
-					{
-						Effect: "Allow",
-						Action: [
-							"logs:CreateLogGroup",
-							"logs:CreateLogStream",
-							"logs:PutLogEvents",
-						],
-						Resource: loggroupArn,
-					},
-				],
-			};
-		});
-
-		new RolePolicy(_(`${name}-policy`), {
-			role,
-			policy: lambdaPolicyDocument.apply((lpd) => JSON.stringify(lpd)),
 		});
 
 		const cloudmapEnvironment = {
@@ -1142,6 +1110,7 @@ export = async () => {
 									"--function-name $LAMBDA_FUNCTION_NAME",
 									`--handler $LAMBDA_HANDLER`,
 								].join(" "),
+								"echo 'Waiting for update'",
 								[
 									"aws lambda wait function-updated",
 									"--function-name $LAMBDA_FUNCTION_NAME",
