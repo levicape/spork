@@ -15,6 +15,7 @@ import {
 	Environment,
 	HostedConfigurationVersion,
 } from "@pulumi/aws/appconfig";
+import { DeploymentStrategy } from "@pulumi/aws/appconfig/deploymentStrategy";
 import { EventRule, EventTarget } from "@pulumi/aws/cloudwatch";
 import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { Project } from "@pulumi/aws/codebuild";
@@ -50,6 +51,10 @@ import {
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
 import { SporkHttpStackExportsZod } from "../../../http/exports";
+import {
+	SporkIdpUsersStackExportsZod,
+	SporkIdpUsersStackrefRoot,
+} from "../../../idp/users/exports";
 import type { MapgmapWWWRootRoute } from "../wwwroot/routes";
 import { SporkMagmapHttpStackExportsZod } from "./exports";
 
@@ -96,6 +101,11 @@ const STACKREF_CONFIG = {
 				cloudmap: SporkDatalayerStackExportsZod.shape.spork_datalayer_cloudmap,
 			},
 		},
+		[SporkIdpUsersStackrefRoot]: {
+			refs: {
+				cognito: SporkIdpUsersStackExportsZod.shape.spork_idp_users_cognito,
+			},
+		},
 		http: {
 			refs: {
 				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
@@ -133,15 +143,27 @@ const ATLASFILE_PATHS: Record<
 const ENVIRONMENT = (
 	_$refs: DereferencedOutput<typeof STACKREF_CONFIG>["spork"],
 ) => {
+	const efs = (() => {
+		const { lambda } = _$refs.datalayer.props;
+
+		return {
+			mountPath: lambda.fileSystemConfig.localMountPath,
+		};
+	})();
+
+	const idpUsers = (() => {
+		const { cognito } = _$refs[SporkIdpUsersStackrefRoot];
+		return {
+			region: cognito.operators.pool.region,
+			poolId: cognito.operators.pool.id,
+		};
+	})();
+
 	return {
-		SPORK_DATALAYER_MOUNT_PATH:
-			_$refs.datalayer.props.lambda.fileSystemConfig.localMountPath,
-		...Object.fromEntries(
-			Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
-				`ATLAS_${name.toUpperCase()}`,
-				`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
-			]),
-		),
+		SPORK_DATALAYER_MOUNT_PATH: efs.mountPath,
+		JWT_JWK_URL: `https://cognito-idp.${idpUsers.region}.amazonaws.com/${idpUsers.poolId}/.well-known/jwks.json`,
+		JWT_CACHE_FS_ROOT: `${efs.mountPath}/levicape/jwks/azc`,
+		JWT_CACHE_FS_KEY: `${idpUsers.poolId}.json`,
 	} as const;
 };
 
@@ -337,8 +359,16 @@ export = async () => {
 			},
 		);
 
+		const deploymentStrategy = new DeploymentStrategy(_(`config-dev`), {
+			growthFactor: 100,
+			deploymentDurationInMinutes: 2,
+			finalBakeTimeInMinutes: 1,
+			replicateTo: "NONE",
+		});
+
 		return {
 			environment,
+			deploymentStrategy,
 		};
 	})();
 
@@ -463,7 +493,7 @@ export = async () => {
 					configurationVersion: version.versionNumber.apply((v) => String(v)),
 					deploymentStrategyId: context.environment.isProd
 						? "AppConfig.Canary10Percent20Minutes"
-						: "AppConfig.AllAtOnce",
+						: appconfig.deploymentStrategy.id,
 					tags: {
 						Name: _(`${kind}-config-deployment`),
 						StackRef: STACKREF_ROOT,
@@ -564,15 +594,21 @@ export = async () => {
 								].join(" "),
 								NODE_ENV: "production",
 								LOG_LEVEL: "5",
+								AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
+								...cloudmap,
+								...appconfig,
+								...Object.fromEntries(
+									Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
+										`ATLAS_${name.toUpperCase()}`,
+										`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
+									]),
+								),
 								...(LLRT_PLATFORM
 									? {
 											LLRT_PLATFORM,
 											LLRT_GC_THRESHOLD_MB: String(memorySize / 4),
 										}
 									: {}),
-								...cloudmap,
-								...appconfig,
-								AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
 								...(ENVIRONMENT !== undefined &&
 								typeof ENVIRONMENT === "function"
 									? Object.fromEntries(
@@ -821,6 +857,7 @@ export = async () => {
 			const PIPELINE_STAGE = HANDLER_TYPE;
 			const EXTRACT_ACTION = "extractimage" as const;
 			const UPDATE_ACTION = "updatelambda" as const;
+			const DEPLOY_SENTINEL = "procfile deploy complete" as const;
 
 			const ATLAS_PIPELINE_VARIABLES = Object.fromEntries(
 				Object.keys(ATLASFILE_PATHS).map(
@@ -988,11 +1025,20 @@ export = async () => {
 								"> .container",
 							].join(" "),
 							"docker ps -al",
-							...[2, 8, 4, 2].flatMap((i) => [
-								`cat .container`,
-								`sleep ${i}s`,
-								`docker container logs $(cat .container)`,
-							]),
+							"export DEPLOY_COMPLETE=0",
+							"echo 'Waiting for procfile deploy'",
+							...[4, 16, 20, 16, 4, 2, 8, 10, 8, 2, 1, 4, 5, 4, 1].flatMap(
+								(i) => [
+									`cat .container`,
+									`if [ "$DEPLOY_COMPLETE" != "0" ];
+										then echo "Deploy completed. Skipping ${i}s wait";
+										else echo "Sleeping for ${i}s..."; echo "..."; 
+											sleep ${i}s; docker container logs $(cat .container);
+											export DEPLOY_COMPLETE=$(docker container logs $(cat .container) | grep -c "${DEPLOY_SENTINEL}");
+									fi`,
+									`echo "DEPLOY_COMPLETE: $DEPLOY_COMPLETE"`,
+								],
+							),
 							`mkdir -p $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,
 							`docker cp $(cat .container):/tmp/${PIPELINE_STAGE} $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}`,
 							`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION} || true`,

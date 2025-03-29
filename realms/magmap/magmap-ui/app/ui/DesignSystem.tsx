@@ -7,11 +7,13 @@ export type DesignSystemProps = {
 };
 
 export const DesignSystemComponents = {
-	Header: "#Header",
-	Menubar: "#Menubar",
-	Commandline: "#Commandline",
-	Layout: "#Layout",
-	Footer: "#Footer",
+	Shell: "Shell",
+	ShellBackground: "ShellBackground",
+	Header: "Header",
+	Menubar: "Menubar",
+	Commandline: "Commandline",
+	Layout: "Layout",
+	Footer: "Footer",
 };
 export type DesignSystemId =
 	(typeof DesignSystemComponents)[keyof typeof DesignSystemComponents];
@@ -22,8 +24,58 @@ export namespace DesignSystem {
 	/**
 	 * css: body > Shell
 	 */
-	export function Shell({ children }: PropsWithChildren) {
-		return <>{children}</>;
+	export function Shell({
+		children,
+		className,
+	}: PropsWithChildren<{ className?: string }>) {
+		return (
+			<div
+				id={DesignSystemComponents.Shell}
+				className={clsx(
+					"bg-base-100",
+					"overflow-hidden",
+					"min-h-screen",
+					"bg-fixed",
+					"text-base-content",
+					className,
+				)}
+			>
+				{children}
+			</div>
+		);
+	}
+	/**
+	 * css: Shell > #ShellBackground
+	 */
+	export function ShellBackground() {
+		return (
+			<div
+				id={DesignSystemComponents.ShellBackground}
+				aria-hidden
+				className={clsx(
+					"absolute",
+					"w-full",
+					"h-full",
+					"bg-neutral/10",
+					"to-accent/25",
+					"bg-gradient-to-b",
+					"opacity-15",
+				)}
+			>
+				<div
+					aria-hidden
+					className={clsx(
+						"w-full",
+						"h-full",
+						"bg-primary/15",
+						"to-neutral/70",
+						"bg-gradient-to-t",
+						"dark:mix-blend-color-dodge",
+						"light:mix-blend-color-burn",
+					)}
+				/>
+			</div>
+		);
 	}
 	/**
 	 * css: Shell > #Header
@@ -34,7 +86,10 @@ export namespace DesignSystem {
 		className,
 	}: PropsWithChildren<DesignSystemProps>) {
 		return (
-			<header id={id ?? DesignSystemComponents.Header} className={className}>
+			<header
+				id={id ?? DesignSystemComponents.Header}
+				className={clsx("text-2xl", "font-bold", className)}
+			>
 				{children}
 			</header>
 		);
@@ -82,19 +137,18 @@ export namespace DesignSystem {
 					"-translate-x-1/2",
 					"-translate-y-1/2",
 					"z-20",
-					"bg-ironstone-300",
+					"bg-neutral/90",
 					"border-8",
-					"border-ironstone-500",
+					"border-primary-500/30",
 					"rounded-full",
 					"animate-spin",
-					"transition-all",
 					"duration-500",
 					"ease-in-out",
 					"delay-150",
 					"transform",
 					"origin-center",
 					"shadow-lg",
-					"shadow-ironstone-500/50",
+					"shadow-accent-500/50",
 					"backdrop-blur-sm",
 					"backdrop-brightness-50",
 					"backdrop-saturate-50",
@@ -112,7 +166,25 @@ export namespace DesignSystem {
 	 * css: Shell > Layout
 	 */
 	export function Layout({ children }: PropsWithChildren) {
-		return <>{children}</>;
+		return (
+			<div
+				id={DesignSystemComponents.Layout}
+				className={clsx(
+					"antialiased",
+					"min-h-50",
+					"bg-base-200/30",
+					"pt-[0.5rem]",
+					"mx-[-1rem]",
+					"px-[2rem]",
+					"md:rounded-2xl",
+					"bg-gradient-to-t",
+					"from-base-100/80",
+					"to-base-200/20",
+				)}
+			>
+				{children}
+			</div>
+		);
 	}
 
 	/**

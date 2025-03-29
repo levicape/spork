@@ -27,19 +27,19 @@ export const CODECATALYST_PULUMI_STACKS: Array<{
 			stack: "codestar",
 		},
 		{
-			stack: "identity/oidc",
-			name: "identity-oidc",
-		},
-		{
-			stack: "identity/users",
-			name: "identity-users",
-		},
-		{
 			stack: "datalayer",
 		},
 		{
 			stack: "dns/root",
 			name: "dns-root",
+		},
+		{
+			stack: "idp/oidc",
+			name: "idp-oidc",
+		},
+		{
+			stack: "idp/users",
+			name: "idp-users",
 		},
 		{
 			stack: "levicape/magmap/channels",

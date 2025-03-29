@@ -43,6 +43,10 @@ import {
 	SporkHttpStackrefRoot,
 } from "../../../http/exports";
 import {
+	SporkIdpUsersStackExportsZod,
+	SporkIdpUsersStackrefRoot,
+} from "../../../idp/users/exports";
+import {
 	SporkMagmapChannelsStackExportsZod,
 	SporkMagmapChannelsStackrefRoot,
 } from "../channels/exports";
@@ -92,6 +96,12 @@ const STACKREF_CONFIG = {
 				iam: SporkDatalayerStackExportsZod.shape.spork_datalayer_iam,
 			},
 		},
+		[SporkIdpUsersStackrefRoot]: {
+			refs: {
+				cognito: SporkIdpUsersStackExportsZod.shape.spork_idp_users_cognito,
+			},
+		},
+
 		[SporkHttpStackrefRoot]: {
 			refs: {
 				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
@@ -404,15 +414,19 @@ export = async () => {
 	const extractimage = (() => {
 		const deployStage = "staticwww";
 		const deployAction = "extractimage";
+		const DEPLOY_SENTINEL = "procfile deploy complete" as const;
 		const artifactIdentifier = `${deployStage}_${deployAction}`;
 
 		const { codeartifact, ssm } = dereferenced$.codestar;
 		// TODO (stackref) => client; // Allow customizing the OIDC.js output
-		const { client: oidcClient, domain } =
-			dereferenced$[SporkMagmapClientStackrefRoot].cognito.operations;
+		const { domain } =
+			dereferenced$[SporkIdpUsersStackrefRoot].cognito.operators; // *.idp.az.
+		const { client: oidcClient } =
+			dereferenced$[SporkMagmapClientStackrefRoot].cognito.operators;
 		const { clientId, userPoolId } = oidcClient;
 		let { domain: domainName } = domain ?? {};
-		domainName = domainName?.split(".").slice(2).join(".");
+		domainName = domainName?.split(".").slice(3).join("."); // *.
+		domainName = `${SUBDOMAIN}.${domainName}`; // SUBDOMAIN.
 		const buildspec = (() => {
 			const content = stringify(
 				new CodeBuildBuildspecBuilder()
@@ -507,11 +521,20 @@ export = async () => {
 									"> .container",
 								].join(" "),
 								"docker ps -al",
-								...[2, 6, 2].flatMap((i) => [
-									`cat .container`,
-									`sleep ${i}s`,
-									`docker container logs $(cat .container)`,
-								]),
+								"export DEPLOY_COMPLETE=0",
+								"echo 'Waiting for procfile deploy'",
+								...[4, 16, 20, 16, 4, 2, 8, 10, 8, 2, 1, 4, 5, 4, 1].flatMap(
+									(i) => [
+										`cat .container`,
+										`if [ "$DEPLOY_COMPLETE" != "0" ];
+											then echo "Deploy completed. Skipping ${i}s wait";
+											else echo "Sleeping for ${i}s..."; echo "..."; 
+												sleep ${i}s; docker container logs $(cat .container);
+												export DEPLOY_COMPLETE=$(docker container logs $(cat .container) | grep -c "${DEPLOY_SENTINEL}");
+										fi`,
+										`echo "DEPLOY_COMPLETE: $DEPLOY_COMPLETE"`,
+									],
+								),
 								`docker cp $(cat .container):/tmp/${deployAction} $CODEBUILD_SRC_DIR/.${deployAction}`,
 								`ls -al $CODEBUILD_SRC_DIR/.${deployAction} || true`,
 								`ls -al $CODEBUILD_SRC_DIR/.${deployAction}/${DEPLOY_DIRECTORY} || true`,

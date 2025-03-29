@@ -5,7 +5,7 @@ import { prettyJSON } from "hono/pretty-json";
 import { secureHeaders } from "hono/secure-headers";
 import { timeout } from "hono/timeout";
 import type { ILogLayer } from "loglayer";
-import type { JwtTools } from "../../../server/security/Jwt.mjs";
+import type { JwtVerificationInterface } from "../../../server/security/JwtVerification.mjs";
 import { HonoRequestLogger } from "./log/HonoRequestLogger.mjs";
 import {
 	HonoRequestIdHeader,
@@ -75,14 +75,17 @@ export const HonoHttpResponse = ({
 
 export type HonoHttpSecurityProps = {
 	logger?: ILogLayer;
-	jwtTools: JwtTools;
+	jwtVerification: JwtVerificationInterface;
 };
-export const HonoHttpSecurity = ({ logger, jwtTools }: HonoHttpSecurityProps) =>
+export const HonoHttpSecurity = ({
+	logger,
+	jwtVerification,
+}: HonoHttpSecurityProps) =>
 	[
 		HonoAuthenticationKeypair(),
 		HonoHttpAuthenticationBearer({
 			logger,
-			jwtTools,
+			jwtVerification,
 		}),
 	] as const;
 
@@ -91,7 +94,7 @@ export type HonoHttpMiddlewareStandardProps = HonoHttpSecurityProps;
 export const HonoHttpMiddlewareStandard = (
 	props: HonoHttpMiddlewareStandardProps,
 ) => {
-	const { logger, jwtTools } = props;
+	const { logger, jwtVerification } = props;
 
 	return [
 		...HonoHttpCore({
@@ -104,9 +107,9 @@ export const HonoHttpMiddlewareStandard = (
 		...HonoHttpRequest({
 			logger,
 		}),
-		...((jwtTools ? HonoHttpSecurity({ logger, jwtTools }) : []) as ReturnType<
-			typeof HonoHttpSecurity
-		>),
+		...((jwtVerification
+			? HonoHttpSecurity({ logger, jwtVerification })
+			: []) as ReturnType<typeof HonoHttpSecurity>),
 		...HonoHttpResponse({
 			responseTimeHeader: "X-Response-Time",
 		}),

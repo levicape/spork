@@ -5,7 +5,7 @@ packages:
   - 'iac/*'
   - 'packages/*'
   - 'protocols/*'
-  - 'realms/*'
+  - 'realms/*/*'
 catalog:
   "@levicape/paloma": "0.3.7-main.16"
   "@levicape/fourtwo": "0.10.1-main.1"
@@ -51,6 +51,8 @@ catalogs:
     slonik: ^46.4.0
   database-sqlite:
     better-sqlite3: ^11.9.1
+  database-unstorage:
+    unstorage: "^1.15.0"
   data-column-arrow:
     '@apache-arrow/esnext-esm': ^19.0.0
     '@apache-arrow/ts': ^19.0.0
@@ -234,6 +236,7 @@ catalogs:
     ahooks: ^3.8.1
     react: ^19
     react-dom: ^19
+    react-error-boundary: ^5.0.0
     react-is: ^18.3.1
     react-keyed-flatten-children: ^3.0.2
   web-react-router:

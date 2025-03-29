@@ -1,6 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { SporkHonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServerBuilder";
 import { HonoGuardLogging } from "@levicape/spork/router/hono/guard/log/HonoGuardLogging";
+import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/security/HonoGuardAuthentication";
 import type { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
 import type {
@@ -85,6 +86,11 @@ export const { server, stream } = await SporkHonoHttpServer((app) =>
 		)
 		.basePath(HTTP_BASE_PATH)
 		.use(HonoGuardLogging({}))
+		.use(
+			HonoGuardAuthentication(async ({ principal }) => {
+				return principal.$case !== "anonymous";
+			}),
+		)
 		.get("/atlas", async (c) => {
 			return c.json({
 				data: {

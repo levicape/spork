@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { Context, Effect, pipe } from "effect";
+import { Context, Effect, Layer, pipe } from "effect";
 import type { Hono } from "hono";
 import {
 	type APIGatewayProxyResult,
@@ -15,7 +15,11 @@ import {
 	LoggingContext,
 	withStructuredLogging,
 } from "../../server/logging/LoggingContext.mjs";
-import { Jwt, JwtLayer } from "../../server/security/Jwt.mjs";
+import { FilesystemJwkCache } from "../../server/security/JwkCache/JwkCache.mjs";
+import {
+	JwtVerification,
+	JwtVerificationLayer,
+} from "../../server/security/JwtVerification.mjs";
 import { HonoHttpApp } from "./HonoHttpApp.mjs";
 import { HonoHttpServerFold } from "./HonoHttpServer.mjs";
 import { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
@@ -234,10 +238,10 @@ export const SporkHonoHttpServer = async <
 								Effect.gen(function* () {
 									const consola = yield* LoggingContext;
 									const logger = yield* consola.logger;
-									const { jwtTools } = yield* Jwt;
+									const jwtVerification = yield* JwtVerification;
 									const middleware = HonoHttpMiddlewareStandard({
 										logger,
-										jwtTools,
+										jwtVerification,
 									});
 
 									if (middleware.length > 0) {
@@ -282,7 +286,7 @@ export const SporkHonoHttpServer = async <
 									});
 								}),
 							),
-							JwtLayer,
+							Layer.provide(JwtVerificationLayer, FilesystemJwkCache),
 						),
 						Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
 					),

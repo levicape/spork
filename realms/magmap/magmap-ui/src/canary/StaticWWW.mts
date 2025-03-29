@@ -2,8 +2,8 @@ import assert from "node:assert";
 import { Canary, PromiseActivity } from "@levicape/paloma";
 import { LoggingContext } from "@levicape/paloma/runtime/server/RuntimeContext";
 import { withStructuredLogging } from "@levicape/paloma/runtime/server/loglayer/LoggingContext";
+import { MagmapRoutemap } from "@levicape/spork-magmap-io/http/Atlas";
 import { Context, Effect } from "effect";
-import { MagmapRoutemap } from "./Atlas.mjs";
 
 // @ts-ignore
 const { trace } = await Effect.runPromise(

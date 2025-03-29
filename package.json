@@ -42,7 +42,6 @@
     "effect": "catalog:effect",
     "hono": "catalog:hono",
     "hono-rate-limiter": "catalog:hono",
-    "jsonwebtoken": "catalog:crypto",
     "jose": "catalog:crypto-jwk",
     "loglayer": "catalog:log-loglayer",
     "pino": "catalog:log-pino",
@@ -52,6 +51,7 @@
     "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
     "ulidx": "catalog:id",
+    "unstorage": "catalog:database-unstorage",
     "verror": "catalog:error",
     "zod": "catalog:schema-zod"
   },
