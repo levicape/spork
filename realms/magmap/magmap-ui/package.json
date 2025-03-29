@@ -8,12 +8,12 @@
     "packagescript": "pnpm run",
     "outpaths": "./dist",
     "lintpaths": "./app ./src vite.config.mts",
-    "server": "./app/hono.ts",
     "staticwwwoutput": "./dist",
     "webcanary": "module/canary/StaticWWW.mjs"
   },
   "dependencies": {
     "@base-ui-components/react": "catalog:web-components",
+    "@hono/node-server": "catalog:hono",
     "@hono/react-renderer": "catalog:hono",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "workspace:",
@@ -23,11 +23,16 @@
     "effect": "catalog:effect",
     "hono": "catalog:hono",
     "honox": "catalog:hono",
+    "intl-messageformat": "catalog:web-i18n",
     "jotai": "catalog:state",
+    "oidc-client-ts": "catalog:oidc-client",
     "react": "catalog:web-react",
     "react-dom": "catalog:web-react",
+    "react-error-boundary": "catalog:web-react",
+    "react-intl": "catalog:web-i18n",
+    "react-range": "catalog:web-components",
     "react-router": "catalog:web-react-router",
-    "react-router-dom": "catalog:web-react-router",
+    "serialize-error": "catalog:error",
     "std-env": "catalog:runtime-env",
     "verror": "catalog:error"
   },
@@ -49,8 +54,8 @@
     "node": "22"
   },
   "files": [
-    "module",
-    "dist"
+    "dist",
+    "module"
   ],
   "nx": {
     "targets": {

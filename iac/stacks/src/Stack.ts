@@ -1,7 +1,7 @@
 import { inspect } from "node:util";
 import { StackReference, getStack, log } from "@pulumi/pulumi";
 import { destr } from "destr";
-import { deserializeError, serializeError } from "serialize-error";
+import { serializeError } from "serialize-error";
 import { VError } from "verror";
 import type { z } from "zod";
 
@@ -26,18 +26,32 @@ export const $val = <Z extends z.AnyZodObject | z.ZodRecord>(
 
 		return schema.parse(destr(json));
 	} catch (e: unknown) {
+		const info = {
+			...(opts?.info ?? {}),
+			SchemaObject: schema?.toString(),
+			JsonAttemptedToParse: json,
+		};
+		log.error(
+			inspect(
+				{
+					$deref: {
+						error: "StackRefValueParseError",
+						info,
+					},
+				},
+				{ depth: null },
+			),
+		);
+
 		throw new VError(
 			{
 				name: "StackrefValueParseError",
-				cause: deserializeError(e),
 				message: `Failed to parse value`,
 				info: {
-					error: serializeError(e),
-					json,
-					schema,
+					SerializedError: serializeError(e),
 				},
 			},
-			`Failed to parse '${opts?.info?.["outputName"] ?? "<OUTPUT_NAME>"}' value`,
+			`Failed to parse '${opts?.info?.["OutputName"] ?? "<OUTPUT_NAME>"}' value`,
 		);
 	}
 };
@@ -107,9 +121,10 @@ export const $deref = async <T extends DereferenceConfig>(
 				const output = await ref.getOutputDetails(outputName);
 				outputValues[stackOutput] = $val(output.value, schema, {
 					info: {
-						rootKey,
-						envStackName,
-						stackOutput,
+						RootKey: rootKey,
+						EnvStackName: envStackName,
+						StackOutput: stackOutput,
+						OutputName: outputName,
 					},
 				});
 			}

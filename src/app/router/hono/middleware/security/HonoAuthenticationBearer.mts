@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import type { JwtPayload } from "jsonwebtoken";
 import type { ILogLayer } from "loglayer";
-import type { JwtTools } from "../../../../server/security/Jwt.mjs";
+import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
 import { LoginToken } from "../../../../server/security/model/LoginToken.js";
 import { SecurityRoles } from "../../../../server/security/model/Security.js";
 import { HonoBearerAuth } from "./HonoBearerAuth.mjs";
@@ -26,7 +26,7 @@ export type HonoHttpAuthenticationBearerContext = {
 
 export type HonoHttpAuthenticationBearerProps = {
 	logger?: ILogLayer;
-	jwtTools: JwtTools;
+	jwtVerification: JwtVerificationInterface;
 };
 
 export const HonoHttpAuthenticationBearerPrincipal =
@@ -34,12 +34,12 @@ export const HonoHttpAuthenticationBearerPrincipal =
 
 export const HonoHttpAuthenticationBearer = ({
 	logger,
-	jwtTools,
+	jwtVerification,
 }: HonoHttpAuthenticationBearerProps) => {
-	const derive = HonoHttpAuthenticationDerive({ logger, jwtTools });
+	const derive = HonoHttpAuthenticationDerive({ logger, jwtVerification });
 	logger?.debug("Building HonoHttpAuthenticationBearer");
 	return HonoBearerAuth({
-		jwtTools,
+		jwtVerification,
 		verifyToken: async function HonoVerifyToken(token, c) {
 			return await derive(token, c);
 		},
@@ -48,7 +48,7 @@ export const HonoHttpAuthenticationBearer = ({
 
 export const HonoHttpAuthenticationDerive = ({
 	logger,
-	jwtTools,
+	jwtVerification,
 }: HonoHttpAuthenticationBearerProps) =>
 	async function HonoVerifyTokenDerivation(
 		token: string | undefined,
@@ -59,7 +59,9 @@ export const HonoHttpAuthenticationDerive = ({
 
 		if (token) {
 			try {
-				jwt = await jwtTools.verify(token, "ACCESS");
+				jwt = await jwtVerification.jwtVerify(token, {
+					audience: "ACCESS",
+				});
 
 				switch (jwt.aud) {
 					case "admin":

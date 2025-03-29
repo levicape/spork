@@ -422,26 +422,6 @@ Actions:
                 deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/codestar" --non-interactive --suppress-progress --diff --json
                 capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/codestar" "_pulumi/codestar"
             - Run: |-
-                source .pulumi-ci-helper && configure_stack "Deploy" "spork-identity-oidc.current" "$(pwd)/iac/stacks/src/identity/oidc" "spork-identity-oidc" "_pulumi/identity_oidc" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-identity-oidc.current" "$(pwd)/iac/stacks/src/identity/oidc" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/identity/oidc" 'aws:skipMetadataApiCheck=false
-                context:stack.environment.isProd=false
-                context:stack.environment.features=aws
-                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-identity-oidc.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/identity/oidc" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/identity/oidc" --non-interactive --suppress-progress --diff --json
-            - Run: |-
-                source .pulumi-ci-helper
-                deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/identity/oidc" --non-interactive --suppress-progress --diff --json
-                capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/identity/oidc" "_pulumi/identity_oidc"
-            - Run: |-
-                source .pulumi-ci-helper && configure_stack "Deploy" "spork-identity-users.current" "$(pwd)/iac/stacks/src/identity/users" "spork-identity-users" "_pulumi/identity_users" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-identity-users.current" "$(pwd)/iac/stacks/src/identity/users" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/identity/users" 'aws:skipMetadataApiCheck=false
-                context:stack.environment.isProd=false
-                context:stack.environment.features=aws
-                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
-                frontend:stack.dns.hostnames[1]=spork-identity-users.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/identity/users" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/identity/users" --non-interactive --suppress-progress --diff --json
-            - Run: |-
-                source .pulumi-ci-helper
-                deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/identity/users" --non-interactive --suppress-progress --diff --json
-                capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/identity/users" "_pulumi/identity_users"
-            - Run: |-
                 source .pulumi-ci-helper && configure_stack "Deploy" "spork-datalayer.current" "$(pwd)/iac/stacks/src/datalayer" "spork-datalayer" "_pulumi/datalayer" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-datalayer.current" "$(pwd)/iac/stacks/src/datalayer" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/datalayer" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
                 context:stack.environment.features=aws
@@ -461,6 +441,26 @@ Actions:
                 source .pulumi-ci-helper
                 deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/dns/root" --non-interactive --suppress-progress --diff --json
                 capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/dns/root" "_pulumi/dns_root"
+            - Run: |-
+                source .pulumi-ci-helper && configure_stack "Deploy" "spork-idp-oidc.current" "$(pwd)/iac/stacks/src/idp/oidc" "spork-idp-oidc" "_pulumi/idp_oidc" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-idp-oidc.current" "$(pwd)/iac/stacks/src/idp/oidc" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/idp/oidc" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-idp-oidc.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/idp/oidc" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/idp/oidc" --non-interactive --suppress-progress --diff --json
+            - Run: |-
+                source .pulumi-ci-helper
+                deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/idp/oidc" --non-interactive --suppress-progress --diff --json
+                capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/idp/oidc" "_pulumi/idp_oidc"
+            - Run: |-
+                source .pulumi-ci-helper && configure_stack "Deploy" "spork-idp-users.current" "$(pwd)/iac/stacks/src/idp/users" "spork-idp-users" "_pulumi/idp_users" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-idp-users.current" "$(pwd)/iac/stacks/src/idp/users" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/idp/users" 'aws:skipMetadataApiCheck=false
+                context:stack.environment.isProd=false
+                context:stack.environment.features=aws
+                frontend:stack.dns.hostnames[0]=current.spork.$FRONTEND_HOSTNAME
+                frontend:stack.dns.hostnames[1]=spork-idp-users.current.spork.$FRONTEND_HOSTNAME' && set_state_backend "/cc/cache/pulumi/bin/pulumi" "$AWS_PROVIDER_KEY" "$(pwd)/iac/stacks/src/idp/users" && refresh_and_preview "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/idp/users" --non-interactive --suppress-progress --diff --json
+            - Run: |-
+                source .pulumi-ci-helper
+                deploy_stack "/cc/cache/pulumi/bin/pulumi" "${WorkflowSource.BranchName}-${WorkflowSource.CommitId}" "$(pwd)/iac/stacks/src/idp/users" --non-interactive --suppress-progress --diff --json
+                capture_outputs "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/idp/users" "_pulumi/idp_users"
             - Run: |-
                 source .pulumi-ci-helper && configure_stack "Deploy" "spork-magmap-channels.current" "$(pwd)/iac/stacks/src/levicape/magmap/channels" "spork-magmap-channels" "_pulumi/levicape_magmap_channels" && setup_stack "/cc/cache/pulumi/bin/pulumi" "spork-magmap-channels.current" "$(pwd)/iac/stacks/src/levicape/magmap/channels" && configure_stack_settings "/cc/cache/pulumi/bin/pulumi" "$(pwd)/iac/stacks/src/levicape/magmap/channels" 'aws:skipMetadataApiCheck=false
                 context:stack.environment.isProd=false
@@ -594,14 +594,14 @@ Actions:
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/application.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/codestar.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/codestar.sh
-            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/identity_oidc.sh
-            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/identity_oidc.sh
-            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/identity_users.sh
-            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/identity_users.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/datalayer.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/datalayer.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/dns_root.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/dns_root.sh
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/idp_oidc.sh
+            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/idp_oidc.sh
+            - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/idp_users.sh
+            - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/idp_users.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/levicape_magmap_channels.sh
             - Run: source $CATALYST_SOURCE_DIR_pulumi/_pulumi/levicape_magmap_channels.sh
             - Run: cat $CATALYST_SOURCE_DIR_pulumi/_pulumi/levicape_magmap_client.sh
@@ -640,7 +640,7 @@ Actions:
 ########################################
 #**:_$~- {"$$":"head","filename":"CI.yml","source":"iac/workflows/codecatalyst/push/CI.js"}
 #**:_$~- {"$$":"script","generator":"codegen/codecatalyst/GenerateCodeCatalystWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"9def59f87694d38e6e334aad547179f16f34561b3ff6c5d93ad517203436276e"}
-#**:_$~- {"$$":"footer","started":"2025-03-24T23:34:42.683Z","now":"2025-03-24T23:34:42.691Z","elapsed":"8ms"}
+#**:_$~- {"$$":"body","hashed":"a9a6e676856b1cb4f1cb21e5539c20ff2766177c547fee8887b06780f3ec30f7"}
+#**:_$~- {"$$":"footer","started":"2025-03-28T03:02:12.760Z","now":"2025-03-28T03:02:12.768Z","elapsed":"8ms"}
 # END OF GENERATED FILE
 

@@ -14,18 +14,23 @@ const { PORT } = env;
  */
 export default defineConfig(({ mode }) => {
 	if (mode === "client") {
+		const unixtime = Math.floor(Date.now() / 1000);
+		const timehash = unixtime.toString(16);
 		return {
 			build: {
+				sourcemap: true,
 				rollupOptions: {
-					input: ["./app/client.ts", "./app/style.css"],
+					input: ["./app/render.ts", "./app/style.css"],
 					output: {
-						entryFileNames: "static/client.js",
-						chunkFileNames: "static/assets/[name]-[hash].js",
-						assetFileNames: "static/assets/[name].[ext]",
+						entryFileNames: "!/!!/[name].js",
+						chunkFileNames: `!/!!/_c/${timehash}/[name]-[hash].js`,
+						assetFileNames: "!/!!/_a/[name].[ext]",
+						generatedCode: "es2015",
+						compact: true,
 					},
+					treeshake: "smallest",
 				},
 				manifest: true,
-				ssrManifest: true,
 			},
 			plugins: [tailwindcss()],
 		};
@@ -34,6 +39,15 @@ export default defineConfig(({ mode }) => {
 	return {
 		build: {
 			emptyOutDir: false,
+			ssrManifest: true,
+			rollupOptions: {
+				output: {
+					generatedCode: "es2015",
+				},
+			},
+			commonjsOptions: {
+				include: ["cookie", "set-cookie-parser", "oidc-client-ts"],
+			},
 		},
 		ssr: {
 			external: [
@@ -42,6 +56,11 @@ export default defineConfig(({ mode }) => {
 				"prop-types",
 				"react-router-dom",
 				"fs-extra",
+				"react-intl",
+				"cookie",
+				"set-cookie-parser",
+				"react-router",
+				"oidc-client-ts",
 			],
 		},
 		plugins: [

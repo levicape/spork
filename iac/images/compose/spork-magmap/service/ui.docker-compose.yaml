@@ -6,7 +6,7 @@ services:
     environment: 
       LOG_LEVEL: $LOG_LEVEL
       STRUCTURED_LOGGING: $STRUCTURED_LOGGING
-      PROJECT_PATH: ./packages/magmap-ui
+      PROJECT_PATH: ./realms/magmap/magmap-ui
       PROJECT_COMMAND: serverwww:dev
       PORT: $MAGMAP_UI
     volumes: &workspace_volumes
@@ -24,7 +24,7 @@ services:
     environment:
       LOG_LEVEL: $LOG_LEVEL
       STRUCTURED_LOGGING: $STRUCTURED_LOGGING
-      PROJECT_PATH: ./packages/magmap-ui
+      PROJECT_PATH: ./realms/magmap/magmap-ui
       PROJECT_COMMAND: web:canary
       MAGMAP_HTTP: $MAGMAP_HTTP
       MAGMAP_UI: $MAGMAP_UI

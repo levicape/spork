@@ -4,7 +4,7 @@ import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import VError from "verror";
-import type { JwtTools } from "../../../../server/security/Jwt.mjs";
+import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
 import type { HonoHttpAuthenticationBearerContext } from "./HonoAuthenticationBearer.mjs";
 
 // TODO: Use unenv crypto to support LLRT
@@ -37,7 +37,7 @@ type BearerAuthOptions = (
 			invalidAuthenticationHeaderMessage?: string | object | MessageFunction;
 			invalidTokenMessage?: string | object | MessageFunction;
 	  }
-) & { jwtTools: JwtTools };
+) & { jwtVerification: JwtVerificationInterface };
 
 const TOKEN_STRINGS = "[A-Za-z0-9._~+/-]+=*";
 const PREFIX = "Bearer";
@@ -105,7 +105,7 @@ const timingSafeEqual = async (
 
 export type HonoBearerAuthMiddleware = {
 	Variables: {
-		JwtTools: JwtTools;
+		JwtVerification: JwtVerificationInterface;
 		HonoHttpAuthenticationBearerPrincipal: HonoHttpAuthenticationBearerContext["principal"];
 	};
 };
@@ -162,7 +162,7 @@ export const HonoBearerAuth = (options: BearerAuthOptions) => {
 	return createMiddleware<HonoBearerAuthMiddleware>(
 		async function BearerAuth(c, next) {
 			const headerToken = c.req.header(options.headerName || HEADER);
-			c.set("JwtTools", options.jwtTools);
+			c.set("JwtVerification", options.jwtVerification);
 
 			let equal = false;
 			if (!headerToken) {

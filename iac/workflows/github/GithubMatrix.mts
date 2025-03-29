@@ -25,8 +25,52 @@ export const GITHUB_CI_MATRIX = [
 			push: true as const,
 		},
 	},
+	// {
+	// 	name: `${ENVIRONMENT} on Push: Preview, Deploy`,
+	// 	region: "us-west-2",
+	// 	triggers: {
+	// 		workflow_dispatch: {},
+	// 	} satisfies GithubOn,
+	// 	pipeline: {
+	// 		install: undefined as unknown as GithubWorkflowProps<
+	// 			boolean,
+	// 			boolean
+	// 		>["pipeline"]["install"],
+	// 		environment: {
+	// 			name: ENVIRONMENT,
+	// 		},
+	//		approval: true as const,
+	// 		preview: true as const,
+	// 		deploy: true as const,
+	// 		push: true as const,
+	// 	},
+	// },
+	// {
+	// 	name: `${ENVIRONMENT} on Pull Request: Preview`,
+	// 	region: "us-west-2",
+	// 	triggers: {
+	// 		schedule: [
+	// 			{
+	// 				cron: "0 0 * * *",
+	// 			},
+	// 		],
+	// 	} satisfies GithubOn,
+	// 	pipeline: {
+	// 		install: undefined as unknown as GithubWorkflowProps<
+	// 			boolean,
+	// 			boolean
+	// 		>["pipeline"]["install"],
+	// 		environment: {
+	// 			name: ENVIRONMENT,
+	// 		},
+	// 		approval: true as const,
+	// 		preview: true as const,
+	// 		deploy: false as const,
+	// 		push: false as const,
+	// 	},
+	// },
 	{
-		name: `${ENVIRONMENT} on Schedule: Preview, Deploy`,
+		name: `${ENVIRONMENT} on Schedule: Preview`,
 		region: "us-west-2",
 		triggers: {
 			schedule: [
@@ -44,7 +88,7 @@ export const GITHUB_CI_MATRIX = [
 				name: ENVIRONMENT,
 			},
 			preview: true as const,
-			deploy: true as const,
+			deploy: false as const,
 			push: false as const,
 		},
 	},

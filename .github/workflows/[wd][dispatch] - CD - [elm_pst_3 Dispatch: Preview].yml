@@ -341,158 +341,6 @@ jobs:
           														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
           															echo "Running all stacks due to wildcard filter"
           															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-oidc" ]; then
-          															echo "Stack spork-identity-oidc matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-oidc,"; then
-          															echo "Stack spork-identity-oidc found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && configure_stack "Preview" "spork-identity-oidc.elm_pst_3" "$(pwd)/iac/stacks/src/identity/oidc" "spork-identity-oidc" "_pulumi/identity_oidc";
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-oidc" ]; then
-          															echo "Stack spork-identity-oidc matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-oidc,"; then
-          															echo "Stack spork-identity-oidc found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && setup_stack "spork-identity-oidc.elm_pst_3" "$(pwd)/iac/stacks/src/identity/oidc";
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-oidc" ]; then
-          															echo "Stack spork-identity-oidc matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-oidc,"; then
-          															echo "Stack spork-identity-oidc found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && configure_stack_settings "$(pwd)/iac/stacks/src/identity/oidc" 'aws:skipMetadataApiCheck=false
-          context:stack.environment.isProd=false
-          context:stack.environment.features=aws
-          frontend:stack.dns.hostnames[0]=elm_pst_3.spork.$FRONTEND_HOSTNAME';
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-oidc" ]; then
-          															echo "Stack spork-identity-oidc matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-oidc,"; then
-          															echo "Stack spork-identity-oidc found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && refresh_and_preview "${{ github.ref_name }}-${{ github.sha }}" "$(pwd)/iac/stacks/src/identity/oidc" --non-interactive --suppress-progress --diff --json;
-          echo "Stack spork-identity-oidc.elm_pst_3 processed";
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-users" ]; then
-          															echo "Stack spork-identity-users matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-users,"; then
-          															echo "Stack spork-identity-users found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-users not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && configure_stack "Preview" "spork-identity-users.elm_pst_3" "$(pwd)/iac/stacks/src/identity/users" "spork-identity-users" "_pulumi/identity_users";
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-users" ]; then
-          															echo "Stack spork-identity-users matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-users,"; then
-          															echo "Stack spork-identity-users found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-users not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && setup_stack "spork-identity-users.elm_pst_3" "$(pwd)/iac/stacks/src/identity/users";
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-users" ]; then
-          															echo "Stack spork-identity-users matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-users,"; then
-          															echo "Stack spork-identity-users found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-users not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && configure_stack_settings "$(pwd)/iac/stacks/src/identity/users" 'aws:skipMetadataApiCheck=false
-          context:stack.environment.isProd=false
-          context:stack.environment.features=aws
-          frontend:stack.dns.hostnames[0]=elm_pst_3.spork.$FRONTEND_HOSTNAME';
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
-          														elif [ "$PULUMI_STACK_FILTER" = "spork-identity-users" ]; then
-          															echo "Stack spork-identity-users matched in filter"
-          															true
-          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-identity-users,"; then
-          															echo "Stack spork-identity-users found in comma-separated list"
-          															true
-          														else
-          															echo "Stack spork-identity-users not in filter '$PULUMI_STACK_FILTER', skipping"
-          															false
-          														fi
-          													else
-          														echo "No stack filter specified, processing all stacks"
-          														true
-          													fi && refresh_and_preview "${{ github.ref_name }}-${{ github.sha }}" "$(pwd)/iac/stacks/src/identity/users" --non-interactive --suppress-progress --diff --json;
-          echo "Stack spork-identity-users.elm_pst_3 processed";
-          if [ -n "$PULUMI_STACK_FILTER" ]; then
-          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
-          															echo "Running all stacks due to wildcard filter"
-          															true
           														elif [ "$PULUMI_STACK_FILTER" = "spork-datalayer" ]; then
           															echo "Stack spork-datalayer matched in filter"
           															true
@@ -641,6 +489,158 @@ jobs:
           														true
           													fi && refresh_and_preview "${{ github.ref_name }}-${{ github.sha }}" "$(pwd)/iac/stacks/src/dns/root" --non-interactive --suppress-progress --diff --json;
           echo "Stack spork-dns-root.elm_pst_3 processed";
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-oidc" ]; then
+          															echo "Stack spork-idp-oidc matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-oidc,"; then
+          															echo "Stack spork-idp-oidc found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && configure_stack "Preview" "spork-idp-oidc.elm_pst_3" "$(pwd)/iac/stacks/src/idp/oidc" "spork-idp-oidc" "_pulumi/idp_oidc";
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-oidc" ]; then
+          															echo "Stack spork-idp-oidc matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-oidc,"; then
+          															echo "Stack spork-idp-oidc found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && setup_stack "spork-idp-oidc.elm_pst_3" "$(pwd)/iac/stacks/src/idp/oidc";
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-oidc" ]; then
+          															echo "Stack spork-idp-oidc matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-oidc,"; then
+          															echo "Stack spork-idp-oidc found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && configure_stack_settings "$(pwd)/iac/stacks/src/idp/oidc" 'aws:skipMetadataApiCheck=false
+          context:stack.environment.isProd=false
+          context:stack.environment.features=aws
+          frontend:stack.dns.hostnames[0]=elm_pst_3.spork.$FRONTEND_HOSTNAME';
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-oidc" ]; then
+          															echo "Stack spork-idp-oidc matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-oidc,"; then
+          															echo "Stack spork-idp-oidc found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-oidc not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && refresh_and_preview "${{ github.ref_name }}-${{ github.sha }}" "$(pwd)/iac/stacks/src/idp/oidc" --non-interactive --suppress-progress --diff --json;
+          echo "Stack spork-idp-oidc.elm_pst_3 processed";
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-users" ]; then
+          															echo "Stack spork-idp-users matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-users,"; then
+          															echo "Stack spork-idp-users found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-users not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && configure_stack "Preview" "spork-idp-users.elm_pst_3" "$(pwd)/iac/stacks/src/idp/users" "spork-idp-users" "_pulumi/idp_users";
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-users" ]; then
+          															echo "Stack spork-idp-users matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-users,"; then
+          															echo "Stack spork-idp-users found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-users not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && setup_stack "spork-idp-users.elm_pst_3" "$(pwd)/iac/stacks/src/idp/users";
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-users" ]; then
+          															echo "Stack spork-idp-users matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-users,"; then
+          															echo "Stack spork-idp-users found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-users not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && configure_stack_settings "$(pwd)/iac/stacks/src/idp/users" 'aws:skipMetadataApiCheck=false
+          context:stack.environment.isProd=false
+          context:stack.environment.features=aws
+          frontend:stack.dns.hostnames[0]=elm_pst_3.spork.$FRONTEND_HOSTNAME';
+          if [ -n "$PULUMI_STACK_FILTER" ]; then
+          														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
+          															echo "Running all stacks due to wildcard filter"
+          															true
+          														elif [ "$PULUMI_STACK_FILTER" = "spork-idp-users" ]; then
+          															echo "Stack spork-idp-users matched in filter"
+          															true
+          														elif echo ",$PULUMI_STACK_FILTER," | grep -q ",spork-idp-users,"; then
+          															echo "Stack spork-idp-users found in comma-separated list"
+          															true
+          														else
+          															echo "Stack spork-idp-users not in filter '$PULUMI_STACK_FILTER', skipping"
+          															false
+          														fi
+          													else
+          														echo "No stack filter specified, processing all stacks"
+          														true
+          													fi && refresh_and_preview "${{ github.ref_name }}-${{ github.sha }}" "$(pwd)/iac/stacks/src/idp/users" --non-interactive --suppress-progress --diff --json;
+          echo "Stack spork-idp-users.elm_pst_3 processed";
           if [ -n "$PULUMI_STACK_FILTER" ]; then
           														if [ "$PULUMI_STACK_FILTER" = "*" ]; then
           															echo "Running all stacks due to wildcard filter"
@@ -1182,7 +1182,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[wd][dispatch] - CD - [elm_pst_3 Dispatch: Preview].yml","source":"iac/workflows/github/workflow_dispatch/CD.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"925bad9217cc4a1c204a5736c2f103c4c989f1aa5c53991434a7d97b24b214d5"}
-#**:_$~- {"$$":"footer","started":"2025-03-25T01:36:39.410Z","now":"2025-03-25T01:36:39.412Z","elapsed":"2ms"}
+#**:_$~- {"$$":"body","hashed":"8cbf21a999a31dc693a1378116ef87e47668e76c897ec526c283e87f3dd62a48"}
+#**:_$~- {"$$":"footer","started":"2025-03-29T02:08:50.981Z","now":"2025-03-29T02:08:50.986Z","elapsed":"5ms"}
 # END OF GENERATED FILE
 
