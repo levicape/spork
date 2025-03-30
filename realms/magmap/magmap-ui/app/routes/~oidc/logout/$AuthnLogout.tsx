@@ -31,7 +31,7 @@ export const AuthnLogout = () => {
 						location.replace("/");
 						setTimeout(() => {
 							location.reload();
-						}, 3);
+						}, 3000);
 					},
 					Math.random() * 100 + 20,
 				);

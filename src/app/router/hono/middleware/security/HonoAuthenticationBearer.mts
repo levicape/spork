@@ -1,6 +1,7 @@
 import type { Context } from "hono";
 import type { JwtPayload } from "jsonwebtoken";
 import type { ILogLayer } from "loglayer";
+import { serializeError } from "serialize-error";
 import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
 import { LoginToken } from "../../../../server/security/model/LoginToken.js";
 import { SecurityRoles } from "../../../../server/security/model/Security.js";
@@ -55,53 +56,45 @@ export const HonoHttpAuthenticationDerive = ({
 		context: Context,
 	): Promise<boolean> {
 		let jwt: JwtPayload | undefined;
-		let unparseable = false;
+		let unparseable: boolean | string = false;
+		let error: unknown | undefined;
 
 		if (token) {
 			try {
-				jwt = await jwtVerification.jwtVerify(token, {
-					audience: "ACCESS",
-				});
+				jwt = await jwtVerification.jwtVerify(token, {});
 
-				switch (jwt.aud) {
-					case "admin":
-						context.set(HonoHttpAuthenticationBearerPrincipal, {
-							$case: "admin",
-							value: new LoginToken(
-								"admin",
-								[SecurityRoles.LOGIN, SecurityRoles.REGISTERED],
-								Date.now().toString(),
-								"localhost",
-							),
-						});
-						logger?.withContext({
-							principal: {
-								id: "admin",
-							},
-						});
-						break;
-					default:
-						context.set(HonoHttpAuthenticationBearerPrincipal, {
-							$case: "user",
-							value: new LoginToken(
-								jwt.sub ?? "",
-								[
-									// TODO:
-									SecurityRoles.LOGIN,
-								],
-								Date.now().toString(),
-								"localhost",
-							),
-						});
-						logger?.withContext({
-							principal: {
-								id: jwt.sub,
-							},
-						});
-						break;
+				// Cognito specific
+				// verifyClaims: (jwt) => undefined | string
+				if (jwt?.["payload"]?.["token_use"] !== "access") {
+					logger
+						?.withMetadata({
+							jwt,
+						})
+						.warn("JwT valid but token_use is not access");
+
+					throw "NOT_ACCESS_TOKEN";
 				}
+
+				context.set(HonoHttpAuthenticationBearerPrincipal, {
+					$case: "user",
+					value: new LoginToken(
+						jwt.sub ?? "",
+						[
+							// TODO:
+							SecurityRoles.LOGIN,
+						],
+						Date.now().toString(),
+						"localhost",
+					),
+				});
+				logger?.withContext({
+					principal: {
+						id: jwt.sub,
+					},
+				});
 			} catch (e) {
-				unparseable = true;
+				error = serializeError(e);
+				unparseable = typeof e === "string" ? e : true;
 			}
 		}
 
@@ -122,6 +115,7 @@ export const HonoHttpAuthenticationDerive = ({
 						unparseable,
 						randomset: `${random}/1 > ${JWT_SAMPLE_PERCENT}`,
 					},
+					error,
 				})
 				.debug("Parsing request jwt");
 		}

@@ -1,3 +1,4 @@
+import { hash } from "node:crypto";
 import { inspect } from "node:util";
 import {
 	CodeBuildBuildspecArtifactsBuilder,
@@ -38,7 +39,9 @@ import { Output, all, getStack, interpolate, log } from "@pulumi/pulumi";
 import { AssetArchive, StringAsset } from "@pulumi/pulumi/asset";
 import { error, warn } from "@pulumi/pulumi/log";
 import { RandomId } from "@pulumi/random/RandomId";
+import { destr } from "destr";
 import { serializeError } from "serialize-error";
+import { VError } from "verror";
 import { stringify } from "yaml";
 import type { z } from "zod";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
@@ -116,7 +119,7 @@ const STACKREF_CONFIG = {
 
 const HANDLER_TYPE = "httphandler" as const;
 
-const ROUTE_MAP = (
+const ROUTE_MAP = async (
 	$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
 ) => {
 	const { http } = $refs;
@@ -130,13 +133,51 @@ const ATLASFILE_PATHS: Record<
 	{
 		content: (
 			_$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
-		) => Record<string, unknown>;
+		) => Promise<Record<string, unknown>>;
 		path: string;
+		envName?: string;
 	}
 > = {
 	routes: {
 		content: ROUTE_MAP,
 		path: "atlas.routes.json",
+	},
+	jwks: {
+		content: async ($refs) => {
+			const { JWT_POOL_ID, JWT_REGION } = ENVIRONMENT($refs);
+			const url = `https://cognito-idp.${JWT_REGION}.amazonaws.com/${JWT_POOL_ID}/.well-known/jwks.json`;
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				},
+			});
+			if (response.ok === false) {
+				throw new VError(
+					{
+						info: {
+							url,
+							status: response.status,
+							statusText: response.statusText,
+						},
+					},
+					`Failed to fetch JWKS from ${url}`,
+				);
+			}
+			return destr<{
+				keys: Array<{
+					alg: string;
+					kid: string;
+					kty: string;
+					use: string;
+					n: string;
+					e: string;
+				}>;
+			}>(await response.text());
+		},
+		path: "jwks.json",
+		envName: "JWT_VERIFICATION_JWKS_URI",
 	},
 } as const;
 
@@ -161,7 +202,8 @@ const ENVIRONMENT = (
 
 	return {
 		SPORK_DATALAYER_MOUNT_PATH: efs.mountPath,
-		JWT_JWK_URL: `https://cognito-idp.${idpUsers.region}.amazonaws.com/${idpUsers.poolId}/.well-known/jwks.json`,
+		JWT_POOL_ID: idpUsers.poolId,
+		JWT_REGION: idpUsers.region,
 		JWT_CACHE_FS_ROOT: `${efs.mountPath}/levicape/jwks/azc`,
 		JWT_CACHE_FS_KEY: `${idpUsers.poolId}.json`,
 	} as const;
@@ -435,33 +477,48 @@ export = async () => {
 			AWS_CLOUDMAP_NAMESPACE_NAME: datalayer.cloudmap.namespace.name,
 		};
 
-		const atlasfile = (
+		const configfile = async (
 			kind: string,
-			{ path, content }: (typeof ATLASFILE_PATHS)["routes"],
+			{ path, content }: (typeof ATLASFILE_PATHS)[string],
 		) => {
-			const stringcontent = JSON.stringify(content(dereferenced$));
-			const object = new BucketObjectv2(_(`${kind}-atlas`), {
-				bucket: s3.artifacts.bucket,
-				source: new StringAsset(stringcontent),
-				contentType: "application/json",
-				key: `${path}`,
-				tags: {
-					Name: _(`atlas-${kind}`),
-					StackRef: STACKREF_ROOT,
-					PackageName: PACKAGE_NAME,
+			const stringcontent = JSON.stringify(await content(dereferenced$));
+			const md5hash = hash("md5", stringcontent, "hex");
+			const first6 = md5hash.slice(0, 6);
+			const last6 = md5hash.slice(-6);
+
+			const object = new BucketObjectv2(
+				_(`${kind}-configfile`),
+				{
+					bucket: s3.artifacts.bucket,
+					source: new StringAsset(stringcontent),
+					contentType: "application/json",
+					key: `${HANDLER_TYPE}/${kind}.${first6}${last6}.json`,
+					tags: {
+						Name: _(`${kind}-configfile`),
+						StackRef: STACKREF_ROOT,
+						PackageName: PACKAGE_NAME,
+						Kind: kind,
+						Path: path,
+						MD5: md5hash,
+					},
 				},
-			});
+				{
+					retainOnDelete: true,
+				},
+			);
 
 			const configuration = new ConfigurationProfile(
 				_(`${kind}-config`),
 				{
 					applicationId: codestar.appconfig.application.id,
-					description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
+					description: `(${PACKAGE_NAME}) "${kind}" configfile in #${stage}`,
 					locationUri: "hosted",
 					tags: {
 						Name: _(`${kind}-config`),
 						StackRef: STACKREF_ROOT,
 						PackageName: PACKAGE_NAME,
+						Kind: kind,
+						Path: path,
 					},
 				},
 				{
@@ -474,7 +531,7 @@ export = async () => {
 				{
 					applicationId: codestar.appconfig.application.id,
 					configurationProfileId: configuration.configurationProfileId,
-					description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
+					description: `(${PACKAGE_NAME}) "${kind}" configfile in #${stage}`,
 					content: stringcontent,
 					contentType: "application/json",
 				},
@@ -486,7 +543,7 @@ export = async () => {
 			const deployment = new Deployment(
 				_(`${kind}-config-deployment`),
 				{
-					description: `(${PACKAGE_NAME}) "${kind}" atlasfile in #${stage}`,
+					description: `(${PACKAGE_NAME}) "${kind}" configfile in #${stage}`,
 					applicationId: codestar.appconfig.application.id,
 					environmentId: appconfig.environment.environmentId,
 					configurationProfileId: configuration.configurationProfileId,
@@ -498,6 +555,7 @@ export = async () => {
 						Name: _(`${kind}-config-deployment`),
 						StackRef: STACKREF_ROOT,
 						PackageName: PACKAGE_NAME,
+						Kind: kind,
 					},
 				},
 				{
@@ -507,18 +565,21 @@ export = async () => {
 
 			return {
 				object,
-				content,
+				content: stringcontent,
 				version,
 				configuration,
 				deployment,
 			};
 		};
 
-		const atlas = Object.fromEntries(
-			Object.entries(ATLASFILE_PATHS).map(([named, { path, content }]) => [
-				named,
-				atlasfile(named, { path, content }),
-			]),
+		const configuration = Object.fromEntries(
+			await Promise.all(
+				Object.entries(ATLASFILE_PATHS).map(([named, resource]) =>
+					configfile(named, resource).then(
+						(config) => [named, config] as const,
+					),
+				),
+			),
 		);
 		const appconfigEnvironment = all([
 			codestar.appconfig.application.name,
@@ -530,25 +591,6 @@ export = async () => {
 				AWS_APPCONFIG_ENVIRONMENT: environmentName,
 			};
 		});
-		const configpath = (file: keyof typeof ATLASFILE_PATHS) => {
-			return all([appconfigEnvironment]).apply(([appconfigenvironment]) => {
-				const applicationName = appconfigenvironment.AWS_APPCONFIG_APPLICATION;
-				const environmentName = appconfigenvironment.AWS_APPCONFIG_ENVIRONMENT;
-				return interpolate`/applications/${applicationName}/environments/${environmentName}/configurations/${atlas[file].configuration.name}`;
-			});
-		};
-
-		const AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
-			let prefetch = [];
-			for (const af of Object.keys(atlas)) {
-				if (af) {
-					prefetch.push(af);
-				}
-			}
-			return Output.create(
-				prefetch.map((af) => configpath(af as keyof typeof ATLASFILE_PATHS)),
-			);
-		})().apply((list) => list.join(","));
 
 		const memorySize = context.environment.isProd ? 512 : 256;
 		const timeout = context.environment.isProd ? 18 : 11;
@@ -580,12 +622,12 @@ export = async () => {
 					logGroup: loggroup.name,
 					applicationLogLevel: context.environment.isProd ? "INFO" : "DEBUG",
 				},
-				layers: [
-					// TODO: RIP mapping
-					`arn:aws:lambda:us-west-2:359756378197:layer:AWS-AppConfig-Extension-Arm64:132`,
-				],
+				// Requires VPC Privatelink / RIP to match region to layer ARN
+				// layers: [
+				// 	`arn:aws:lambda:us-west-2:359756378197:layer:AWS-AppConfig-Extension-Arm64:132`,
+				// ],
 				environment: all([cloudmapEnvironment, appconfigEnvironment]).apply(
-					([cloudmap, appconfig]) => {
+					([cloudmap, _appconfig]) => {
 						return {
 							variables: {
 								NODE_OPTIONS: [
@@ -594,14 +636,35 @@ export = async () => {
 								].join(" "),
 								NODE_ENV: "production",
 								LOG_LEVEL: "5",
-								AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
 								...cloudmap,
-								...appconfig,
+								// ...appconfig,
+								// AWS_APPCONFIG_EXTENSION_PREFETCH_LIST: (() => {
+								// 	let prefetch = [];
+
+								// 	const configpath = (file: keyof typeof ATLASFILE_PATHS) => {
+								// 		return all([appconfigEnvironment]).apply(([appconfigenvironment]) => {
+								// 			const applicationName = appconfigenvironment.AWS_APPCONFIG_APPLICATION;
+								// 			const environmentName = appconfigenvironment.AWS_APPCONFIG_ENVIRONMENT;
+								// 			return interpolate`/applications/${applicationName}/environments/${environmentName}/configurations/${atlas[file].configuration.name}`;
+								// 		});
+								// 	};
+
+								// 	for (const af of Object.keys(atlas)) {
+								// 		if (af) {
+								// 			prefetch.push(af);
+								// 		}
+								// 	}
+								// 	return Output.create(
+								// 		prefetch.map((af) => configpath(af as keyof typeof ATLASFILE_PATHS)),
+								// 	);
+								// })().apply((list) => list.join(",")),
 								...Object.fromEntries(
-									Object.entries(ATLASFILE_PATHS).map(([name, { path }]) => [
-										`ATLAS_${name.toUpperCase()}`,
-										`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
-									]),
+									Object.entries(ATLASFILE_PATHS).map(
+										([name, { path, envName }]) => [
+											envName ?? `ATLAS_${name.toUpperCase()}`,
+											`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
+										],
+									),
 								),
 								...(LLRT_PLATFORM
 									? {
@@ -767,7 +830,7 @@ export = async () => {
 		);
 
 		return {
-			atlas,
+			configuration,
 			codedeploy: {
 				deploymentGroup,
 			},
@@ -1316,6 +1379,7 @@ export = async () => {
 									upload,
 									cloudmap.instance,
 									handler.codedeploy.deploymentGroup,
+									...Object.values(handler.configuration).map((c) => c.object),
 								],
 							},
 						);
@@ -1420,10 +1484,12 @@ export = async () => {
 									codebuild.httphandler_extractimage.project.name,
 									s3.artifacts.bucket,
 									Output.create([
-										...Object.entries(handler.atlas).map(([name, file]) => ({
-											name: name.toUpperCase(),
-											value: interpolate`${file.object.bucket}/${file.object.key}`,
-										})),
+										...Object.entries(handler.configuration).map(
+											([name, file]) => ({
+												name: name.toUpperCase(),
+												value: interpolate`${file.object.bucket}/${file.object.key}`,
+											}),
+										),
 									]),
 								]).apply(
 									([

@@ -1,3 +1,4 @@
+import { hash } from "node:crypto";
 import { inspect } from "node:util";
 import {
 	CodeBuildBuildspecArtifactsBuilder,
@@ -465,20 +466,33 @@ export = async () => {
 			{ path, content }: (typeof ATLASFILE_PATHS)["routes"],
 		) => {
 			const stringcontent = JSON.stringify(content(dereferenced$));
-			const object = new BucketObjectv2(_(`${name}-${kind}-atlas`), {
-				bucket: s3.artifacts.bucket,
-				source: new StringAsset(stringcontent),
-				contentType: "application/json",
-				key: `${name}/${path}`,
-				tags: {
-					Name: _(`${name}-${kind}-atlas`),
-					StackRef: STACKREF_ROOT,
-					PackageName: WORKSPACE_PACKAGE_NAME,
-					Kind: "Monitor",
-					Monitor: name,
-					MonitorPackageName: packageName,
+			const md5hash = hash("md5", stringcontent, "hex");
+			const first6 = md5hash.slice(0, 6);
+			const last6 = md5hash.slice(-6);
+
+			const object = new BucketObjectv2(
+				_(`${name}-${kind}-configfile`),
+				{
+					bucket: s3.artifacts.bucket,
+					source: new StringAsset(stringcontent),
+					contentType: "application/json",
+					key: `${HANDLER_TYPE}/${name}/${kind}.${first6}${last6}.json`,
+					tags: {
+						Name: _(`${name}-${kind}-configfile`),
+						StackRef: STACKREF_ROOT,
+						PackageName: WORKSPACE_PACKAGE_NAME,
+						Configfile: kind,
+						ConfigfilePath: path,
+						MD5: md5hash,
+						Kind: "Monitor",
+						Monitor: name,
+						MonitorPackageName: packageName,
+					},
 				},
-			});
+				{
+					retainOnDelete: true,
+				},
+			);
 
 			const configuration = new ConfigurationProfile(
 				_(`${name}-${kind}-config`),
@@ -540,7 +554,7 @@ export = async () => {
 
 			return {
 				object,
-				content,
+				content: stringcontent,
 				configuration,
 				version,
 				deployment,
@@ -563,24 +577,6 @@ export = async () => {
 				AWS_APPCONFIG_ENVIRONMENT: environmentName,
 			};
 		});
-		const configpath = (file: keyof typeof ATLASFILE_PATHS) => {
-			return all([appconfigEnvironment]).apply(([appconfigenvironment]) => {
-				const applicationName = appconfigenvironment.AWS_APPCONFIG_APPLICATION;
-				const environmentName = appconfigenvironment.AWS_APPCONFIG_ENVIRONMENT;
-				return interpolate`/applications/${applicationName}/environments/${environmentName}/configurations/${atlas[file].configuration.name}`;
-			});
-		};
-		const AWS_APPCONFIG_EXTENSION_PREFETCH_LIST = (() => {
-			let prefetch = [];
-			for (const af of Object.keys(atlas)) {
-				if (af) {
-					prefetch.push(af);
-				}
-			}
-			return Output.create(
-				prefetch.map((af) => configpath(af as keyof typeof ATLASFILE_PATHS)),
-			);
-		})().apply((list) => list.join(","));
 
 		const memorySize = context.environment.isProd ? 512 : 256;
 		const timeout = context.environment.isProd ? 93 : 55;
@@ -612,12 +608,12 @@ export = async () => {
 					logGroup: loggroup.name,
 					applicationLogLevel: context.environment.isProd ? "INFO" : "DEBUG",
 				},
-				layers: [
-					// TODO: RIP mapping
-					`arn:aws:lambda:us-west-2:359756378197:layer:AWS-AppConfig-Extension-Arm64:132`,
-				],
+				// Requires VPC Privatelink / RIP to match region to layer ARN
+				// layers: [
+				// 	`arn:aws:lambda:us-west-2:359756378197:layer:AWS-AppConfig-Extension-Arm64:132`,
+				// ],
 				environment: all([cloudmapEnvironment, appconfigEnvironment]).apply(
-					([cloudmapEnv, appconfigEnv]) => {
+					([cloudmapEnv, _appconfigEnv]) => {
 						return {
 							variables: {
 								NODE_OPTIONS: [
@@ -626,15 +622,34 @@ export = async () => {
 								].join(" "),
 								NODE_ENV: "production",
 								LOG_LEVEL: "5",
+								...cloudmapEnv,
+								// ...appconfigEnv,
+								// AWS_APPCONFIG_EXTENSION_PREFETCH_LIST: (() => {
+								// 	let prefetch = [];
+
+								// 	const configpath = (file: keyof typeof ATLASFILE_PATHS) => {
+								// 		return all([appconfigEnvironment]).apply(([appconfigenvironment]) => {
+								// 			const applicationName = appconfigenvironment.AWS_APPCONFIG_APPLICATION;
+								// 			const environmentName = appconfigenvironment.AWS_APPCONFIG_ENVIRONMENT;
+								// 			return interpolate`/applications/${applicationName}/environments/${environmentName}/configurations/${atlas[file].configuration.name}`;
+								// 		});
+								// 	};
+
+								// 	for (const af of Object.keys(atlas)) {
+								// 		if (af) {
+								// 			prefetch.push(af);
+								// 		}
+								// 	}
+								// 	return Output.create(
+								// 		prefetch.map((af) => configpath(af as keyof typeof ATLASFILE_PATHS)),
+								// 	);
+								// })().apply((list) => list.join(",")),
 								...(LLRT_PLATFORM
 									? {
 											LLRT_PLATFORM,
 											LLRT_GC_THRESHOLD_MB: String(memorySize / 2),
 										}
 									: {}),
-								...cloudmapEnv,
-								...appconfigEnv,
-								AWS_APPCONFIG_EXTENSION_PREFETCH_LIST,
 								...(environment !== undefined &&
 								typeof environment === "function"
 									? Object.fromEntries(
@@ -1265,7 +1280,11 @@ export = async () => {
 									},
 								},
 								{
-									dependsOn: [upload, deploymentGroup],
+									dependsOn: [
+										upload,
+										deploymentGroup,
+										...Object.values(atlas).map((c) => c.object),
+									],
 								},
 							);
 

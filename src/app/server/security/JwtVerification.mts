@@ -18,6 +18,7 @@ import {
 import type { ILogLayer } from "loglayer";
 import { deserializeError } from "serialize-error";
 import VError from "verror";
+import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
 import { JwkCache, type JwkCacheInterface } from "./JwkCache/JwkCache.mjs";
 
@@ -36,6 +37,7 @@ export class JwtVerification extends Context.Tag("JwtVerification")<
 	JwtVerificationInterface
 >() {}
 
+export const $$$JWT_VERIFICATION_JWKS_URI = "JWT_VERIFICATION_JWKS_URI";
 export class JwtVerificationJoseEnvs {
 	constructor(readonly JWT_VERIFICATION_JWKS_URI?: string) {}
 }
@@ -86,7 +88,9 @@ export class JwtVerificationJose {
 					context: this.context,
 					key: inspect(exported),
 				})
-				.warn("JWT_JWK_URL not provided, using default key");
+				.warn(
+					`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using default key`,
+				);
 		}
 	};
 
@@ -98,7 +102,7 @@ export class JwtVerificationJose {
 					file,
 				},
 			})
-			.debug("Using file JWT_JWK_URL");
+			.debug(`Using file ${$$$JWT_VERIFICATION_JWKS_URI}`);
 
 		let content: unknown;
 		let json: unknown;
@@ -119,9 +123,7 @@ export class JwtVerificationJose {
 				.error("Failed to read JWK file");
 			throw e;
 		}
-		return createLocalJWKSet({
-			keys: json as unknown as JWK[],
-		});
+		return createLocalJWKSet(json as unknown as { keys: JWK[] });
 	};
 
 	private jwksFromUrl = async (url: string) => {
@@ -131,7 +133,7 @@ export class JwtVerificationJose {
 					context: this.context,
 				},
 			})
-			.debug("Using remote JWT_JWK_URL");
+			.debug(`Using remote ${$$$JWT_VERIFICATION_JWKS_URI}`);
 		return createRemoteJWKSet(new URL(url), {
 			[jwksCache]: this.cache,
 		});
@@ -158,10 +160,10 @@ export class JwtVerificationJose {
 }
 
 export const SUPPORTED_PROTOCOLS = ["http", "file"] as const;
-
 export const JwtVerificationLayerConfig = Config.map(
 	Config.all([
-		Config.string("JWT_VERIFICATION_JWKS_URI").pipe(
+		Config.string($$$JWT_VERIFICATION_JWKS_URI).pipe(
+			Config.map((c) => envsubst(c)),
 			Config.withDescription(
 				`Oauth jwks_uri. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}`,
 			),

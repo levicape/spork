@@ -19,7 +19,8 @@
     "noEmit": true,
     "declaration": true,
     "declarationMap": true,
-    "inlineSourceMap": true,
+    "sourceMap": true,
+    "inlineSources": true,
     "jsx": "react-jsx",
     "jsxImportSource": "react",
 
