@@ -61,6 +61,7 @@ import {
 } from "../http/exports";
 import { SporkMagmapWWWRootSubdomain } from "../wwwroot/exports";
 
+import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { SporkMagmapWebStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork-magmap-ui" as const;
@@ -155,6 +156,26 @@ export = async () => {
 	});
 
 	const routemap = ROUTE_MAP(dereferenced$);
+
+	// Logging
+	const cloudwatch = (() => {
+		const loggroup = (name: string) => {
+			const loggroup = new LogGroup(_(`${name}-logs`), {
+				retentionInDays: context.environment.isProd ? 180 : 60,
+				tags: {
+					Name: _(`${name}-logs`),
+					StackRef: STACKREF_ROOT,
+					PackageName: PACKAGE_NAME,
+				},
+			});
+
+			return { loggroup };
+		};
+
+		return {
+			build: loggroup("build"),
+		};
+	})();
 
 	// Object Store
 	const s3 = (() => {
@@ -634,6 +655,16 @@ export = async () => {
 							},
 						],
 					},
+					logsConfig: {
+						cloudwatchLogs: {
+							groupName: cloudwatch.build.loggroup.name,
+							streamName: `${artifactIdentifier}`,
+						},
+						// s3Logs: {
+						// 	status: "ENABLED",
+						// 	location: s3.build.bucket,
+						// },
+					},
 					source: {
 						type: "CODEPIPELINE",
 						buildspec: buildspec.content,
@@ -747,6 +778,16 @@ export = async () => {
 								type: "PLAINTEXT",
 							},
 						],
+					},
+					logsConfig: {
+						cloudwatchLogs: {
+							groupName: cloudwatch.build.loggroup.name,
+							streamName: `${artifactIdentifier}`,
+						},
+						// s3Logs: {
+						// 	status: "ENABLED",
+						// 	location: s3.build.bucket,
+						// },
 					},
 					source: {
 						type: "CODEPIPELINE",
@@ -862,6 +903,16 @@ export = async () => {
 								type: "PLAINTEXT",
 							},
 						],
+					},
+					logsConfig: {
+						cloudwatchLogs: {
+							groupName: cloudwatch.build.loggroup.name,
+							streamName: `${artifactIdentifier}`,
+						},
+						// s3Logs: {
+						// 	status: "ENABLED",
+						// 	location: s3.build.bucket,
+						// },
 					},
 					source: {
 						type: "CODEPIPELINE",

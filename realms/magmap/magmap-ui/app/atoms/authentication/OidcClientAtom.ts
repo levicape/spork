@@ -146,6 +146,7 @@ export const useOidcClient = () => {
 		if (!discordEnabled) {
 			if (user === null || user === undefined) {
 				(async () => {
+					const debugEnabled = window["--magmap-debug"];
 					let sessionUser: User | null | undefined;
 					let sessionError: unknown;
 					try {
@@ -155,12 +156,19 @@ export const useOidcClient = () => {
 						sessionError = error;
 					}
 
-					console.debug({
-						OidcClientAtom: {
-							sessionUser,
-							sessionError,
-						},
-					});
+					debugEnabled &&
+						console.debug({
+							OidcClientAtom: {
+								sessionUser: {
+									...sessionUser,
+									access_token: undefined,
+									id_token: undefined,
+									refresh_token: undefined,
+									token_type: undefined,
+								},
+								sessionError,
+							},
+						});
 
 					if (sessionError) {
 						throw sessionError;
@@ -170,11 +178,19 @@ export const useOidcClient = () => {
 		}
 	}, [oidc, discordEnabled, user, setUser]);
 
+	const userReady = useMemo(() => {
+		return (
+			user?.expired === false &&
+			user?.access_token !== undefined &&
+			oidcFetch !== windowFetch
+		);
+	}, [user?.expired, user?.access_token, oidcFetch]);
+
 	useEffect(() => {
 		fetchUserState();
 	}, [fetchUserState]);
 
 	return useMemo(() => {
-		return { oidc, user, oidcFetch };
-	}, [oidc, user, oidcFetch]);
+		return { oidc, user, userReady, oidcFetch };
+	}, [oidc, user, userReady, oidcFetch]);
 };

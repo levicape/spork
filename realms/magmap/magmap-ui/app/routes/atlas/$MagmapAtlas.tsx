@@ -1,17 +1,16 @@
 import type { MagmapHonoApp } from "@levicape/spork-magmap-io/http/HonoApp";
 import clsx from "clsx";
+import { destr } from "destr";
 import { hc } from "hono/client";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Await } from "react-router";
-import { serializeError } from "serialize-error";
+import { deserializeError, serializeError } from "serialize-error";
 import {
 	type OidcFetch,
-	type OidcUser,
 	useOidcClient,
 } from "../../atoms/authentication/OidcClientAtom";
 import { useFormatMessage } from "../../atoms/localization/I18nAtom";
-import { AwaitClient } from "../../ui/ClientSuspense";
 import { Button } from "../../ui/daisy/action/Button";
 import { Alert } from "../../ui/daisy/feedback/Alert";
 import { Loading } from "../../ui/daisy/feedback/Loading";
@@ -23,68 +22,81 @@ declare global {
 	}
 }
 
-const Magmap = hc<MagmapHonoApp>("");
-const GetMagmapAtlasfile = async (user: OidcUser, oidcFetch: OidcFetch) => {
+const windowLocation = typeof location !== "undefined" ? location.origin : "";
+const Magmap = hc<MagmapHonoApp>(windowLocation);
+const GetMagmapAtlasfile = async (userReady: boolean, oidcFetch: OidcFetch) => {
 	const debugEnabled =
 		typeof window !== "undefined" ? window["--magmap-debug"] : undefined;
 
-	if (!user) {
-		await AwaitClient();
+	if (!userReady) {
+		await new Promise(() => {});
 	}
 
+	let url: URL | undefined;
 	try {
+		url = Magmap["~"].Spork.Magmap.atlas.$url();
 		const atlasfiles = await Magmap["~"].Spork.Magmap.atlas.$get(
 			{},
 			{
 				fetch: oidcFetch,
 			},
 		);
-		const response =
-			atlasfiles.status < 500
-				? await atlasfiles.json()
-				: {
-						data: undefined,
-						error: {
-							message: `Error fetching liveness for route ${atlasfiles.status}: ${atlasfiles.statusText}`,
-							code: "RouteNotFound",
-						},
-					};
+		let response = (await atlasfiles.text()) as unknown as Awaited<
+			ReturnType<(typeof atlasfiles)["json"]>
+		>;
 		debugEnabled &&
 			console.log({
 				MagmapRoutemap: {
-					atlasfiles,
+					atlasfiles: atlasfiles.status,
 					response,
 				},
 			});
 
+		if (typeof response === "string") {
+			response = destr(response);
+		}
+
 		const maybeError = (response as { error?: unknown }).error;
-		if (maybeError !== undefined) {
-			console.warn({
-				MagmapRoutemap: {
-					message: "Error in response",
+		const isErrorStatus = atlasfiles.status > 401;
+		if (isErrorStatus || maybeError !== undefined) {
+			throw {
+				FetchError: {
+					message: `Response ${atlasfiles.status}: ${atlasfiles.statusText}`,
+					url,
+					response,
 					error: maybeError,
 				},
-			});
-			throw maybeError;
+			};
+		}
+
+		if (atlasfiles.status === 401) {
+			throw {
+				Unauthorized: {
+					message: `Unauthorized ${atlasfiles.status} ${atlasfiles.statusText}`,
+					url,
+					response,
+				},
+			};
 		}
 
 		return response as typeof response & { error?: never };
 	} catch (error) {
+		const message = `Fetching ${url}`;
 		console.warn({
 			MagmapRoutemap: {
-				message: "Error fetching liveness",
+				message,
 				error: serializeError(error),
 			},
 		});
 
-		throw error;
+		throw new Error(message, { cause: deserializeError(error) });
 	}
 };
 
 // type MagmapAtlasfile = Awaited<ReturnType<typeof GetMagmapAtlasfile>>;
 export const MagmapAtlas = () => {
 	const formatMessage = useFormatMessage();
-	const { user, oidcFetch } = useOidcClient();
+	const { userReady, oidcFetch } = useOidcClient();
 	const [active, setActive] = useState(true);
 	const revalidate = useCallback(() => {
 		setActive(() => false);
@@ -94,8 +106,10 @@ export const MagmapAtlas = () => {
 	}, []);
 
 	const fetchPromise = useMemo(async () => {
-		return GetMagmapAtlasfile(user, oidcFetch);
-	}, [user, oidcFetch]);
+		return Promise.resolve(active).then(() =>
+			GetMagmapAtlasfile(userReady, oidcFetch),
+		);
+	}, [active, userReady, oidcFetch]);
 
 	const [url, setUrl] = useState("");
 
@@ -197,68 +211,123 @@ export const MagmapAtlas = () => {
 						}
 					>
 						<ErrorBoundary
-							FallbackComponent={({ error, resetErrorBoundary }) => (
-								<>
-									<Alert
-										className={clsx("text-error-content", "py-[-2]")}
-										color={"error"}
-									>
-										<h3 className={clsx("font-bold", "text-md", "md:text-lg")}>
-											{formatMessage({
-												id: "atlas.$MagmapAtlas.error.title",
-												defaultMessage: "Error loading atlasfile",
-												description: "$MagmapAtlas: Error boundary heading",
-											})}
-										</h3>
-										<p className={clsx("hidden", "md:block")}>
-											{formatMessage({
-												id: "atlas.$MagmapAtlas.error.content",
-												defaultMessage: "Could not fetch atlasfile.",
-											})}
-										</p>
-										<Button
-											onClick={resetErrorBoundary}
+							FallbackComponent={({ error, resetErrorBoundary }) => {
+								const stack = error?.stack;
+								if (error instanceof Error) {
+									error.stack = undefined;
+								}
+								return (
+									<>
+										<Alert
+											className={clsx("text-error-content", "py-[-2]")}
 											color={"error"}
-											variant={"link"}
 										>
-											{formatMessage({
-												id: "atlas.$MagmapAtlas.error.refresh",
-												defaultMessage: "Refresh",
-											})}
-										</Button>
-									</Alert>
+											<h3
+												className={clsx("font-bold", "text-md", "md:text-lg")}
+											>
+												{formatMessage({
+													id: "atlas.$MagmapAtlas.error.title",
+													defaultMessage: "Error loading atlasfile",
+													description: "$MagmapAtlas: Error boundary heading",
+												})}
+											</h3>
+											<p className={clsx("hidden", "md:block")}>
+												{formatMessage({
+													id: "atlas.$MagmapAtlas.error.content",
+													defaultMessage: "Could not fetch atlasfile.",
+												})}
+											</p>
+											<div className={clsx("size-1", "invisible")} />
+											<Button
+												onClick={resetErrorBoundary}
+												color={"error"}
+												variant={"link"}
+											>
+												{formatMessage({
+													id: "atlas.$MagmapAtlas.error.refresh",
+													defaultMessage: "Refresh",
+												})}
+											</Button>
+										</Alert>
 
-									<details className={clsx("w-full")}>
-										<summary>
-											{formatMessage({
-												id: "atlas.$MagmapAtlas.error.summary",
-												defaultMessage: "Click to view details",
-											})}
-										</summary>
-										<p
-											className={clsx(
-												"text-end",
-												"ml-2",
-												"w-11/12",
-												"bg-gray-900",
-												"text-gray-200",
-												"pt-2",
-												"pb-1",
-												"pr-1.5",
-												"font-mono",
+										<details className={clsx("w-full")}>
+											<summary className={clsx("text-sm")}>
+												{formatMessage({
+													id: "atlas.$MagmapAtlas.error.summary",
+													defaultMessage: "Click to view details",
+												})}
+											</summary>
+											<textarea
+												contentEditable={false}
+												className={clsx(
+													"ml-2",
+													"w-11/12",
+													"bg-gray-950",
+													"text-gray-50",
+													"border-b-1",
+													"border-x-1",
+													"border-error/30",
+													"border-s",
+													"shadow-xs",
+													"pt-2",
+													"pb-2.5",
+													"pr-1.5",
+													"pl-0.5",
+													"m-w-54",
+													"whitespace-pre-wrap",
+													"text-md",
+													"font-mono",
+													"min-h-8",
+												)}
+											>
+												{JSON.stringify(serializeError(error), null, 4)}
+											</textarea>
+											{stack ? (
+												<textarea
+													contentEditable={false}
+													className={clsx(
+														"block",
+														"text-end",
+														"mt-3.5",
+														"ml-2",
+														"w-11/12",
+														"bg-gray-200/80",
+														"bg-blend-color-burn",
+														"text-error",
+														"border-t-1",
+														"border-x-2",
+														"border-accent/20",
+														"shadow-md",
+														"pt-1",
+														"pb-2",
+														"pr-1",
+														"pl-0.5",
+														"m-w-54",
+														"whitespace-pre-wrap",
+														"text-md",
+														"font-mono",
+														"min-h-14",
+													)}
+												>
+													{stack}
+												</textarea>
+											) : (
+												<></>
 											)}
-										>
-											{JSON.stringify(serializeError(error))}
-										</p>
-									</details>
-								</>
-							)}
+										</details>
+									</>
+								);
+							}}
 							onReset={revalidate}
 						>
 							{active ? (
 								<Await resolve={fetchPromise}>
 									{(response) => {
-										const { data } = response ?? {};
+										if (!response) {
+											return <></>;
+										}
+
+										const { data } = response;
 										return JSON.stringify(data ?? {}, null, 2);
 									}}
 								</Await>

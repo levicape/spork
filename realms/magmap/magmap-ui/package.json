@@ -20,6 +20,7 @@
     "@levicape/spork-atlas": "workspace:",
     "@levicape/spork-magmap-io": "workspace:",
     "clsx": "catalog:web-style",
+    "destr": "catalog:parse-json",
     "effect": "catalog:effect",
     "hono": "catalog:hono",
     "honox": "catalog:hono",

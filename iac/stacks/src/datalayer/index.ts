@@ -1,6 +1,7 @@
 import { inspect } from "node:util";
 import { Context } from "@levicape/fourtwo-pulumi/commonjs/context/Context.cjs";
 import { SecurityGroup } from "@pulumi/aws/ec2/securityGroup";
+import { VpcEndpoint } from "@pulumi/aws/ec2/vpcEndpoint";
 import { AccessPoint } from "@pulumi/aws/efs/accessPoint";
 import { FileSystem } from "@pulumi/aws/efs/fileSystem";
 import { MountTarget } from "@pulumi/aws/efs/mountTarget";
@@ -9,7 +10,7 @@ import { Role } from "@pulumi/aws/iam/role";
 import { RolePolicyAttachment } from "@pulumi/aws/iam/rolePolicyAttachment";
 import { PrivateDnsNamespace } from "@pulumi/aws/servicediscovery/privateDnsNamespace";
 import { Vpc } from "@pulumi/awsx/ec2/vpc";
-import { all } from "@pulumi/pulumi";
+import { Output, all } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
 import type { z } from "zod";
 import { $deref } from "../Stack";
@@ -102,6 +103,32 @@ export = async () => {
 			vpc,
 			subnetIds,
 			securitygroup,
+		};
+	})();
+
+	(() => {
+		const endpoint = (name: string, serviceName: string) => {
+			const region = context?.environment?.aws?.region;
+			if (!region) {
+				return undefined;
+			}
+
+			return new VpcEndpoint(_(`endpoint-${name}`), {
+				vpcId: ec2.vpc.vpcId,
+				serviceName: `com.amazonaws.${region}.${serviceName}`,
+				autoAccept: true,
+				vpcEndpointType: "Gateway",
+				tags: {
+					Name: _(`endpoint-${name}`),
+					PackageName: PACKAGE_NAME,
+					ServiceName: serviceName,
+				},
+			});
+		};
+
+		return {
+			s3: endpoint("s3", "s3"),
+			dynamodb: endpoint("dynamodb", "dynamodb"),
 		};
 	})();
 
@@ -596,7 +623,7 @@ export = async () => {
 				};
 
 				const vpcConfig = {
-					subnetIds: privateSubnetIds,
+					subnetIds: [...privateSubnetIds],
 					securityGroupIds: [securityGroupId],
 				};
 

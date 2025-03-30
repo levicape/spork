@@ -10,6 +10,7 @@ import { Function as CloudfrontFunction } from "@pulumi/aws/cloudfront";
 import type { DistributionArgs } from "@pulumi/aws/cloudfront/distribution";
 import { Distribution } from "@pulumi/aws/cloudfront/distribution";
 import { OriginAccessIdentity } from "@pulumi/aws/cloudfront/originAccessIdentity";
+import { LogGroup } from "@pulumi/aws/cloudwatch/logGroup";
 import { Project } from "@pulumi/aws/codebuild";
 import { getRole } from "@pulumi/aws/iam/getRole";
 import { CallbackFunction, Permission, Runtime } from "@pulumi/aws/lambda";
@@ -293,6 +294,26 @@ function handler(event) {
 		);
 	}
 	//
+
+	// Logging
+	const cloudwatch = (() => {
+		const loggroup = (name: string) => {
+			const loggroup = new LogGroup(_(`${name}-logs`), {
+				retentionInDays: context.environment.isProd ? 180 : 60,
+				tags: {
+					Name: _(`${name}-logs`),
+					StackRef: STACKREF_ROOT,
+					PackageName: WORKSPACE_PACKAGE_NAME,
+				},
+			});
+
+			return { loggroup };
+		};
+
+		return {
+			build: loggroup("build"),
+		};
+	})();
 
 	////////
 	// S3
@@ -780,6 +801,16 @@ function handler(event) {
 								type: "PLAINTEXT",
 							},
 						],
+					},
+					logsConfig: {
+						cloudwatchLogs: {
+							groupName: cloudwatch.build.loggroup.name,
+							streamName: `${artifactIdentifier}`,
+						},
+						// s3Logs: {
+						// 	status: "ENABLED",
+						// 	location: s3.build.bucket,
+						// },
 					},
 					source: {
 						type: "NO_SOURCE",
