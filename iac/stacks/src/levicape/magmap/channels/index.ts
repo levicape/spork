@@ -5,7 +5,7 @@ import { error, warn } from "@pulumi/pulumi/log";
 import { Output, all } from "@pulumi/pulumi/output";
 import type { z } from "zod";
 import { objectEntries, objectFromEntries } from "../../../Object";
-import { $deref } from "../../../Stack";
+import { $$root, $deref } from "../../../Stack";
 import {
 	SporkApplicationRoot,
 	SporkApplicationStackExportsZod,
@@ -14,6 +14,7 @@ import { SporkMagmapWWWRootSubdomain } from "../wwwroot/exports";
 import { SporkMagmapChannelsStackExportsZod } from "./exports";
 
 const PACKAGE_NAME = "@levicape/spork-magmap-io" as const;
+const APPLICATION_IMAGE_NAME = SporkApplicationRoot;
 const SUBDOMAIN =
 	process.env["STACKREF_SUBDOMAIN"] ?? SporkMagmapWWWRootSubdomain;
 
@@ -85,6 +86,6 @@ export = async () => {
 			warn(inspect(exported, { depth: null }));
 		}
 
-		return exported;
+		return $$root(APPLICATION_IMAGE_NAME, STACKREF_ROOT, exported);
 	});
 };

@@ -7,7 +7,8 @@ import {
 import { all } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
 import type { z } from "zod";
-import { $deref } from "../../../Stack";
+import { objectEntries, objectFromEntries } from "../../../Object";
+import { $$root, $deref } from "../../../Stack";
 import {
 	SporkApplicationRoot,
 	SporkApplicationStackExportsZod,
@@ -26,9 +27,9 @@ import {
 	SporkMagmapClientStackExportsZod,
 } from "./exports";
 
+const APPLICATION_IMAGE_NAME = SporkApplicationRoot;
 const SUBDOMAIN =
 	process.env["STACKREF_SUBDOMAIN"] ?? SporkMagmapWWWRootSubdomain;
-
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
 const STACKREF_CONFIG = {
 	[STACKREF_ROOT]: {
@@ -42,7 +43,6 @@ const STACKREF_CONFIG = {
 		[SporkDnsRootStackrefRoot]: {
 			refs: {
 				acm: SporkDnsRootStackExportsZod.shape.spork_dns_root_acm,
-				route53: SporkDnsRootStackExportsZod.shape.spork_dns_root_route53,
 			},
 		},
 		[SporkIdpUsersStackrefRoot]: {
@@ -64,7 +64,7 @@ export = async () => {
 	context.resourcegroups({ _ });
 
 	const { cognito } = dereferenced$[SporkIdpUsersStackrefRoot];
-	const { acm, route53 } = dereferenced$[SporkDnsRootStackrefRoot];
+	const { acm } = dereferenced$[SporkDnsRootStackrefRoot];
 	const domainName = (() => {
 		const domainName = acm.certificate?.domainName;
 		if (domainName?.startsWith("*.")) {
@@ -121,8 +121,8 @@ export = async () => {
 		};
 	})();
 
-	const clientsOutput = all(Object.entries(clients)).apply((entries) =>
-		Object.fromEntries(
+	const clientsOutput = all(objectEntries(clients)).apply((entries) =>
+		objectFromEntries(
 			entries.map(([name, { client }]) => [
 				name,
 				all([
@@ -155,6 +155,6 @@ export = async () => {
 			warn(inspect(exported, { depth: null }));
 		}
 
-		return exported;
+		return $$root(APPLICATION_IMAGE_NAME, STACKREF_ROOT, exported);
 	});
 };
