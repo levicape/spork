@@ -44,16 +44,16 @@ import { serializeError } from "serialize-error";
 import { VError } from "verror";
 import { stringify } from "yaml";
 import type { z } from "zod";
+import { objectEntries, objectFromEntries } from "../../../Object";
 import { AwsCodeBuildContainerRoundRobin } from "../../../RoundRobin";
 import type { LambdaRouteResource, Route } from "../../../RouteMap";
-import { $deref, type DereferencedOutput } from "../../../Stack";
+import { $$root, $deref, type DereferencedOutput } from "../../../Stack";
 import {
 	SporkApplicationRoot,
 	SporkApplicationStackExportsZod,
 } from "../../../application/exports";
 import { SporkCodestarStackExportsZod } from "../../../codestar/exports";
 import { SporkDatalayerStackExportsZod } from "../../../datalayer/exports";
-import { SporkHttpStackExportsZod } from "../../../http/exports";
 import {
 	SporkIdpUsersStackExportsZod,
 	SporkIdpUsersStackrefRoot,
@@ -70,8 +70,9 @@ const LLRT_PLATFORM: "node" | "browser" | undefined = LLRT_ARCH
 const OUTPUT_DIRECTORY = `output/esbuild`;
 const HANDLER = `${LLRT_ARCH ? `${OUTPUT_DIRECTORY}/${LLRT_PLATFORM}` : "module"}/http/HonoApp.stream`;
 
+const APPLICATION_IMAGE_NAME = SporkApplicationRoot;
 const CI = {
-	CI_ENVIRONMENT: process.env.CI_ENVIRONMENT ?? "unknown",
+	APPLICATION_ENVIRONMENT: process.env.APPLICATION_ENVIRONMENT ?? "unknown",
 	CI_ACCESS_ROLE: process.env.CI_ACCESS_ROLE ?? "FourtwoAccessRole",
 };
 const STACKREF_ROOT = process.env["STACKREF_ROOT"] ?? SporkApplicationRoot;
@@ -109,23 +110,15 @@ const STACKREF_CONFIG = {
 				cognito: SporkIdpUsersStackExportsZod.shape.spork_idp_users_cognito,
 			},
 		},
-		http: {
-			refs: {
-				routemap: SporkHttpStackExportsZod.shape.spork_http_routemap,
-			},
-		},
 	},
 };
 
 const HANDLER_TYPE = "httphandler" as const;
 
 const ROUTE_MAP = async (
-	$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
+	_$refs: DereferencedOutput<typeof STACKREF_CONFIG>[typeof STACKREF_ROOT],
 ) => {
-	const { http } = $refs;
-	return {
-		...http.routemap,
-	};
+	return {};
 };
 
 const ATLASFILE_PATHS: Record<
@@ -222,7 +215,7 @@ export = async () => {
 	const _ = (name: string) => `${context.prefix}-${name}`;
 	context.resourcegroups({ _ });
 
-	const stage = CI.CI_ENVIRONMENT;
+	const stage = CI.APPLICATION_ENVIRONMENT;
 	const automationRole = await getRole({
 		name: __datalayer.iam.roles.automation.name,
 	});
@@ -572,9 +565,9 @@ export = async () => {
 			};
 		};
 
-		const configuration = Object.fromEntries(
+		const configuration = objectFromEntries(
 			await Promise.all(
-				Object.entries(ATLASFILE_PATHS).map(([named, resource]) =>
+				objectEntries(ATLASFILE_PATHS).map(([named, resource]) =>
 					configfile(named, resource).then(
 						(config) => [named, config] as const,
 					),
@@ -658,8 +651,8 @@ export = async () => {
 								// 		prefetch.map((af) => configpath(af as keyof typeof ATLASFILE_PATHS)),
 								// 	);
 								// })().apply((list) => list.join(",")),
-								...Object.fromEntries(
-									Object.entries(ATLASFILE_PATHS).map(
+								...objectFromEntries(
+									objectEntries(ATLASFILE_PATHS).map(
 										([name, { path, envName }]) => [
 											envName ?? `ATLAS_${name.toUpperCase()}`,
 											`file://$LAMBDA_TASK_ROOT/${HANDLER_TYPE}/${path}`,
@@ -674,8 +667,8 @@ export = async () => {
 									: {}),
 								...(ENVIRONMENT !== undefined &&
 								typeof ENVIRONMENT === "function"
-									? Object.fromEntries(
-											Object.entries(ENVIRONMENT(dereferenced$))
+									? objectFromEntries(
+											objectEntries(ENVIRONMENT(dereferenced$))
 												.filter(([_, value]) => value !== undefined)
 												.filter(
 													([_, value]) =>
@@ -874,13 +867,13 @@ export = async () => {
 			serviceId: cloudMapService.id,
 			instanceId: _("instance"),
 			attributes: {
+				APPLICATION_ENVIRONMENT: stage,
 				AWS_INSTANCE_CNAME: handler.http.url,
+				CONTEXT_PREFIX: context.prefix,
 				LAMBDA_FUNCTION_ARN: handler.http.arn,
+				PACKAGE_NAME,
 				STACK_NAME: getStack(),
 				STACKREF_ROOT,
-				CONTEXT_PREFIX: context.prefix,
-				CI_ENVIRONMENT: stage,
-				PACKAGE_NAME,
 			},
 		});
 
@@ -922,7 +915,7 @@ export = async () => {
 			const UPDATE_ACTION = "updatelambda" as const;
 			const DEPLOY_SENTINEL = "procfile deploy complete" as const;
 
-			const ATLAS_PIPELINE_VARIABLES = Object.fromEntries(
+			const ATLAS_PIPELINE_VARIABLES = objectFromEntries(
 				Object.keys(ATLASFILE_PATHS).map(
 					(name) =>
 						[
@@ -1140,7 +1133,7 @@ export = async () => {
 										`ls -al $CODEBUILD_SRC_DIR/.${EXTRACT_ACTION}/${PIPELINE_STAGE} || true`,
 									]),
 							// atlasfiles
-							...Object.entries(ATLASFILE_PATHS).flatMap(([name, { path }]) => {
+							...objectEntries(ATLASFILE_PATHS).flatMap(([name, { path }]) => {
 								const objectKey = `$ATLASFILE_${name.toUpperCase()}_KEY`;
 								return [
 									`echo "Rendering Atlasfile: ${name}"`,
@@ -1290,11 +1283,11 @@ export = async () => {
 							"zip appspec.zip appspec.yml",
 							"ls -al",
 						] as string[],
-					} as Record<string, string[]>,
+					},
 				},
 			] as const;
 
-			const entries = Object.fromEntries(
+			const entries = objectFromEntries(
 				stages.map(
 					({
 						stage,
@@ -1322,7 +1315,7 @@ export = async () => {
 
 						const content = stringify(
 							new CodeBuildBuildspecBuilder()
-								.setVersion("0.2")
+								.setVersion(0.2)
 								.setArtifacts(artifacts)
 								.setEnv(env)
 								.setPhases({
@@ -1401,19 +1394,7 @@ export = async () => {
 				),
 			);
 
-			return entries as Record<
-				(typeof stages)[number]["artifact"]["name"],
-				{
-					stage: string;
-					action: string;
-					artifactName: string;
-					project: Project;
-					buildspec: {
-						content: string;
-						upload: BucketObjectv2;
-					};
-				}
-			>;
+			return entries;
 		})();
 
 		return {
@@ -1421,6 +1402,7 @@ export = async () => {
 		} as const;
 	})();
 
+	const imageTag = `${APPLICATION_IMAGE_NAME}-${stage}`;
 	const codepipeline = (() => {
 		const randomid = new RandomId(_("deploy-id"), {
 			byteLength: 4,
@@ -1455,7 +1437,7 @@ export = async () => {
 									([repositoryName]) => {
 										return {
 											RepositoryName: repositoryName,
-											ImageTag: stage,
+											ImageTag: imageTag,
 										};
 									},
 								),
@@ -1484,7 +1466,7 @@ export = async () => {
 									codebuild.httphandler_extractimage.project.name,
 									s3.artifacts.bucket,
 									Output.create([
-										...Object.entries(handler.configuration).map(
+										...objectEntries(handler.configuration).map(
 											([name, file]) => ({
 												name: name.toUpperCase(),
 												value: interpolate`${file.object.bucket}/${file.object.key}`,
@@ -1678,31 +1660,44 @@ export = async () => {
 	// Eventbridge
 	const eventbridge = (() => {
 		const { name: codestarRepositoryName } = __codestar.ecr.repository;
-
-		const rule = new EventRule(_("on-ecr-push"), {
-			description: `(${PACKAGE_NAME}) ECR image deploy pipeline trigger for tag "${stage}"`,
-			state: "ENABLED",
-			eventPattern: JSON.stringify({
-				source: ["aws.ecr"],
-				"detail-type": ["ECR Image Action"],
-				detail: {
-					"repository-name": [codestarRepositoryName],
-					"action-type": ["PUSH"],
-					result: ["SUCCESS"],
-					"image-tag": [stage],
+		const rule = new EventRule(
+			_("on-ecr-push"),
+			{
+				description: `(${PACKAGE_NAME}) ECR image deploy pipeline trigger for tag "${imageTag}"`,
+				state: "ENABLED",
+				eventPattern: JSON.stringify({
+					source: ["aws.ecr"],
+					"detail-type": ["ECR Image Action"],
+					detail: {
+						"repository-name": [codestarRepositoryName],
+						"action-type": ["PUSH"],
+						result: ["SUCCESS"],
+						"image-tag": [imageTag],
+					},
+				}),
+				tags: {
+					Name: _(`on-ecr-push`),
+					StackRef: STACKREF_ROOT,
+					Stage: stage,
+					ImageTag: imageTag,
 				},
-			}),
-			tags: {
-				Name: _(`on-ecr-push`),
-				StackRef: STACKREF_ROOT,
 			},
-		});
+			{
+				deleteBeforeReplace: true,
+			},
+		);
 
-		const pipeline = new EventTarget(_("on-ecr-push-deploy"), {
-			rule: rule.name,
-			arn: codepipeline.pipeline.arn,
-			roleArn: automationRole.arn,
-		});
+		const pipeline = new EventTarget(
+			_("on-ecr-push-deploy"),
+			{
+				rule: rule.name,
+				arn: codepipeline.pipeline.arn,
+				roleArn: automationRole.arn,
+			},
+			{
+				deleteBeforeReplace: true,
+			},
+		);
 
 		return {
 			EcrImageAction: {
@@ -1716,8 +1711,8 @@ export = async () => {
 
 	// Outputs
 	const s3Output = Output.create(
-		Object.fromEntries(
-			Object.entries(s3).map(([key, bucket]) => {
+		objectFromEntries(
+			objectEntries(s3).map(([key, bucket]) => {
 				return [
 					key,
 					all([bucket.bucket, bucket.region]).apply(
@@ -1728,12 +1723,12 @@ export = async () => {
 					),
 				];
 			}),
-		) as Record<keyof typeof s3, Output<{ bucket: string; region: string }>>,
+		),
 	);
 
 	const cloudwatchOutput = Output.create(
-		Object.fromEntries(
-			Object.entries(cloudwatch).map(([key, { loggroup }]) => {
+		objectFromEntries(
+			objectEntries(cloudwatch).map(([key, { loggroup }]) => {
 				return [
 					key,
 					all([loggroup.name, loggroup.arn]).apply(([name, arn]) => ({
@@ -1744,15 +1739,12 @@ export = async () => {
 					})),
 				];
 			}),
-		) as Record<
-			keyof typeof cloudwatch,
-			Output<{ logGroup: { name: string; arn: string } }>
-		>,
+		),
 	);
 
 	const codebuildProjectsOutput = Output.create(
-		Object.fromEntries(
-			Object.entries(codebuild).map(([key, resources]) => {
+		objectFromEntries(
+			objectEntries(codebuild).map(([key, resources]) => {
 				return [
 					key,
 					all([
@@ -1772,13 +1764,7 @@ export = async () => {
 					})),
 				];
 			}),
-		) as Record<
-			keyof typeof codebuild,
-			Output<{
-				buildspec: { bucket: string; key: string };
-				project: { arn: string; name: string };
-			}>
-		>,
+		),
 	);
 
 	const handlerOutput = Output.create(handler).apply((handler) => ({
@@ -1858,32 +1844,25 @@ export = async () => {
 
 	const eventbridgeRulesOutput = Output.create(eventbridge).apply(
 		(eventbridge) => {
-			return Object.fromEntries(
-				Object.entries(eventbridge).map(([key, value]) => {
+			return objectFromEntries(
+				objectEntries(eventbridge).map(([key, value]) => {
 					return [
 						key,
 						all([
 							value.rule.arn,
 							value.rule.name,
-							Output.create(value.targets).apply(
-								(targets) =>
-									Object.fromEntries(
-										Object.entries(targets).map(([key, value]) => {
-											return [
-												key,
-												all([value.arn, value.targetId]).apply(
-													([arn, targetId]) => ({ arn, targetId }),
-												),
-											];
-										}),
-									) as Record<
-										keyof typeof value.targets,
-										Output<{ arn: string; targetId: string }>
-									>,
-							) as Record<
-								keyof typeof value.targets,
-								Output<{ arn: string; targetId: string }>
-							>,
+							Output.create(value.targets).apply((targets) =>
+								objectFromEntries(
+									objectEntries(targets).map(([key, value]) => {
+										return [
+											key,
+											all([value.arn, value.targetId]).apply(
+												([arn, targetId]) => ({ arn, targetId }),
+											),
+										];
+									}),
+								),
+							),
 						]).apply(([ruleArn, ruleName, targets]) => ({
 							rule: {
 								arn: ruleArn,
@@ -1985,7 +1964,7 @@ export = async () => {
 				warn(inspect(exported, { depth: null }));
 			}
 
-			return exported;
+			return $$root(APPLICATION_IMAGE_NAME, STACKREF_ROOT, exported);
 		},
 	);
 };

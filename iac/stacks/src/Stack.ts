@@ -4,6 +4,7 @@ import { destr } from "destr";
 import { serializeError } from "serialize-error";
 import { VError } from "verror";
 import type { z } from "zod";
+import { objectEntries, objectFromEntries } from "./Object";
 
 export const $stack$ = getStack().split(".").pop();
 
@@ -149,4 +150,20 @@ export const $deref = async <T extends DereferenceConfig>(
 	);
 
 	return Object.values(dereferencedRoots)[0];
+};
+
+export const $$root = <StackExports extends Record<string, unknown>>(
+	exportedRoot: string,
+	stackrefRoot: string,
+	references: StackExports,
+): StackExports => {
+	return objectFromEntries(
+		objectEntries(references).map(([key, value]) => {
+			const relativeKey = (key as string).replace(
+				new RegExp(`^${exportedRoot}`),
+				stackrefRoot,
+			);
+			return [relativeKey, value];
+		}),
+	) as StackExports;
 };

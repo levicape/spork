@@ -146,7 +146,7 @@ export const useOidcClient = () => {
 		if (!discordEnabled) {
 			if (user === null || user === undefined) {
 				(async () => {
-					const debugEnabled = window["--magmap-debug"];
+					const debugEnabled = window["--oidc-debug"];
 					let sessionUser: User | null | undefined;
 					let sessionError: unknown;
 					try {
