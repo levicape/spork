@@ -1,6 +1,8 @@
 import type { ITable, ITableStreamProcessor } from "./ITable.mjs";
 
-const flattenKey = <T>(key: { [k in keyof T]: string | undefined }): string => {
+const flattenKey = <T,>(
+	key: { [k in keyof T]: string | undefined },
+): string => {
 	return Object.values(key).join("_");
 };
 
