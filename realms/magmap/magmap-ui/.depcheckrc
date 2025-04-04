@@ -25,5 +25,6 @@ ignores:
 - "daisyui"
 - "jose"
 - "jotai"
-- "react-router"
 - "react-range"
+- "destr"
+- "serialize-error"

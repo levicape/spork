@@ -7,7 +7,7 @@ packages:
   - 'protocols/*'
   - 'realms/*/*'
 catalog:
-  "@levicape/paloma": "0.3.8-main.2"
+  "@levicape/paloma": "0.3.9-main.3"
   "@levicape/fourtwo": "0.10.2-main.2"
   "@levicape/fourtwo-pulumi": "0.10.2-main.2"
   "@levicape/fourtwo-builders": "0.10.2-main.2"

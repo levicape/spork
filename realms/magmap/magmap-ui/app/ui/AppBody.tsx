@@ -1,5 +1,10 @@
 import { clsx } from "clsx";
-import { type FC, type PropsWithChildren, Suspense, useMemo } from "react";
+import {
+	ErrorBoundary,
+	type FC,
+	type PropsWithChildren,
+	useMemo,
+} from "hono/jsx";
 import { AuthnSession } from "../atoms/authentication/behavior/$AuthnSession";
 import { BackgroundBody } from "../variant/BackgroundBody";
 import { DesignSystem } from "./DesignSystem";
@@ -7,7 +12,7 @@ import { CaptureTouchEvents } from "./behavior/$CaptureTouchEvents";
 import { Skeleton } from "./daisy/feedback/Skeleton";
 import { HeaderLayout } from "./trim/header/HeaderLayout";
 
-const { Shell, Layout, Fallback } = DesignSystem;
+const { Shell, ContentLayout, Fallback, Footer } = DesignSystem;
 const { SoftLight } = BackgroundBody;
 
 export const AppBody: FC<PropsWithChildren> = ({ children }) => (
@@ -22,10 +27,11 @@ export const AppBody: FC<PropsWithChildren> = ({ children }) => (
 					[],
 				)}
 			>
-				<Suspense fallback={<Fallback />}>
-					<Layout>{children}</Layout>
-				</Suspense>
+				<ErrorBoundary fallback={<Fallback />}>
+					<ContentLayout>{children}</ContentLayout>
+				</ErrorBoundary>
 			</HeaderLayout>
+			<Footer />
 		</Shell>
 		<Skeleton
 			className={clsx(
