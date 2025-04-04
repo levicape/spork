@@ -1,5 +1,5 @@
 // import { taskForMessageType } from "./Registry";
-import type { IQueue, IQueueMessage } from "./IQueue.js";
+import type { IQueue, IQueueMessage } from "./IQueue.mjs";
 
 export class MemoryQueue<T extends IQueueMessage> implements IQueue<T> {
 	readonly queue: AsyncGenerator;

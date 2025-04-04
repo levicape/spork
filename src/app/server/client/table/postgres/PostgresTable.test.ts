@@ -1,8 +1,8 @@
 import { type Mock, before, beforeEach, describe, it, mock } from "node:test";
 import { expect } from "expect";
 import { type DatabasePool, type QueryResult, createPool, sql } from "slonik";
-import type { IRow } from "../ITable.js";
-import { PostgresTable } from "./PostgresTable.js";
+import type { IRow } from "../ITable.mjs";
+import { PostgresTable } from "./PostgresTable.mjs";
 
 // mock("slonik", () => {
 // 	const actualSlonik = jest.requireActual("slonik");

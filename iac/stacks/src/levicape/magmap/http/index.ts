@@ -194,7 +194,6 @@ const ENVIRONMENT = (
 	})();
 
 	return {
-		SPORK_DATALAYER_MOUNT_PATH: efs.mountPath,
 		JWT_POOL_ID: idpUsers.poolId,
 		JWT_REGION: idpUsers.region,
 		JWT_CACHE_FS_ROOT: `${efs.mountPath}/levicape/jwks/azc`,

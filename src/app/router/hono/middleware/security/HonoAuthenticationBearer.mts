@@ -3,8 +3,8 @@ import type { JwtPayload } from "jsonwebtoken";
 import type { ILogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
 import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
-import { LoginToken } from "../../../../server/security/model/LoginToken.js";
-import { SecurityRoles } from "../../../../server/security/model/Security.js";
+import { LoginToken } from "../../../../server/security/model/LoginToken.mjs";
+import { SecurityRoles } from "../../../../server/security/model/Security.mjs";
 import { HonoBearerAuth } from "./HonoBearerAuth.mjs";
 
 const JWT_SAMPLE_PERCENT = 0.22;

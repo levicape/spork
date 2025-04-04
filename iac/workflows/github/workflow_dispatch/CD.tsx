@@ -197,123 +197,123 @@ const cd = (matrix: GithubWorkflowProps<boolean, boolean>) => {
 											run={[
 												`cat > .pulumi-helper.sh << 'EOF'
 configure_stack() {
-  local step="$1"
-  local stack_name="$2"
-  local stack_cwd="$3"
-  local project="$4"
-  local output="$5"
+	local step="$1"
+	local stack_name="$2"
+	local stack_cwd="$3"
+	local project="$4"
+	local output="$5"
 
-  echo "✏️🏷️ Overwriting Pulumi.yaml"
-  echo "\${step}: Stack: \${stack_name}. CWD: \${stack_cwd}. Output: \${output}."
-  echo "name: \${project}" >> "\${stack_cwd}/Pulumi.yaml"
-  cat "\${stack_cwd}"/Pulumi.{yaml,"*".yaml} || true
+	echo "✏️🏷️ Overwriting Pulumi.yaml"
+	echo "\${step}: Stack: \${stack_name}. CWD: \${stack_cwd}. Output: \${output}."
+	echo "name: \${project}" >> "\${stack_cwd}/Pulumi.yaml"
+	cat "\${stack_cwd}"/Pulumi.{yaml,"*".yaml} || true
 }
 
 setup_stack() {
-  local stack_name="$1"
-  local stack_cwd="$2"
-  
-  echo "🪆🧾Setting up stack: \${stack_name}. CWD: \${stack_cwd}."
-  for cmd in init select; do
-    pulumi stack \${cmd} \${stack_name} -C \${stack_cwd} || true
-  done
+	local stack_name="$1"
+	local stack_cwd="$2"
+	
+	echo "🪆🧾Setting up stack: \${stack_name}. CWD: \${stack_cwd}."
+	for cmd in init select; do
+	pulumi stack \${cmd} \${stack_name} -C \${stack_cwd} || true
+	done
 }
 
 configure_stack_settings() {
-  local stack_cwd="$1"
-  local configs="$2"
-  
-  echo "⚙️Configuring stack settings \${stack_cwd}"
-  
-  while IFS= read -r line; do
-    if [[ -n "$line" ]]; then
-      key="\${line%%=*}"
-      value="\${line#*=}"
-      
-      # Expand variables in value
-      eval "value=\"$value\""
-      
-      if [[ -n "$key" && -n "$value" ]]; then
-        echo "📡Setting $key to 💡$value"
-        pulumi config set --path "$key" "$value" -C "$stack_cwd"
-      fi
-    fi
-  done <<< "$configs"
+	local stack_cwd="$1"
+	local configs="$2"
+	
+	echo "⚙️Configuring stack settings \${stack_cwd}"
+	
+	while IFS= read -r line; do
+	if [[ -n "$line" ]]; then
+		key="\${line%%=*}"
+		value="\${line#*=}"
+		
+		# Expand variables in value
+		eval "value=\"$value\""
+		
+		if [[ -n "$key" && -n "$value" ]]; then
+		echo "📡Setting $key to 💡$value"
+		pulumi config set --path "$key" "$value" -C "$stack_cwd"
+		fi
+	fi
+	done <<< "$configs"
 }
 
 refresh_and_preview() {
-  local message="$1"
-  local stack_cwd="$2"
-  shift 2
-  local default_args="$@"
+	local message="$1"
+	local stack_cwd="$2"
+	shift 2
+	local default_args="$@"
 
-  check_root || return 0;
+	check_root || return 0;
 
-  echo "🚦 Refreshing \${stack_cwd} at \${message}"
-  echo "💡Default args: \${default_args}"
-  pulumi refresh --yes --skip-preview --clear-pending-creates --message "\${message}-refresh" -C "\${stack_cwd}" \${default_args}
-  pulumi preview --show-replacement-steps --message "\${message}-preview" -C "\${stack_cwd}" \${default_args} || true
+	echo "🚦 Refreshing \${stack_cwd} at \${message}"
+	echo "💡Default args: \${default_args}"
+	pulumi refresh --yes --skip-preview --clear-pending-creates --message "\${message}-refresh" -C "\${stack_cwd}" \${default_args}
+	pulumi preview --show-replacement-steps --message "\${message}-preview" -C "\${stack_cwd}" \${default_args} || true
 }
 
 deploy_stack() {
-  local message="$1"
-  local stack_cwd="$2"
-  shift 2
-  local default_args="$@"
+	local message="$1"
+	local stack_cwd="$2"
+	shift 2
+	local default_args="$@"
 
-  check_root || return 0;
+	check_root || return 0;
 
-  echo "🛫 Deploying \${stack_cwd} at \${message}"
-  echo "💡Default args: \${default_args}"
-  pulumi up --yes --message "\${message}-up" -C "\${stack_cwd}" \${default_args}
+	echo "🛫 Deploying \${stack_cwd} at \${message}"
+	echo "💡Default args: \${default_args}"
+	pulumi up --yes --message "\${message}-up" -C "\${stack_cwd}" \${default_args}
 }
 
 remove_stack() {
-  local message="$1"
-  local stack_cwd="$2"
-  shift 2
-  local default_args="$@"
+	local message="$1"
+	local stack_cwd="$2"
+	shift 2
+	local default_args="$@"
 
-  check_root || return 0;
+	check_root || return 0;
 
-  echo "🦺 Deleting \${stack_cwd} at \${message}"
-  echo "💡Default args: \${default_args}"
-  pulumi down --yes --message "\${message}-down" -C "\${stack_cwd}" \${default_args}
+	echo "🦺 Deleting \${stack_cwd} at \${message}"
+	echo "💡Default args: \${default_args}"
+	pulumi down --yes --message "\${message}-down" -C "\${stack_cwd}" \${default_args}
 }
 
 capture_outputs() {
-  local stack_cwd="$1"
-  local output="$2"
+	local stack_cwd="$1"
+	local output="$2"
 
-  echo "🧲Capturing \${stack_cwd} outputs in \${output}.sh"
-  pulumi stack output -C "\${stack_cwd}" --json > "$(pwd)/\${output}.json"
-  cat "\${output}.json"
-  pulumi stack output -C "\${stack_cwd}" --shell > "$(pwd)/\${output}.sh"
-  cat "\${output}.sh"
-  ls ${OUTPUT_PULUMI_PATH}
-  chmod +x "$(pwd)/\${output}.sh"
-  echo "🎼Outputs captured in \${output}.sh"
+	echo "🧲Capturing \${stack_cwd} outputs in \${output}.sh"
+	pulumi stack output -C "\${stack_cwd}" --json > "$(pwd)/\${output}.json"
+	cat "\${output}.json"
+	pulumi stack output -C "\${stack_cwd}" --shell > "$(pwd)/\${output}.sh"
+	cat "\${output}.sh"
+	ls ${OUTPUT_PULUMI_PATH}
+	chmod +x "$(pwd)/\${output}.sh"
+	echo "🎼Outputs captured in \${output}.sh"
 }
 
 set_root() {
-  local only_root="$1"
-  echo "✴️"
-  echo "Configuring STACKREF_ROOT:"
-  echo "APPLICATION_IMAGE_NAME: \${APPLICATION_IMAGE_NAME}"
-  echo "APPLICATION_STACKREF_ROOT: \${APPLICATION_STACKREF_ROOT}"
-  echo "Current stack only deployed to application root: \${only_root}"
+	local only_root="$1"
+	echo "✴️"
+	echo "Configuring STACKREF_ROOT:"
+	echo "APPLICATION_IMAGE_NAME: \${APPLICATION_IMAGE_NAME}"
+	echo "APPLICATION_STACKREF_ROOT: \${APPLICATION_STACKREF_ROOT}"
+	echo "Current stack only deployed to application root: \${only_root}"
 
-  export STACKREF_ROOT="\${APPLICATION_STACKREF_ROOT:-$APPLICATION_IMAGE_NAME}"
+	export STACKREF_ROOT="\${APPLICATION_STACKREF_ROOT:-$APPLICATION_IMAGE_NAME}"
 
-  echo "🤍🤍"
-  echo "Pulumi resolved stackref root: "
-  echo "STACKREF_ROOT: \${STACKREF_ROOT}"
-  echo "🤍🤍"
+	echo "🤍🤍"
+	echo "Pulumi resolved stackref root: "
+	echo "STACKREF_ROOT: \${STACKREF_ROOT}"
+	echo "🤍🤍"
 
 	if [[ "\${only_root}" == "true" ]]; then
 		if [[ "\${APPLICATION_IMAGE_NAME}" == "\${STACKREF_ROOT}" ]]; then
-    		echo "🆗🚀Stackref is compatible, setting PULUMI_NO_DEPLOYMENT=false"
-    		export PULUMI_NO_DEPLOYMENT=false
+			echo "🆗🚀Stackref is compatible, setting PULUMI_NO_DEPLOYMENT=false"
+			export PULUMI_NO_DEPLOYMENT=false
 		else
 			echo "🆗💤Not in application root stack, skipping deployment with PULUMI_NO_DEPLOYMENT=true"
 			export PULUMI_NO_DEPLOYMENT=true									
@@ -322,17 +322,17 @@ set_root() {
 		echo "🚀🚀Stack not application-only, setting PULUMI_NO_DEPLOYMENT=false"
 		export PULUMI_NO_DEPLOYMENT=false
 	fi
-  echo "✴️"
+	echo "✴️"
 }
 
 check_root() {
-  if [ "\${PULUMI_NO_DEPLOYMENT}" = "true" ]; then
-    echo "💤💤Skipping deployment"
-    return 1
-  else
-    echo "🔰🔰Proceeding with deployment"
-    return 0
-  fi
+	if [ "\${PULUMI_NO_DEPLOYMENT}" = "true" ]; then
+	echo "💤💤Skipping deployment"
+	return 1
+	else
+	echo "🔰🔰Proceeding with deployment"
+	return 0
+	fi
 }
 EOF
 chmod +x .pulumi-helper.sh

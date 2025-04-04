@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { type CSSProperties, useMemo } from "react";
 import { useOidcClient } from "../OidcClientAtom";
 
 export const AuthnSession = () => {
 	const { oidc, user } = useOidcClient();
-	const style: React.CSSProperties = useMemo(
+	// const { enabled: discordEnabled } = {} as Record<string, unknown>; //useDiscord();
+
+	const style: CSSProperties = useMemo(
 		() => ({
 			display: "none",
 			pointerEvents: "none",
@@ -22,33 +24,14 @@ export const AuthnSession = () => {
 	const dataAttributes = useMemo(
 		() => ({
 			"data-oidc": oidc !== null ? "true" : "false",
-			...(user?.expired
-				? { "data-session-expired": JSON.stringify(user.expired) }
-				: {}),
-			...(user?.expires_at
-				? { "data-session-expires-at": JSON.stringify(user.expires_at) }
-				: {}),
-			...(user?.expires_in
-				? { "data-session-expires-in": JSON.stringify(user.expires_in) }
-				: {}),
-			...(user?.scopes
-				? { "data-session-scopes": JSON.stringify(user.scopes) }
-				: {}),
-			...(user?.profile
-				? {
-						"data-session-profile": JSON.stringify(user.profile),
-					}
-				: {}),
-			...(user?.state
-				? {
-						"data-session-state": JSON.stringify(user.state),
-					}
-				: {}),
-			...(user?.access_token
-				? {
-						"data-session-access-token": JSON.stringify(user.access_token),
-					}
-				: {}),
+			"data-session-expired": user?.expired ? JSON.stringify(user.expired) : "",
+			"data-session-expires-at": user?.expires_at
+				? JSON.stringify(user.expires_at)
+				: "",
+			"data-session-expires-in": user?.expires_in
+				? JSON.stringify(user.expires_in)
+				: "",
+			"data-session-state": user?.state ? JSON.stringify(user.state) : "",
 		}),
 		[oidc, user],
 	);

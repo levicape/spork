@@ -6,8 +6,10 @@ export const ApplicationHead = {
 		template: `%s | ${ApplicationName}`,
 		default: ApplicationName,
 	},
-	description:
-		"Magmap is a web-based user interface for querying a Spork server's configuration and state.",
+	description: [
+		"Server operations. All here.",
+		"Visualize and observe Spork services.",
+	],
 	metadataBase:
 		(process?.env.URL !== undefined && new URL(process.env.URL)) || undefined,
 	openGraph: {
@@ -15,5 +17,8 @@ export const ApplicationHead = {
 		title: ApplicationName,
 		url: process.env.URL,
 		images: [`${process.env.URL}/static/social/splash.png`],
+	},
+	footer: {
+		default: `Levicape ${new Date().getFullYear()}`,
 	},
 } as const;
