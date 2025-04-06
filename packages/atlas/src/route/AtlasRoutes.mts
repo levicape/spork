@@ -161,7 +161,10 @@ export function AtlasRoutes<Paths extends Prefix>(
 					route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
 				return CaddyfileReverseProxy(path, routeObject);
 			})
-			.join("\n");
+			.map((line) => {
+				return line.endsWith("\n") ? line : `${line}\n`;
+			})
+			.join("");
 		console.info(`Caddyfile:\n${caddy}\n`);
 		appendFileSync(ATLAS_CADDYFILE, caddy);
 	}
