@@ -1,28 +1,36 @@
-import { Hono } from "hono";
-import { createMiddleware } from "hono/factory";
-import { AuthenticatedRouter } from "../../domains/authenticated/AuthenticatedRouter.mjs";
+import { createFactory } from "hono/factory";
 import { SporkHonoHttpServer } from "./HonoHttpServerBuilder.mjs";
-import { HonoGuardLogging } from "./guard/log/HonoGuardLogging.mjs";
+import type { DefaultHonoHttpMiddleware } from "./middleware/HonoHttpMiddleware.mjs";
 
-export const { server, handler } = await SporkHonoHttpServer((app) =>
-	app
-		.basePath("/base")
-		.use(HonoGuardLogging({}))
-		.get("/test123", async (c) => {
+export const { server, handler } = await SporkHonoHttpServer(
+	createFactory<DefaultHonoHttpMiddleware>(),
+	(app) => {
+		let news = app.get("/test123", async (c) => {
 			c.get("Logging")?.info("Hello, world!");
-			c.json({ message: `Hello, ${Hono.name}!` });
-		})
-		.use(
-			createMiddleware<{ Variables: { hol: "up" } }>(async (c, next) => {
-				c.set("hol", "up");
-				await next();
-			}),
-		)
-		.route(
-			"/!",
-			new Hono().get("/abba", (c) => c.json("Hello, world!")),
-		)
-		.route("/!/v1/Authenticated/", AuthenticatedRouter()),
+			c.json({ message: `Hello, ${c?.env ?? ""}!` });
+		});
+		return news;
+	},
 );
+// 	(
+// 	// (app) => {
+// 	// 	return app.get("/test123", async (c) => {
+// 	// 		// c.get("Logging")?.info("Hello, world!");
+// 	// 		c.json({ message: `Hello, ${Hono.name}!` });
+// 	// 	});
+// 	// 	// .route(
+// 	// 	// 	"/!",
+// 	// 	// 	new Hono().get("/abba", (c) => c.json("Hello, world!")),
+// 	// 	// )
+// 	// 	// .route("/!/v1/Authenticated/", AuthenticatedRouter());
+// 	// },
+// );
 
 export type ExampleSporkHonoApp = typeof server.app;
+
+/*
+
+
+the typing for Hono is actually Hono<Env, Schema, Path>, but for middleware it's Middleware<Env, Path, Input>
+
+*/

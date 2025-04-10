@@ -6,6 +6,7 @@ import { secureHeaders } from "hono/secure-headers";
 import { timeout } from "hono/timeout";
 import type { ILogLayer } from "loglayer";
 import type { JwtVerificationInterface } from "../../../server/security/JwtVerification.mjs";
+import type { HonoLoglayer } from "./log/HonoLoggingContext.mjs";
 import { HonoRequestLogger } from "./log/HonoRequestLogger.mjs";
 import {
 	HonoRequestIdHeader,
@@ -17,6 +18,7 @@ import {
 } from "./response/HonoResponseTimeHeader.mjs";
 import { HonoHttpAuthenticationBearer } from "./security/HonoAuthenticationBearer.mjs";
 import { HonoAuthenticationKeypair } from "./security/HonoAuthenticationKeypair.mjs";
+import type { HonoBearerAuthMiddleware } from "./security/HonoBearerAuth.mjs";
 
 const noop = createMiddleware(async (_, next) => {
 	await next();
@@ -90,6 +92,8 @@ export const HonoHttpSecurity = ({
 	] as const;
 
 export type HonoHttpMiddlewareStandardProps = HonoHttpSecurityProps;
+
+export type DefaultHonoHttpMiddleware = HonoBearerAuthMiddleware & HonoLoglayer;
 
 export const HonoHttpMiddlewareStandard = (
 	props: HonoHttpMiddlewareStandardProps,

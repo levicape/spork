@@ -1,5 +1,6 @@
 import { Effect } from "effect";
-import { Hono } from "hono/quick";
+import type { Factory } from "hono/factory";
+import type { BlankEnv } from "hono/types";
 import { ServiceHonoRouter } from "../../domains/service/ServiceHonoRouter.js";
 import { WellknownHonoRouter } from "../../domains/wellknown/WellknownHonoRouter.mjs";
 import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
@@ -7,11 +8,6 @@ import type { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware
 import { Hono404Handler } from "./middleware/exception/Hono404Handler.js";
 import { HonoExceptionMiddleware } from "./middleware/exception/HonoExceptionMiddleware.mjs";
 import { HonoLoggingContext } from "./middleware/log/HonoLoggingContext.mjs";
-
-let _factory: () => Hono;
-export const SporkHonoFactory = (factory: () => Hono) => {
-	_factory = factory;
-};
 
 interface Pipe {
 	<A>(value: A): A;
@@ -38,9 +34,10 @@ export const pipe: Pipe = (value: unknown, ...fns: Function[]): unknown => {
 };
 
 // Default app
-export const HonoHttpApp = ({
-	middleware,
-}: { middleware: ReturnType<typeof HonoHttpMiddlewareStandard> }) =>
+export const HonoHttpApp = <Env extends BlankEnv, BasePath extends string>(
+	factory: Factory<Env, BasePath>,
+	{ middleware }: { middleware: ReturnType<typeof HonoHttpMiddlewareStandard> },
+) =>
 	Effect.gen(function* () {
 		const consola = yield* LoggingContext;
 		const logger = yield* consola.logger;
@@ -48,13 +45,14 @@ export const HonoHttpApp = ({
 		logger
 			.withMetadata({
 				HonoHttpApp: {
-					factory: _factory !== undefined ? _factory.name : Hono.name,
+					factory,
 					middleware: middleware.map((m) => m.name),
 				},
 			})
 			.debug("Building HonoHttpApp");
 
-		return (_factory?.() ?? new Hono())
+		return factory
+			.createApp()
 			.use(HonoLoggingContext({ logger }))
 			.use(...middleware)
 			.notFound((c) => {
