@@ -64,7 +64,7 @@ export const healthcheck = new Canary(
 				{ a: "Z", b: 2 },
 			]);
 			{
-				const response = await client["!"].v1.Service.liveness.$get({
+				const response = await client["~"].Spork.Magmap.atlas.$get({
 					query: "sesame",
 				});
 				const json = await response.json();
@@ -72,7 +72,7 @@ export const healthcheck = new Canary(
 			}
 
 			{
-				const response = await client["!"].v1.Service.liveness.$get({
+				const response = await client["~"].Spork.Magmap.atlas.$get({
 					query: "spaghetti" as "sesame",
 				});
 				const json = await response.json();

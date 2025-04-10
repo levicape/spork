@@ -8,6 +8,7 @@ import {
 	handle,
 	streamHandle,
 } from "hono/aws-lambda";
+import type { Factory } from "hono/factory";
 import type { BlankEnv, BlankSchema } from "hono/types";
 import { serializeError } from "serialize-error";
 import { env, process } from "std-env";
@@ -51,8 +52,6 @@ export type HonoHttpServerBuilderProps<
 	app: Effect.Effect<
 		{
 			app: Hono<Env, Schema, BasePath>;
-			stream?: HonoHttpLambdaHandler;
-			handler?: HonoHttpLambdaHandler;
 		},
 		unknown
 	>;
@@ -82,23 +81,7 @@ export const HonoHttpServerBuilder =
 		app,
 		effect,
 	}: HonoHttpServerBuilderProps<Env, Schema, BasePath>) =>
-	async (
-		props?: HonoHttpServerProps,
-	): Promise<
-		Effect.Effect<
-			{
-				handler: HonoHttpLambdaHandler | undefined;
-				stream: HonoHttpLambdaHandler | undefined;
-				server: {
-					app: Hono<Env, Schema, BasePath>;
-					serve: (options: ServeOptions) => Promise<void>;
-					stop: () => Promise<void>;
-				};
-			},
-			unknown,
-			never
-		>
-	> => {
+	async (props?: HonoHttpServerProps) => {
 		trace.debug("Building server");
 
 		return Effect.provide(
@@ -147,15 +130,18 @@ export const HonoHttpServerBuilder =
 						},
 					})
 					.info("Server built");
-
+				const { AWS_LAMBDA_FUNCTION_NAME } = env;
+				const initialized = instance.app;
 				return {
-					handler: instance.handler,
-					stream: instance.stream,
+					stream: AWS_LAMBDA_FUNCTION_NAME
+						? (streamHandle(initialized) as HonoHttpLambdaHandler)
+						: undefined,
+					handler: AWS_LAMBDA_FUNCTION_NAME ? handle(initialized) : undefined,
 					server: {
-						app: instance.app,
+						app: initialized,
 						serve: async ({ port }: ServeOptions) => {
 							server = serve({
-								fetch: instance.app.fetch,
+								fetch: initialized.fetch,
 								port,
 							});
 
@@ -214,6 +200,7 @@ export type SporkHonoApp = Effect.Effect.Success<
 export type ExtractEnv<T> = T extends Hono<infer Env, BlankSchema>
 	? Env
 	: never;
+
 /**
  * SporkHonoHttpServer is a function that configures a Hono instance, and prepares it for use with `spork server start`.
  *
@@ -223,10 +210,20 @@ export type ExtractEnv<T> = T extends Hono<infer Env, BlankSchema>
  */
 export const SporkHonoHttpServer = async <
 	Env extends BlankEnv,
-	Schema extends BlankSchema,
 	BasePath extends string,
+	AppSchema extends BlankSchema,
+	AppPath extends string,
 >(
-	app: (app: SporkHonoApp) => Hono<Env, Schema, BasePath>,
+	/**
+	 *	factory created by Hono `createFactory`. Configure your Hono app middleware (app.use) here
+	 */
+	factory: Factory<Env, BasePath>,
+	/**
+	 *
+	 */
+	app: (
+		app: ReturnType<typeof factory.createApp>,
+	) => Hono<Env, AppSchema, AppPath>,
 ) => {
 	return await Effect.runPromise(
 		pipe(
@@ -257,19 +254,17 @@ export const SporkHonoHttpServer = async <
 									}
 
 									return yield* Effect.flatMap(
-										HonoHttpApp({
+										HonoHttpApp(factory, {
 											middleware,
 										}),
 										(spork) => {
-											const { AWS_LAMBDA_FUNCTION_NAME } = env;
+											const instance = app(
+												spork as unknown as ReturnType<
+													typeof factory.createApp
+												>,
+											);
 											return Effect.succeed({
-												app: app(spork),
-												stream: AWS_LAMBDA_FUNCTION_NAME
-													? (streamHandle(spork) as HonoHttpLambdaHandler)
-													: undefined,
-												handler: AWS_LAMBDA_FUNCTION_NAME
-													? handle(spork)
-													: undefined,
+												app: instance,
 											});
 										},
 									);
