@@ -78,25 +78,24 @@ const SporkRateLimiterKeyGenerator = (
 export const { server, stream } = await SporkHonoHttpServer(
 	createFactory<DefaultHonoHttpMiddleware>({
 		initApp(app) {
-			app
-				.use(
-					rateLimiter({
-						windowMs: 2 * 60 * 1000, // 2 minutes
-						limit: 300, //
-						standardHeaders: "draft-7",
-						keyGenerator: SporkRateLimiterKeyGenerator,
-					}),
-				)
-				.use(
-					HonoGuardAuthentication(async ({ principal }) => {
-						return principal.$case !== "anonymous";
-					}),
-				);
+			app.use(
+				rateLimiter({
+					windowMs: 2 * 60 * 1000, // 2 minutes
+					limit: 300, //
+					standardHeaders: "draft-7",
+					keyGenerator: SporkRateLimiterKeyGenerator,
+				}),
+			);
 		},
 	}),
 	(app) =>
 		app
 			.basePath(HTTP_BASE_PATH)
+			.use(
+				HonoGuardAuthentication(async ({ principal }) => {
+					return principal.$case !== "anonymous";
+				}),
+			)
 			.get("/atlas", async (c) => {
 				return c.json({
 					data: {
