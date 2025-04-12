@@ -3,6 +3,7 @@ import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/secur
 import type { DefaultHonoHttpMiddleware } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
 import { Hono } from "hono";
 import { createFactory } from "hono/factory";
+
 export const { server, handler, stream } = await SporkHonoHttpServer(
 	createFactory<DefaultHonoHttpMiddleware>(),
 	(app) =>

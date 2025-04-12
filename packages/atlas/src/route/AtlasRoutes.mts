@@ -20,7 +20,7 @@ if (isNode) {
 /**
  * Internal data structure for each Topology entry
  */
-export type AtlasPrototype = {
+export type AtlasRoutePrototype = {
 	["~protocol"]?: string;
 	["~hostname"]: string;
 	["~port"]?: number;
@@ -33,6 +33,27 @@ export type AtlasRoutePaths<Paths extends Prefix = Prefix> = Record<
 	Paths,
 	Route
 >;
+/**
+ * Options for Topology url()
+ */
+export interface AtlasMapUrlProps {
+	/*
+	 * Whether to render undefined or empty hostnames as empty strings
+	 * @defaultValue `true`
+	 */
+	coalesce?: boolean;
+}
+
+/**
+ * Options for Topology instance()
+ */
+export interface AtlasMapInstanceProps extends AtlasMapUrlProps {
+	/*
+	 * Throw error if not available
+	 * @defaultValue `false`
+	 */
+	strict?: boolean;
+}
 
 /**
  * Client API that each Topology entry implements
@@ -41,11 +62,11 @@ export interface AtlasMap {
 	/**
 	 * @returns Computed hostname of Topology instance
 	 */
-	url: () => string;
+	url: (props?: AtlasMapUrlProps) => string;
 	/**
 	 * @returns Cloudmap instance url, if available. Falls back to url()
 	 */
-	instance: () => string;
+	instance: (props?: AtlasMapInstanceProps) => string;
 }
 
 export type AtlasTopology<Paths extends Prefix> = Record<Paths, AtlasMap>;
@@ -67,7 +88,10 @@ function deferExit() {
 
 /**
  * AtlasRoutes is a function that takes an map of routes and returns a topology of routes.
- * It will also replace the routes with the ones in the ATLAS_ROUTES env var if it is set, allowing for Service Discovery.
+ * It also supports Service Discovery by dynamically loading the `AtlasTopology` from a file
+ * specified with the `ATLAS_ROUTES` environment variable.
+ *
+ * @env `ATLAS_ROUTES` - The path to a JSON file containing an `AtlasTopology` object to replace at runtime.
  * @param routes - The map of routes to use.
  * @returns A topology of routes.
  *
@@ -173,12 +197,70 @@ export function AtlasRoutes<Paths extends Prefix>(
 		(acc, [path, route]) => {
 			let routeObject =
 				route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
+
+			const url = (props?: AtlasMapUrlProps) => {
+				const { coalesce } = {
+					...({ coalesce: true } as AtlasMapUrlProps),
+					...(props ?? {}),
+				};
+
+				if (coalesce) {
+					if (
+						routeObject.hostname === undefined ||
+						routeObject.hostname === "undefined" ||
+						routeObject.hostname.trim() === ""
+					) {
+						return "";
+					}
+				}
+				return [
+					`${routeObject.protocol}://${routeObject.hostname}`,
+					routeObject.port ? `:${routeObject.port}` : "",
+				].join("");
+			};
 			acc[path as Paths] = {
-				url: () =>
-					[
-						`${routeObject.protocol}://${routeObject.hostname}`,
-						routeObject.port ? `:${routeObject.port}` : "",
-					].join(""),
+				url,
+				instance: (props) => {
+					const { strict, ...urlProps } = {
+						...({ strict: false } as AtlasMapInstanceProps),
+						...(props ?? {}),
+					};
+					if (strict) {
+						if (routeObject.$kind !== "LambdaRouteResource") {
+							throw new VError(
+								`AtlasMap: instance() called with strict=true and $kind=${routeObject.$kind}`,
+							);
+						}
+						if (!routeObject.cloudmap) {
+							throw new VError(
+								`AtlasMap: instance() called with strict=true and cloudmap is not set`,
+							);
+						}
+					}
+
+					if (routeObject.$kind === "LambdaRouteResource") {
+						if (routeObject.cloudmap) {
+							const { namespace, service, instance } = routeObject.cloudmap;
+							if (namespace && service && instance) {
+								/*
+
+									The general format for the DNS hostname to reach a specific instance is:
+									<instance-id>.<service-name>.<namespace-name>.<region>.aws
+									For example, if the namespace is "my-namespace", the service is "my-service",
+									and the instance ID is "my-instance", the URL would be:
+									my-instance.my-service.my-namespace.us-east-1.aws
+								*/
+								const { id } = instance;
+								const { name } = service;
+								const { name: namespaceName } = namespace;
+
+								const region = env.AWS_REGION ?? "us-east-1";
+								return `https://${id}.${name}.${namespaceName}.${region}.aws`;
+							}
+						}
+					}
+					return url(urlProps);
+				},
 				// @ts-ignore
 				["~protocol"]: routeObject.protocol,
 				["~hostname"]: routeObject.hostname,
@@ -189,6 +271,3 @@ export function AtlasRoutes<Paths extends Prefix>(
 		{} as AtlasTopology<Paths>,
 	);
 }
-
-export * from "./RouteResource.mjs";
-export * from "./caddy/Caddyfile.mjs";
