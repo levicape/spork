@@ -1,18 +1,18 @@
-import { SporkHonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServerBuilder";
+import { HonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServer";
 import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/security/HonoGuardAuthentication";
-import type { DefaultHonoHttpMiddleware } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
+import type { HonoHttpMiddlewareContext } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
 import { Hono } from "hono";
 import { createFactory } from "hono/factory";
 
-export const { server, handler, stream } = await SporkHonoHttpServer(
-	createFactory<DefaultHonoHttpMiddleware>(),
+export const { server, handler, stream } = await HonoHttpServer(
+	createFactory<HonoHttpMiddlewareContext>(),
 	(app) =>
 		app
 
 			.get(
 				"/user",
 				HonoGuardAuthentication(async ({ principal }) => {
-					return principal.$case === "user";
+					return principal.$case === "authenticated";
 				}),
 			)
 			.route(
@@ -34,14 +34,6 @@ export const { server, handler, stream } = await SporkHonoHttpServer(
 					.get("/anonymous", async (c) => {
 						c.json({ message: "Hello, anonymous!" });
 					}),
-			)
-			.route(
-				"/not-admin",
-				new Hono().use(
-					HonoGuardAuthentication(async ({ principal }) => {
-						return principal.$case !== "admin";
-					}),
-				),
 			),
 );
 

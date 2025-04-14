@@ -1,9 +1,9 @@
 import { requestId } from "hono/request-id";
-import { ulid } from "ulidx";
 import {
 	StandsTelemetryHttpHeaderBasic,
 	standsTelemetryHttpHeaderBasicToJSON,
 } from "../../../../../_protocols/stands/tsnode/domain/telemetry/http/requests/telemetry._._.http.request._.js";
+import { $$_traceId_$$ } from "../../../../server/logging/LoggingPlugins.mjs";
 
 export const HonoRequestIdHeaderStandard = () =>
 	standsTelemetryHttpHeaderBasicToJSON(
@@ -17,7 +17,7 @@ export const HonoRequestIdHeader = ({
 }) =>
 	requestId({
 		generator() {
-			return ulid();
+			return $$_traceId_$$();
 		},
 		headerName: requestIdHeader,
 	});

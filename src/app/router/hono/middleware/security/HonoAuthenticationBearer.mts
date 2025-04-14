@@ -2,71 +2,62 @@ import type { Context } from "hono";
 import type { JwtPayload } from "jsonwebtoken";
 import type { ILogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
-import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
+import {
+	JwtVerificationAsyncLocalStorage,
+	type JwtVerificationInterface,
+	JwtVerificationNoop,
+} from "../../../../server/security/JwtVerification.mjs";
 import { LoginToken } from "../../../../server/security/model/LoginToken.mjs";
-import { SecurityRoles } from "../../../../server/security/model/Security.mjs";
-import { HonoBearerAuth } from "./HonoBearerAuth.mjs";
+import type { HonoHttpMiddlewareContext } from "../HonoHttpMiddleware.mjs";
+import { HonoLogging } from "../log/HonoLoggingContext.mjs";
+import { __internal_HonoBearerAuth } from "./HonoBearerAuth.mjs";
 
-const JWT_SAMPLE_PERCENT = 0.22;
-
-export type HonoHttpAuthenticationBearerContext = {
+export type HonoHttpAuthenticationBearerContext<Token> = {
 	principal:
 		| {
 				$case: "anonymous";
 				value: undefined;
 		  }
 		| {
-				$case: "user";
-				value: LoginToken;
-		  }
-		| {
-				$case: "admin";
-				value: LoginToken;
+				$case: "authenticated";
+				value: Token;
 		  };
 };
 
 export type HonoHttpAuthenticationBearerProps = {
-	logger?: ILogLayer;
-	jwtVerification: JwtVerificationInterface;
+	/**
+	 *	 The JWT verification function. If not provided, the default JWT verification function will be used.
+	 * @default JwtVerificationJose
+	 * @see `JwtVerificationLayerConfig`
+	 */
+	jwtVerification?: JwtVerificationInterface;
 };
 
-export const HonoHttpAuthenticationBearerPrincipal =
-	"HonoHttpAuthenticationBearerPrincipal" as const;
+const JWT_SAMPLE_PERCENT = 0.22;
 
-export const HonoHttpAuthenticationBearer = ({
-	logger,
+function HonoHttpAuthenticationDerive<Token>({
 	jwtVerification,
-}: HonoHttpAuthenticationBearerProps) => {
-	const derive = HonoHttpAuthenticationDerive({ logger, jwtVerification });
-	logger?.debug("Building HonoHttpAuthenticationBearer");
-	return HonoBearerAuth({
-		jwtVerification,
-		verifyToken: async function HonoVerifyToken(token, c) {
-			return await derive(token, c);
-		},
-	});
-};
-
-export const HonoHttpAuthenticationDerive = ({
-	logger,
-	jwtVerification,
-}: HonoHttpAuthenticationBearerProps) =>
-	async function HonoVerifyTokenDerivation(
+	logging,
+}: HonoHttpAuthenticationBearerProps & {
+	logging?: ILogLayer;
+}) {
+	return async function HonoVerifyTokenDerivation(
 		token: string | undefined,
-		context: Context,
+		context: Context<HonoHttpMiddlewareContext & HonoHttpAuthentication<Token>>,
 	): Promise<boolean> {
 		let jwt: JwtPayload | undefined;
 		let unparseable: boolean | string = false;
 		let error: unknown | undefined;
 
+		let requestLogger = context.var.Logging ?? logging;
 		if (token) {
 			try {
-				jwt = await jwtVerification.jwtVerify(token, {});
+				jwt = await jwtVerification?.jwtVerify?.(token, {});
 
 				// Cognito specific
-				// verifyClaims: (jwt) => undefined | string
+				// verifyClaims: (jwt) => boolean
 				if (jwt?.["payload"]?.["token_use"] !== "access") {
-					logger
+					requestLogger
 						?.withMetadata({
 							jwt,
 						})
@@ -76,18 +67,16 @@ export const HonoHttpAuthenticationDerive = ({
 				}
 
 				context.set(HonoHttpAuthenticationBearerPrincipal, {
-					$case: "user",
+					$case: "authenticated",
+					// TODO: this should be a type guard
+					// token: <Token>(jwt) => Token = ((jwt) => LoginToken),
 					value: new LoginToken(
 						jwt.sub ?? "",
-						[
-							// TODO:
-							SecurityRoles.LOGIN,
-						],
 						Date.now().toString(),
 						"localhost",
-					),
+					) as Token,
 				});
-				logger?.withContext({
+				requestLogger?.withContext({
 					principal: {
 						id: jwt.sub,
 					},
@@ -108,12 +97,12 @@ export const HonoHttpAuthenticationDerive = ({
 		const random = Math.random();
 		const ignored = random > JWT_SAMPLE_PERCENT;
 		if (unparseable === true || !ignored) {
-			logger
+			requestLogger
 				?.withMetadata({
 					HonoAuthenticationBearer: {
 						jwt,
 						unparseable,
-						randomset: `${random}/1 > ${JWT_SAMPLE_PERCENT}`,
+						randomset: `${random}/1 < ${JWT_SAMPLE_PERCENT}`,
 					},
 					error,
 				})
@@ -122,3 +111,55 @@ export const HonoHttpAuthenticationDerive = ({
 
 		return !unparseable;
 	};
+}
+
+export type HonoHttpAuthentication<Token = LoginToken> = {
+	Variables: {
+		JwtVerification: JwtVerificationInterface;
+		HonoHttpAuthenticationBearerPrincipal: HonoHttpAuthenticationBearerContext<Token>["principal"];
+	};
+};
+/**
+ * HonoHttpAuthenticationBearerPrincipal is the context key for the parsed request principal  (`HonoHttpAuthenticationBearerContext`).
+ */
+export const HonoHttpAuthenticationBearerPrincipal =
+	"HonoHttpAuthenticationBearerPrincipal" as const;
+
+/**
+ * Middleware for Hono that provides JWT verification of a bearer token.
+ * @requires `JwtVerificationInterface`
+ */
+export function HonoHttpAuthenticationMiddleware<Token = LoginToken>(
+	props?: HonoHttpAuthenticationBearerProps,
+) {
+	const { logging } = HonoLogging.getStore() ?? {};
+	let jwtVerification: JwtVerificationInterface;
+	if (props?.jwtVerification) {
+		logging?.debug(
+			"Building HonoHttpAuthenticationBearer with custom jwtVerification",
+		);
+		jwtVerification = props.jwtVerification;
+	} else {
+		const store = JwtVerificationAsyncLocalStorage.getStore();
+		if (store !== undefined) {
+			logging?.debug(
+				"Building HonoHttpAuthenticationBearer with default jwtVerification",
+			);
+		} else {
+			logging?.warn(
+				"Building HonoHttpAuthenticationBearer with default jwtVerification but no store found. This feature is only supported within a HonoHttpServer app",
+			);
+		}
+		jwtVerification = store?.JwtVerification ?? new JwtVerificationNoop();
+	}
+	const derive = HonoHttpAuthenticationDerive<Token>({
+		logging,
+		jwtVerification,
+	});
+	return __internal_HonoBearerAuth<Token>({
+		jwtVerification,
+		verifyToken: async function HonoVerifyToken(token, c) {
+			return await derive(token, c);
+		},
+	});
+}

@@ -5,7 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import VError from "verror";
 import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
-import type { HonoHttpAuthenticationBearerContext } from "./HonoAuthenticationBearer.mjs";
+import type { HonoHttpAuthentication } from "./HonoAuthenticationBearer.mjs";
 
 // TODO: Use unenv crypto to support LLRT
 
@@ -103,20 +103,15 @@ const timingSafeEqual = async (
 	return sa === sb && a === b;
 };
 
-export type HonoBearerAuthMiddleware = {
-	Variables: {
-		JwtVerification: JwtVerificationInterface;
-		HonoHttpAuthenticationBearerPrincipal: HonoHttpAuthenticationBearerContext["principal"];
-	};
-};
-
 /**
  * Bearer Auth Middleware for Hono. Forked from original middleware.
  *
  * @see {@link https://hono.dev/docs/middleware/builtin/bearer-auth}
  *
  */
-export const HonoBearerAuth = (options: BearerAuthOptions) => {
+export const __internal_HonoBearerAuth = <Token,>(
+	options: BearerAuthOptions,
+) => {
 	if (!("token" in options || "verifyToken" in options)) {
 		throw new VError('bearer auth middleware requires options for "token"');
 	}
@@ -159,7 +154,7 @@ export const HonoBearerAuth = (options: BearerAuthOptions) => {
 		throw new HTTPException(status, { res });
 	};
 
-	return createMiddleware<HonoBearerAuthMiddleware>(
+	return createMiddleware<HonoHttpAuthentication<Token>>(
 		async function BearerAuth(c, next) {
 			const headerToken = c.req.header(options.headerName || HEADER);
 			c.set("JwtVerification", options.jwtVerification);

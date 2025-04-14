@@ -1,12 +1,9 @@
-import { SecurityRoles } from "./Security.mjs";
-
 const EXPIRATION_IN_MINUTES = 120;
 export class LoginToken {
 	expires: string;
 
 	constructor(
 		readonly id: string,
-		readonly role: SecurityRoles[],
 		readonly created: string,
 		readonly host: string,
 	) {
@@ -20,32 +17,5 @@ export class LoginToken {
 
 	static getIssuer(): string {
 		return LoginToken.issuer || "localhost";
-	}
-
-	static player(id: string) {
-		return new LoginToken(
-			id,
-			[SecurityRoles.LOGIN, SecurityRoles.REGISTERED],
-			Date.now().toString(),
-			LoginToken.getIssuer(),
-		);
-	}
-
-	static anonymous(id: string) {
-		return new LoginToken(
-			id,
-			[SecurityRoles.LOGIN],
-			Date.now().toString(),
-			LoginToken.getIssuer(),
-		);
-	}
-
-	static fromToken(token: LoginToken) {
-		return new LoginToken(
-			token.id,
-			token.role,
-			Date.now().toString(),
-			LoginToken.getIssuer(),
-		);
 	}
 }

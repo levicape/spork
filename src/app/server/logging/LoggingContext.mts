@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { Context, type Effect } from "effect";
 import type { ILogLayer } from "loglayer";
 import { env } from "std-env";
@@ -12,6 +13,15 @@ export type LoggingContextProps = {
 	readonly context?: Record<string, unknown>;
 };
 
+export type LoggingInterface = {
+	readonly props: LoggingContextProps;
+	readonly logger: Effect.Effect<ILogLayer, unknown>;
+	readonly stream: (
+		logger: ILogLayer,
+		each: (logger: ILogLayer, message: string) => void,
+	) => (m: string) => string;
+};
+
 /**
  * LoggingContext provides logging functionalities.
  * @see LoggingConfig
@@ -19,14 +29,7 @@ export type LoggingContextProps = {
  */
 export class LoggingContext extends Context.Tag("LoggingContext")<
 	LoggingContext,
-	{
-		readonly props: LoggingContextProps;
-		readonly logger: Effect.Effect<ILogLayer, unknown>;
-		readonly stream: (
-			logger: ILogLayer,
-			each: (logger: ILogLayer, message: string) => void,
-		) => (m: string) => string;
-	}
+	LoggingInterface
 >() {}
 
 /**
@@ -45,6 +48,17 @@ export const LogstreamPassthrough =
 	};
 
 /**
+ * StructuredLogging allows you to provide an effectful `LoggingContext`
+ *
+ * @see LoggingContext
+ */
+export const StructuredLogging = new AsyncLocalStorage<
+	<Services>(
+		self: Context.Context<Services>,
+	) => Context.Context<LoggingContext | Services>
+>();
+
+/**
  * Creates a logging context for the current environment with Context.add()
  * @see LoggingConfig
  * @see LoggingConfigAws
@@ -52,6 +66,11 @@ export const LogstreamPassthrough =
 export const withStructuredLogging = (props: LoggingContextProps) => {
 	const { STRUCTURED_LOGGING } = env as unknown as LoggingConfig;
 	const { AWS_LAMBDA_FUNCTION_NAME } = env as unknown as LoggingConfigAws;
+
+	const logger = StructuredLogging.getStore();
+	if (logger) {
+		return logger;
+	}
 
 	if (AWS_LAMBDA_FUNCTION_NAME || STRUCTURED_LOGGING === "awspowertools") {
 		return withAwsPowertoolsLogger(props);

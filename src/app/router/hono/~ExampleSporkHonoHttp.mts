@@ -1,9 +1,9 @@
 import { createFactory } from "hono/factory";
-import { SporkHonoHttpServer } from "./HonoHttpServerBuilder.mjs";
-import type { DefaultHonoHttpMiddleware } from "./middleware/HonoHttpMiddleware.mjs";
+import { HonoHttpServer } from "./HonoHttpServer.mjs";
+import type { HonoHttpMiddlewareContext } from "./middleware/HonoHttpMiddleware.mjs";
 
-export const { server, handler } = await SporkHonoHttpServer(
-	createFactory<DefaultHonoHttpMiddleware>(),
+export const { server, handler } = await HonoHttpServer(
+	createFactory<HonoHttpMiddlewareContext>(),
 	(app) => {
 		let news = app.get("/test123", async (c) => {
 			c.get("Logging")?.info("Hello, world!");
