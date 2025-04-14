@@ -1,13 +1,13 @@
 import { Effect } from "effect";
 import type { Factory } from "hono/factory";
-import type { BlankEnv } from "hono/types";
-import { ServiceHonoRouter } from "../../domains/service/ServiceHonoRouter.js";
+import type { BlankEnv, ErrorHandler } from "hono/types";
 import { WellknownHonoRouter } from "../../domains/wellknown/WellknownHonoRouter.mjs";
 import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
-import type { HonoHttpMiddlewareStandard } from "./middleware/HonoHttpMiddleware.mjs";
+import type { HonoHttpMiddlewareBuilder } from "./middleware/HonoHttpMiddleware.mjs";
 import { Hono404Handler } from "./middleware/exception/Hono404Handler.js";
 import { HonoExceptionMiddleware } from "./middleware/exception/HonoExceptionMiddleware.mjs";
 import { HonoLoggingContext } from "./middleware/log/HonoLoggingContext.mjs";
+import { HonoRequestLogger } from "./middleware/log/HonoRequestLogger.mjs";
 
 interface Pipe {
 	<A>(value: A): A;
@@ -33,10 +33,12 @@ export const pipe: Pipe = (value: unknown, ...fns: Function[]): unknown => {
 	return fns.reduce((acc, fn) => fn(acc), value);
 };
 
-// Default app
-export const HonoHttpApp = <Env extends BlankEnv, BasePath extends string>(
+export const HonoHttpAppFactory = <
+	Env extends BlankEnv,
+	BasePath extends string,
+>(
 	factory: Factory<Env, BasePath>,
-	{ middleware }: { middleware: ReturnType<typeof HonoHttpMiddlewareStandard> },
+	{ middleware }: { middleware: ReturnType<typeof HonoHttpMiddlewareBuilder> },
 ) =>
 	Effect.gen(function* () {
 		const consola = yield* LoggingContext;
@@ -53,13 +55,13 @@ export const HonoHttpApp = <Env extends BlankEnv, BasePath extends string>(
 
 		return factory
 			.createApp()
-			.use(HonoLoggingContext({ logger }))
 			.use(...middleware)
+			.use(HonoLoggingContext({ logger }))
+			.use(HonoRequestLogger({ logger }))
 			.notFound((c) => {
 				const [json, status] = Hono404Handler;
 				return c.json(json, status);
 			})
-			.onError(HonoExceptionMiddleware({ logger }))
-			.route("/.well-known", WellknownHonoRouter())
-			.route("/!/v1/Service", ServiceHonoRouter());
+			.onError(HonoExceptionMiddleware({ logger }) as unknown as ErrorHandler)
+			.route("/.well-known", WellknownHonoRouter());
 	});

@@ -1,5 +1,5 @@
 import { Hono } from "hono/quick";
-import { pipe } from "../../router/hono/HonoHttpApp.mjs";
+import { pipe } from "../../router/hono/HonoHttpAppFactory.mjs";
 import { WellknownHealthcheckRoute } from "./controller/healthcheck/WellknownHealthcheckRoute.js";
 
 const WellknownHonoRouter = () => {

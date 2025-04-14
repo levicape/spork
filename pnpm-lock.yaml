@@ -119,10 +119,6 @@ catalogs:
     honox:
       specifier: ^0.1.38
       version: 0.1.38
-  id:
-    ulidx:
-      specifier: ^2.4.1
-      version: 2.4.1
   lint:
     '@biomejs/biome':
       specifier: ^1.9.4
@@ -313,9 +309,6 @@ importers:
       '@hono/node-server':
         specifier: catalog:hono
         version: 1.14.0(hono@4.7.5)
-      '@hono/zod-validator':
-        specifier: catalog:hono
-        version: 0.4.3(hono@4.7.5)(zod@3.24.2)
       '@loglayer/transport-aws-lambda-powertools':
         specifier: catalog:log-loglayer
         version: 3.0.4(@aws-lambda-powertools/logger@2.17.0)
@@ -367,9 +360,6 @@ importers:
       ts-proto:
         specifier: catalog:protobuf
         version: 2.7.0
-      ulidx:
-        specifier: catalog:id
-        version: 2.4.1
       unstorage:
         specifier: catalog:database-unstorage
         version: 1.15.0(aws4fetch@1.0.20)(db0@0.3.1(better-sqlite3@11.9.1))
@@ -4269,9 +4259,6 @@ packages:
   ksuid@3.0.0:
     resolution: {integrity: sha512-81CkBGn/06ZVAjGvFZi6fVG8VcPeMH0JpJ4V1Z9VwrMMaGIeAjY4jrVdrIcxhL9I2ZUU6t5uiyswcmkk+KZegA==}
 
-  layerr@3.0.0:
-    resolution: {integrity: sha512-tv754Ki2dXpPVApOrjTyRo4/QegVb9eVFq4mjqp4+NM5NaX7syQvN5BBNfV/ZpAHCEHV24XdUVrBAoka4jt3pA==}
-
   lightningcss-darwin-arm64@1.29.2:
     resolution: {integrity: sha512-cK/eMabSViKn/PG8U/a7aCorpeKLMlK0bQeNHmdb7qUnBkNPnL+oV5DjJUo0kqWsJUapZsM4jCfYItbqBDvlcA==}
     engines: {node: '>= 12.0.0'}
@@ -5509,10 +5496,6 @@ packages:
 
   ufo@1.5.4:
     resolution: {integrity: sha512-UsUk3byDzKd04EyoZ7U4DOlxQaD14JUKQl6/P7wiX4FNvUfm3XL246n9W5AmqwW5RSFJ27NAuM0iLscAOYUiGQ==}
-
-  ulidx@2.4.1:
-    resolution: {integrity: sha512-xY7c8LPyzvhvew0Fn+Ek3wBC9STZAuDI/Y5andCKi9AX6/jvfaX45PhsDX8oxgPL0YFp0Jhr8qWMbS/p9375Xg==}
-    engines: {node: '>=16'}
 
   uncrypto@0.1.3:
     resolution: {integrity: sha512-Ql87qFHB3s/De2ClA9e0gsnS6zXG27SkTiSJwjCc9MebbfapQfuPzumMIUMi38ezPZVNFcHI9sUIepeQfw8J8Q==}
@@ -10187,8 +10170,6 @@ snapshots:
     dependencies:
       base-convert-int-array: 1.0.1
 
-  layerr@3.0.0: {}
-
   lightningcss-darwin-arm64@1.29.2:
     optional: true
 
@@ -11510,10 +11491,6 @@ snapshots:
   typescript@5.8.2: {}
 
   ufo@1.5.4: {}
-
-  ulidx@2.4.1:
-    dependencies:
-      layerr: 3.0.0
 
   uncrypto@0.1.3: {}
 

@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
@@ -29,7 +30,7 @@ export type JwtVerifyFnJose = (
 ) => Promise<JWTVerifyResult<JWTPayload>>;
 
 export type JwtVerificationInterface = {
-	jwtVerify: JwtVerifyFnJose;
+	jwtVerify: JwtVerifyFnJose | null;
 };
 
 export class JwtVerification extends Context.Tag("JwtVerification")<
@@ -40,6 +41,10 @@ export class JwtVerification extends Context.Tag("JwtVerification")<
 export const $$$JWT_VERIFICATION_JWKS_URI = "JWT_VERIFICATION_JWKS_URI";
 export class JwtVerificationJoseEnvs {
 	constructor(readonly JWT_VERIFICATION_JWKS_URI?: string) {}
+}
+
+export class JwtVerificationNoop implements JwtVerificationInterface {
+	jwtVerify = null;
 }
 
 export class JwtVerificationJose {
@@ -184,6 +189,13 @@ export const JwtVerificationLayer = Layer.effect(
 		const jwkCache = yield* JwkCache;
 		logger.withMetadata({ JwtLayer: { config } }).debug("JwtVerificationLayer");
 
+		if (!config.JWT_VERIFICATION_JWKS_URI) {
+			logger
+				.withMetadata({ JwtLayer: { config } })
+				.warn(`${$$$JWT_VERIFICATION_JWKS_URI} not provided`);
+			return new JwtVerificationNoop();
+		}
+
 		const jwtTools = new JwtVerificationJose(logger, config, jwkCache);
 		try {
 			yield* Effect.promise(() => jwtTools.initialize());
@@ -196,3 +208,7 @@ export const JwtVerificationLayer = Layer.effect(
 		return jwtTools;
 	}),
 );
+
+export const JwtVerificationAsyncLocalStorage = new AsyncLocalStorage<{
+	JwtVerification: JwtVerificationInterface;
+}>();

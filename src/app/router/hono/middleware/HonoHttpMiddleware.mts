@@ -1,13 +1,11 @@
-import { bodyLimit } from "hono/body-limit";
-import { compress } from "hono/compress";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { bodyLimit as hono_bodyLimit } from "hono/body-limit";
+import { compress as hono_compress } from "hono/compress";
 import { createMiddleware } from "hono/factory";
-import { prettyJSON } from "hono/pretty-json";
-import { secureHeaders } from "hono/secure-headers";
-import { timeout } from "hono/timeout";
-import type { ILogLayer } from "loglayer";
-import type { JwtVerificationInterface } from "../../../server/security/JwtVerification.mjs";
+import { prettyJSON as hono_prettyJSON } from "hono/pretty-json";
+import { secureHeaders as hono_secureHeaders } from "hono/secure-headers";
+import { timeout as hono_timeout } from "hono/timeout";
 import type { HonoLoglayer } from "./log/HonoLoggingContext.mjs";
-import { HonoRequestLogger } from "./log/HonoRequestLogger.mjs";
 import {
 	HonoRequestIdHeader,
 	HonoRequestIdHeaderStandard,
@@ -16,51 +14,56 @@ import {
 	HonoResponseTimeHeader,
 	HonoResponseTimeHeaderStandard,
 } from "./response/HonoResponseTimeHeader.mjs";
-import { HonoHttpAuthenticationBearer } from "./security/HonoAuthenticationBearer.mjs";
-import { HonoAuthenticationKeypair } from "./security/HonoAuthenticationKeypair.mjs";
-import type { HonoBearerAuthMiddleware } from "./security/HonoBearerAuth.mjs";
 
 const noop = createMiddleware(async (_, next) => {
 	await next();
 });
 
 export const HonoHttpCore = ({
-	timeoutMs,
+	timeout,
 	secure,
-	bodyLimitBytes,
-	compression,
-	pretty,
+	bodyLimit,
+	compress,
+	prettyJSON,
 }: {
-	timeoutMs?: number;
-	secure?: boolean;
-	bodyLimitBytes?: number;
-	compression?: boolean;
-	pretty?: boolean;
+	timeout?: {
+		duration: Parameters<typeof hono_timeout>[0];
+		exception?: Parameters<typeof hono_timeout>[1];
+	};
+	secure?: Parameters<typeof hono_secureHeaders>[0] | true;
+	bodyLimit?: Parameters<typeof hono_bodyLimit>[0];
+	compress?: Parameters<typeof hono_compress>[0] | true;
+	prettyJSON?: Parameters<typeof hono_prettyJSON>[0] | true;
 }) =>
 	[
-		timeout(timeoutMs ?? 12000),
-		secure ? secureHeaders() : noop,
-		bodyLimit({
-			maxSize: bodyLimitBytes ?? 64 * 1024,
-		}),
-		compression ? compress() : noop,
-		pretty ? prettyJSON() : noop,
+		timeout
+			? hono_timeout(timeout.duration, timeout.exception)
+			: (noop as ReturnType<typeof hono_timeout>),
+		secure
+			? hono_secureHeaders(typeof secure === "boolean" ? undefined : secure)
+			: (noop as ReturnType<typeof hono_secureHeaders>),
+		bodyLimit ? hono_bodyLimit(bodyLimit) : noop,
+		compress
+			? hono_compress(typeof compress === "boolean" ? undefined : compress)
+			: (noop as ReturnType<typeof hono_compress>),
+		prettyJSON
+			? hono_prettyJSON(
+					typeof prettyJSON === "boolean" ? undefined : prettyJSON,
+				)
+			: (noop as ReturnType<typeof hono_prettyJSON>),
 	] as const;
 
 export const HonoHttpRequest = ({
-	logger,
 	requestIdHeader,
 }: {
-	logger?: ILogLayer;
 	requestIdHeader?: string;
 }) =>
 	[
-		HonoRequestIdHeader({
-			requestIdHeader: requestIdHeader ?? HonoRequestIdHeaderStandard(),
-		}),
-		...([logger ? HonoRequestLogger({ logger }) : undefined] as [
-			ReturnType<typeof HonoRequestLogger>,
-		]),
+		requestIdHeader
+			? HonoRequestIdHeader({
+					requestIdHeader,
+				})
+			: (noop as ReturnType<typeof HonoRequestIdHeader>),
 	] as const;
 
 export const HonoHttpResponse = ({
@@ -69,53 +72,51 @@ export const HonoHttpResponse = ({
 	responseTimeHeader?: string;
 }) =>
 	[
-		HonoResponseTimeHeader({
-			responseTimeHeader:
-				responseTimeHeader ?? HonoResponseTimeHeaderStandard(),
-		}),
+		responseTimeHeader
+			? HonoResponseTimeHeader({
+					responseTimeHeader,
+				})
+			: (noop as ReturnType<typeof HonoResponseTimeHeader>),
 	] as const;
 
-export type HonoHttpSecurityProps = {
-	logger?: ILogLayer;
-	jwtVerification: JwtVerificationInterface;
+export type HonoHttpMiddlewareProps = {
+	core?: Parameters<typeof HonoHttpCore>[0];
+	request?: Parameters<typeof HonoRequestIdHeader>[0];
+	response?: Parameters<typeof HonoResponseTimeHeader>[0];
 };
-export const HonoHttpSecurity = ({
-	logger,
-	jwtVerification,
-}: HonoHttpSecurityProps) =>
-	[
-		HonoAuthenticationKeypair(),
-		HonoHttpAuthenticationBearer({
-			logger,
-			jwtVerification,
-		}),
+
+export const HonoHttpMiddlewareCore: HonoHttpMiddlewareProps["core"] = {
+	timeout: {
+		duration: 12000,
+	},
+	secure: true,
+	bodyLimit: {
+		maxSize: 64 * 1024,
+	},
+	compress: true,
+	prettyJSON: true,
+} as const;
+
+export type HonoHttpMiddlewareContext = HonoLoglayer;
+
+export const HonoHttpMiddleware =
+	new AsyncLocalStorage<HonoHttpMiddlewareProps>();
+
+export const HonoHttpMiddlewareBuilder = () => {
+	const props = HonoHttpMiddleware.getStore();
+	const middleware = [
+		...HonoHttpCore(props?.core ?? HonoHttpMiddlewareCore),
+		...HonoHttpRequest(
+			props?.request ?? {
+				requestIdHeader: HonoRequestIdHeaderStandard(),
+			},
+		),
+		...HonoHttpResponse(
+			props?.response ?? {
+				responseTimeHeader: HonoResponseTimeHeaderStandard(),
+			},
+		),
 	] as const;
 
-export type HonoHttpMiddlewareStandardProps = HonoHttpSecurityProps;
-
-export type DefaultHonoHttpMiddleware = HonoBearerAuthMiddleware & HonoLoglayer;
-
-export const HonoHttpMiddlewareStandard = (
-	props: HonoHttpMiddlewareStandardProps,
-) => {
-	const { logger, jwtVerification } = props;
-
-	return [
-		...HonoHttpCore({
-			timeoutMs: 12000,
-			secure: true,
-			bodyLimitBytes: 64 * 1024,
-			compression: true,
-			pretty: true,
-		}),
-		...HonoHttpRequest({
-			logger,
-		}),
-		...((jwtVerification
-			? HonoHttpSecurity({ logger, jwtVerification })
-			: []) as ReturnType<typeof HonoHttpSecurity>),
-		...HonoHttpResponse({
-			responseTimeHeader: "X-Response-Time",
-		}),
-	] as const;
+	return middleware.filter((m) => m !== noop) as unknown as typeof middleware;
 };

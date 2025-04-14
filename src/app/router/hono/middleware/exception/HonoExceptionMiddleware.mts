@@ -1,7 +1,9 @@
+import type { ErrorHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import type { ILogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
 import { ZodError } from "zod";
+import type { HonoLoglayer } from "../log/HonoLoggingContext.mjs";
 
 export type HonoException = {
 	code: string;
@@ -18,7 +20,7 @@ export type HonoException = {
 
 export const HonoExceptionMiddleware = (props: { logger: ILogLayer }) => {
 	const logger = props.logger;
-	return (error: unknown) => {
+	const handler: ErrorHandler<HonoLoglayer> = (error, c) => {
 		if (error instanceof ZodError) {
 			return new Response(
 				JSON.stringify({
@@ -42,7 +44,7 @@ export const HonoExceptionMiddleware = (props: { logger: ILogLayer }) => {
 		if (error instanceof HTTPException) {
 			return error.getResponse();
 		}
-		logger
+		(c.var?.Logging ?? logger)
 			.withMetadata({
 				HonoExceptionMiddleware: {
 					error: serializeError(error),
@@ -63,4 +65,6 @@ export const HonoExceptionMiddleware = (props: { logger: ILogLayer }) => {
 			{ status: 500 },
 		);
 	};
+
+	return handler;
 };

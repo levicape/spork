@@ -68,7 +68,7 @@ export const withAwsPowertoolsLogger = (props: {
 				spanId: loggerId,
 			});
 
-			loglayer.debug(`logger span`);
+			loglayer.info(`logger root span`);
 
 			return loglayer;
 		}),

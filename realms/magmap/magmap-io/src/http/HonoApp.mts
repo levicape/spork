@@ -1,7 +1,11 @@
 import { zValidator } from "@hono/zod-validator";
-import { SporkHonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServerBuilder";
+import { HonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServer";
 import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/security/HonoGuardAuthentication";
-import type { DefaultHonoHttpMiddleware } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
+import type { HonoHttpMiddlewareContext } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
+import {
+	type HonoHttpAuthentication,
+	HonoHttpAuthenticationMiddleware,
+} from "@levicape/spork/router/hono/middleware/security/HonoAuthenticationBearer";
 import type { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
 import type {
@@ -75,9 +79,10 @@ const SporkRateLimiterKeyGenerator = (
 	return info.remote.address || "unknown";
 };
 
-export const { server, stream } = await SporkHonoHttpServer(
-	createFactory<DefaultHonoHttpMiddleware>({
+export const { server, stream } = await HonoHttpServer(
+	createFactory<HonoHttpMiddlewareContext & HonoHttpAuthentication>({
 		initApp(app) {
+			app.use(HonoHttpAuthenticationMiddleware());
 			app.use(
 				rateLimiter({
 					windowMs: 2 * 60 * 1000, // 2 minutes
@@ -91,11 +96,6 @@ export const { server, stream } = await SporkHonoHttpServer(
 	(app) =>
 		app
 			.basePath(HTTP_BASE_PATH)
-			.use(
-				HonoGuardAuthentication(async ({ principal }) => {
-					return principal.$case !== "anonymous";
-				}),
-			)
 			.get("/atlas", async (c) => {
 				return c.json({
 					data: {
@@ -107,6 +107,11 @@ export const { server, stream } = await SporkHonoHttpServer(
 					},
 				});
 			})
+			.use(
+				HonoGuardAuthentication(async ({ principal }) => {
+					return principal.$case !== "anonymous";
+				}),
+			)
 			.post(
 				"/atlas/routes/!/status",
 				zValidator(

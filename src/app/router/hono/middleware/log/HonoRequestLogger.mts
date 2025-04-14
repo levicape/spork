@@ -77,7 +77,7 @@ export type HonoRequestLoggerProps = {
 	logger: ILogLayer;
 };
 export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
-	const logger = props.logger.withPrefix("HONO");
+	const logger = props.logger.withPrefix("REQUEST");
 	return createMiddleware(async function RequestLogger(c, next) {
 		const { method } = c.req;
 		const path = getPath(c.req.raw);

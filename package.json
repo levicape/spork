@@ -15,8 +15,8 @@
     "clipath": "./module/cli/bin.mjs",
     "lintpaths": "./src ./canary ./iac",
     "protocols": "./src/_protocols",
-    "server": "module/app/router/hono/ExampleSporkHonoHttp.mjs",
-    "esbuildpaths": "module/app/router/hono/ExampleSporkHonoHttp.mjs",
+    "server": "module/app/router/hono/~ExampleSporkHonoHttp.mjs",
+    "esbuildpaths": "module/app/router/hono/~ExampleSporkHonoHttp.mjs",
     "esbuildplatform": "node",
     "esbuildpackages": "bundle",
     "esbuildargs": "--external:better-sqlite3 --external:sqlite3 --external:tedious --external:mysql --external:mysql2 --external:oracledb --external:knex"
@@ -32,7 +32,6 @@
     "@effect/platform": "catalog:effect",
     "@effect/platform-node": "catalog:effect",
     "@hono/node-server": "catalog:hono",
-    "@hono/zod-validator": "catalog:hono",
     "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
     "@loglayer/transport-consola": "catalog:log-loglayer",
     "@loglayer/transport-pino": "catalog:log-loglayer",
@@ -50,7 +49,6 @@
     "slonik": "catalog:database-sql",
     "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
-    "ulidx": "catalog:id",
     "unstorage": "catalog:database-unstorage",
     "verror": "catalog:error",
     "zod": "catalog:schema-zod"

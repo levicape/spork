@@ -5,7 +5,7 @@ import { makeSemaphore } from "effect/Effect";
 import type { RuntimeFiber } from "effect/Fiber";
 import { serializeError } from "serialize-error";
 import VError from "verror";
-import type { SporkServerStartImportExpects } from "../../../app/router/hono/HonoHttpServerBuilder.mjs";
+import type { SporkServerStartImportExpects } from "../../../app/router/hono/HonoHttpServer.mjs";
 import type { SporkCliAppProps } from "../../SporkCliApp.mjs";
 
 type Flags = {
