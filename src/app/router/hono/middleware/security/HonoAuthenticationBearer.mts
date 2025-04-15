@@ -9,7 +9,7 @@ import {
 } from "../../../../server/security/JwtVerification.mjs";
 import { LoginToken } from "../../../../server/security/model/LoginToken.mjs";
 import type { HonoHttpMiddlewareContext } from "../HonoHttpMiddleware.mjs";
-import { HonoLogging } from "../log/HonoLoggingContext.mjs";
+import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
 import { __internal_HonoBearerAuth } from "./HonoBearerAuth.mjs";
 
 export type HonoHttpAuthenticationBearerContext<Token> = {
@@ -132,7 +132,7 @@ export const HonoHttpAuthenticationBearerPrincipal =
 export function HonoHttpAuthenticationMiddleware<Token = LoginToken>(
 	props?: HonoHttpAuthenticationBearerProps,
 ) {
-	const { logging } = HonoLogging.getStore() ?? {};
+	const { logging } = HonoLoggingStorage.getStore() ?? {};
 	let jwtVerification: JwtVerificationInterface;
 	if (props?.jwtVerification) {
 		logging?.debug(

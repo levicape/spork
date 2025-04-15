@@ -39,8 +39,13 @@ export class JwtVerification extends Context.Tag("JwtVerification")<
 >() {}
 
 export const $$$JWT_VERIFICATION_JWKS_URI = "JWT_VERIFICATION_JWKS_URI";
+export const $$$JWT_VERIFICATION_JWKS_CACHE_KEY =
+	"JWT_VERIFICATION_JWKS_CACHE_KEY";
 export class JwtVerificationJoseEnvs {
-	constructor(readonly JWT_VERIFICATION_JWKS_URI?: string) {}
+	constructor(
+		readonly JWT_VERIFICATION_JWKS_URI?: string,
+		readonly JWT_VERIFICATION_JWKS_CACHE_KEY?: string,
+	) {}
 }
 
 export class JwtVerificationNoop implements JwtVerificationInterface {
@@ -174,10 +179,18 @@ export const JwtVerificationLayerConfig = Config.map(
 			),
 			Config.withDefault(undefined),
 		),
+		Config.string($$$JWT_VERIFICATION_JWKS_CACHE_KEY).pipe(
+			Config.map((c) => envsubst(c)),
+			Config.withDescription(`JWKs cache key. Defaults to "verify.json".`),
+			Config.withDefault("verify.json" as const),
+		),
 	]),
 
-	([JWT_VERIFICATION_JWKS_URI]) =>
-		new JwtVerificationJoseEnvs(JWT_VERIFICATION_JWKS_URI),
+	([JWT_VERIFICATION_JWKS_URI, JWT_VERIFICATION_JWKS_CACHE_KEY]) =>
+		new JwtVerificationJoseEnvs(
+			JWT_VERIFICATION_JWKS_URI,
+			JWT_VERIFICATION_JWKS_CACHE_KEY,
+		),
 );
 
 export const JwtVerificationLayer = Layer.effect(
@@ -186,7 +199,7 @@ export const JwtVerificationLayer = Layer.effect(
 		const console = yield* LoggingContext;
 		const logger = yield* console.logger;
 		const config = yield* JwtVerificationLayerConfig;
-		const jwkCache = yield* JwkCache;
+		const jwkCache = (yield* JwkCache).cache("verify.json");
 		logger.withMetadata({ JwtLayer: { config } }).debug("JwtVerificationLayer");
 
 		if (!config.JWT_VERIFICATION_JWKS_URI) {

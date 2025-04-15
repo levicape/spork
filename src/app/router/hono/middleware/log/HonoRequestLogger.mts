@@ -1,7 +1,9 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { createMiddleware } from "hono/factory";
 import type { ILogLayer } from "loglayer";
+import type { HonoHttpMiddlewareContext } from "../HonoHttpMiddleware.mjs";
 
-const HEALTHCHECK_SAMPLE_PERCENT = 0.08;
+// const HEALTHCHECK_SAMPLE_PERCENT = 0.08;
 
 const tryDecode = (
 	str: string,
@@ -43,17 +45,9 @@ const timed = (start: number) => {
 	const delta = Date.now() - start;
 	return delta;
 };
-const ignore = (method: string, path: string) => {
-	if (method === "GET" && path === "/.well-known/healthcheck") {
-		if (Math.random() < HEALTHCHECK_SAMPLE_PERCENT) {
-			return false;
-		}
-		return true;
-	}
-	return false;
-};
 function before(fn: ILogLayer["withMetadata"], method: string, path: string) {
 	fn({
+		$otel: false,
 		HonoRequestLoggerRequest: {
 			method,
 			path,
@@ -73,29 +67,29 @@ function after(
 	}).info("Response");
 }
 
+export const HonoRequestLoggingStorage = new AsyncLocalStorage<{
+	logging?: ILogLayer;
+}>();
+
 export type HonoRequestLoggerProps = {
 	logger: ILogLayer;
 };
 export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 	const logger = props.logger.withPrefix("REQUEST");
-	return createMiddleware(async function RequestLogger(c, next) {
-		const { method } = c.req;
-		const path = getPath(c.req.raw);
-		const ignored = ignore(method, path);
-		if (ignored) {
-			await next();
-			return;
-		}
+	return createMiddleware<HonoHttpMiddlewareContext>(
+		async function RequestLogger(c, next) {
+			const { method } = c.req;
+			const path = getPath(c.req.raw);
+			const requestLogger = c.var.Logging ?? logger;
+			const withMetadata = requestLogger.withMetadata.bind(requestLogger);
+			before(withMetadata, method, path);
+			const start: number = Date.now();
 
-		before(logger.withMetadata.bind(logger), method, path);
-		const start: number = Date.now();
-		await next();
-		after(
-			logger.withMetadata.bind(logger),
-			method,
-			path,
-			c.res.status,
-			timed(start),
-		);
-	});
+			await HonoRequestLoggingStorage.run({ logging: requestLogger }, () => {
+				return next();
+			});
+
+			after(withMetadata, method, path, c.res.status, timed(start));
+		},
+	);
 };
