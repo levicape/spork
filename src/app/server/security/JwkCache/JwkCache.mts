@@ -15,14 +15,13 @@ export interface JwkCacheInterface {
 
 export class JwkCache extends Effect.Tag("JwkCache")<
 	"JwkCache",
-	JwkCacheInterface
+	{ cache: (keyringName: string) => JwkCacheInterface }
 >() {}
 
 export class JwkCacheFilesystemEnvs {
 	constructor(
 		readonly JWK_CACHE_DEBUG: boolean,
 		readonly JWK_CACHE_FS_ROOT: string,
-		readonly JWK_CACHE_FS_KEY: string,
 		readonly JWK_CACHE_FS_TTL_SECONDS: number,
 	) {}
 }
@@ -34,11 +33,11 @@ export class JwkCacheFilesystem {
 	constructor(
 		private logger: ILogLayer,
 		private readonly context: JwkCacheFilesystemEnvs,
+		private readonly keyringName: string,
 	) {
 		this.logger.withContext({
 			JwkCache: {
 				fsRoot: this.context.JWK_CACHE_FS_ROOT,
-				fsKey: this.context.JWK_CACHE_FS_KEY,
 				fsTTL: this.context.JWK_CACHE_FS_TTL_SECONDS,
 			},
 		});
@@ -51,9 +50,7 @@ export class JwkCacheFilesystem {
 	}
 
 	public getJwks = async () => {
-		const keys = await this.store.getItem<ExportedJWKSCache>(
-			this.context.JWK_CACHE_FS_KEY,
-		);
+		const keys = await this.store.getItem<ExportedJWKSCache>(this.keyringName);
 		if (keys?.uat) {
 			const previousUat = this.previousUat;
 			this.previousUat = keys.uat;
@@ -92,10 +89,7 @@ export class JwkCacheFilesystem {
 			})
 			.debug(`Setting JWK cache`);
 
-		await this.store.setItem<ExportedJWKSCache>(
-			this.context.JWK_CACHE_FS_KEY,
-			keys,
-		);
+		await this.store.setItem<ExportedJWKSCache>(this.keyringName, keys);
 	};
 
 	public deleteJwks = async () => {
@@ -107,7 +101,7 @@ export class JwkCacheFilesystem {
 			})
 			.debug(`Deleting JWK cache`);
 		this.previousUat = undefined;
-		await this.store.removeItem(this.context.JWK_CACHE_FS_KEY);
+		await this.store.removeItem(this.keyringName);
 	};
 }
 
@@ -121,25 +115,15 @@ export const FilesystemJwkCacheConfig = Config.map(
 			Config.withDescription("Path to the root directory for the JWK cache"),
 			Config.withDefault("/tmp"),
 		),
-		Config.string("JWK_CACHE_FS_KEY").pipe(
-			Config.withDescription("File key for the JWK cache"),
-			Config.withDefault("jwks.json"),
-		),
 		Config.number("JWK_CACHE_FS_TTL_SECONDS").pipe(
 			Config.withDescription("Time to live for the JWK cache in seconds"),
 			Config.withDefault(60),
 		),
 	]),
-	([
-		JWK_CACHE_DEBUG,
-		JWK_CACHE_FS_ROOT,
-		JWK_CACHE_FS_KEY,
-		JWK_CACHE_FS_TTL_SECONDS,
-	]) =>
+	([JWK_CACHE_DEBUG, JWK_CACHE_FS_ROOT, JWK_CACHE_FS_TTL_SECONDS]) =>
 		new JwkCacheFilesystemEnvs(
 			JWK_CACHE_DEBUG,
 			JWK_CACHE_FS_ROOT,
-			JWK_CACHE_FS_KEY,
 			JWK_CACHE_FS_TTL_SECONDS,
 		),
 );
@@ -158,6 +142,10 @@ export const FilesystemJwkCache = Layer.effect(
 				}),
 			]);
 		}
-		return new JwkCacheFilesystem(logger, context);
+
+		const cache = (key: string) => new JwkCacheFilesystem(logger, context, key);
+		return {
+			cache,
+		};
 	}),
 );

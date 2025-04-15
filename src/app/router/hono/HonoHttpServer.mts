@@ -20,6 +20,11 @@ import {
 } from "../../server/logging/LoggingContext.mjs";
 import { FilesystemJwkCache } from "../../server/security/JwkCache/JwkCache.mjs";
 import {
+	JwtSignature,
+	JwtSignatureAsyncLocalStorage,
+	JwtSignatureLayer,
+} from "../../server/security/JwtSignature.mjs";
+import {
 	JwtVerification,
 	JwtVerificationAsyncLocalStorage,
 	JwtVerificationLayer,
@@ -280,6 +285,7 @@ export const HonoHttpServer = async <
 									const consola = yield* LoggingContext;
 									const logger = yield* consola.logger;
 									const jwtVerification = yield* JwtVerification;
+									const jwtSignature = yield* JwtSignature;
 									const middleware = HonoHttpMiddlewareBuilder();
 
 									if (middleware.length > 0) {
@@ -301,6 +307,9 @@ export const HonoHttpServer = async <
 										(spork) => {
 											JwtVerificationAsyncLocalStorage.enterWith({
 												JwtVerification: jwtVerification,
+											});
+											JwtSignatureAsyncLocalStorage.enterWith({
+												JwtSignature: jwtSignature,
 											});
 											const instance = app(
 												spork as unknown as ReturnType<
@@ -325,7 +334,10 @@ export const HonoHttpServer = async <
 									});
 								}),
 							),
-							Layer.provide(JwtVerificationLayer, FilesystemJwkCache),
+							Layer.merge(
+								Layer.provide(JwtVerificationLayer, FilesystemJwkCache),
+								JwtSignatureLayer,
+							),
 						),
 						Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),
 					),

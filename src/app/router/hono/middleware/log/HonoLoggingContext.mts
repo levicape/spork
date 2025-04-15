@@ -14,36 +14,33 @@ export type HonoLoggingContextProps = {
 	logger: ILogLayer;
 };
 
-export const HonoLogging = new AsyncLocalStorage<{ logging?: ILogLayer }>();
+export const HonoLoggingStorage = new AsyncLocalStorage<{
+	logging?: ILogLayer;
+}>();
 
 export const HonoLoggingContext = (props: HonoLoggingContextProps) => {
 	const logger = props.logger.withPrefix("HONO");
-	HonoLogging.enterWith({ logging: logger });
+	HonoLoggingStorage.enterWith({ logging: logger });
 	const contextId = $$_traceId_$$();
 
 	return createMiddleware<HonoLoglayer>(async function LoggingContext(c, next) {
 		const requestId = c.var.requestId ?? $$_traceId_$$();
-		const { traceId } = logger.getContext();
 		const child = logger.child().withContext({
-			$event: "request",
+			$event: "duration",
+			traceId: requestId,
 		});
 
 		child
 			.withMetadata({
+				$otel: false,
 				HonoLoggingContext: {
 					requestId,
 					contextId,
-					rootTraceId: traceId,
 				},
 			})
 			.info("HonoLoggingContext");
 
-		c.set(
-			"Logging",
-			child.withContext({
-				traceId: requestId,
-			}),
-		);
+		c.set("Logging", child);
 
 		await next();
 	});

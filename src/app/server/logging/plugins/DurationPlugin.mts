@@ -6,7 +6,7 @@ import type { LogLayerPlugin } from "loglayer";
  */
 export const DurationPlugin: LogLayerPlugin = {
 	id: "duration-plugin",
-	onBeforeDataOut: (() => {
+	...(() => {
 		const rootTimestamp = Date.now();
 		const spanTimestamps = new Map<string, number>();
 
@@ -35,35 +35,54 @@ export const DurationPlugin: LogLayerPlugin = {
 			}
 		};
 
-		return ({ data }) => {
-			if (data) {
-				const { spanId, __previousSpanId, parentSpanId } = data as {
-					parentSpanId?: string;
+		return {
+			onContextCalled(context, loglayer) {
+				const { spanId: existingSpanId } = loglayer.getContext() as {
 					spanId?: string;
-					__previousSpanId?: string;
+					parentSpanId?: string;
 				};
-				if (spanId) {
-					if (spanTimestamps.size > 2 ** 16) {
-						purge(60);
+
+				// Values added by withContext
+				const { $event } = context as {
+					$event?: string;
+				};
+
+				if ($event !== "duration" && existingSpanId !== undefined) {
+					store(existingSpanId, Date.now());
+				}
+
+				return context;
+			},
+			onBeforeDataOut: ({ data }) => {
+				if (data) {
+					const { spanId, __previousSpanId, parentSpanId } = data as {
+						parentSpanId?: string;
+						spanId?: string;
+						__previousSpanId?: string;
+					};
+					if (spanId) {
+						if (spanTimestamps.size > 2 ** 16) {
+							purge(60);
+						}
+						store(spanId, data.timestamp ?? Date.now());
 					}
-					store(spanId, data.timestamp ?? Date.now());
-				}
 
-				if (data.duration === undefined) {
-					data.duration = duration(__previousSpanId ?? parentSpanId);
-				}
+					if (data.duration === undefined) {
+						data.duration = duration(__previousSpanId ?? parentSpanId);
+					}
 
-				if (__previousSpanId) {
-					store(__previousSpanId, data.timestamp ?? Date.now());
-				}
-				if (parentSpanId) {
-					store(parentSpanId, data.timestamp ?? Date.now());
-				}
+					if (__previousSpanId) {
+						store(__previousSpanId, data.timestamp ?? Date.now());
+					}
+					if (parentSpanId) {
+						store(parentSpanId, data.timestamp ?? Date.now());
+					}
 
-				// biome-ignore lint:
-				delete data.__previousSpanId;
-			}
-			return data;
+					// biome-ignore lint:
+					delete data.__previousSpanId;
+				}
+				return data;
+			},
 		};
 	})(),
 };

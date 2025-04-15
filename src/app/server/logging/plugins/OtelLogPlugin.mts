@@ -66,6 +66,14 @@ export const OtelLogPlugin: () => LogLayerPlugin = () => {
 		},
 		onMetadataCalled(metadata, loglayer) {
 			const { spanId } = loglayer.getContext();
+			const { $otel } = metadata as {
+				$otel?: false;
+			};
+			if ($otel === false) {
+				// biome-ignore lint:
+				delete metadata.$otel;
+				return metadata;
+			}
 			metadata.spanId = $$_spanId_$$();
 			metadata.parentSpanId = spanId;
 
