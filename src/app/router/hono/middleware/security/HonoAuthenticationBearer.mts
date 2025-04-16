@@ -8,7 +8,7 @@ import {
 	JwtVerificationNoop,
 } from "../../../../server/security/JwtVerification.mjs";
 import { LoginToken } from "../../../../server/security/model/LoginToken.mjs";
-import type { HonoHttpMiddlewareContext } from "../HonoHttpMiddleware.mjs";
+import type { HonoHttpMiddleware } from "../HonoHttpMiddleware.mjs";
 import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
 import { __internal_HonoBearerAuth } from "./HonoBearerAuth.mjs";
 
@@ -43,7 +43,7 @@ function HonoHttpAuthenticationDerive<Token>({
 }) {
 	return async function HonoVerifyTokenDerivation(
 		token: string | undefined,
-		context: Context<HonoHttpMiddlewareContext & HonoHttpAuthentication<Token>>,
+		context: Context<HonoHttpMiddleware & HonoHttpAuthentication<Token>>,
 	): Promise<boolean> {
 		let jwt: JwtPayload | undefined;
 		let unparseable: boolean | string = false;

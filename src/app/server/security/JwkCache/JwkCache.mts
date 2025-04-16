@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks";
 import { Config, Effect, Layer } from "effect";
 import type { ExportedJWKSCache } from "jose";
 import { ConsoleTransport, type ILogLayer } from "loglayer";
@@ -149,3 +150,5 @@ export const FilesystemJwkCache = Layer.effect(
 		};
 	}),
 );
+
+export const JwkCacheLocalStorage = new AsyncLocalStorage<ExportedJWKSCache>();

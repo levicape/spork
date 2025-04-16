@@ -3,25 +3,22 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
 import { Config, Context, Effect, Layer } from "effect";
-import { type JWK, SignJWT, generateSecret, importJWK } from "jose";
+import { type JWK, SignJWT, exportJWK, generateSecret, importJWK } from "jose";
 import type { ILogLayer } from "loglayer";
 import { deserializeError } from "serialize-error";
 import VError from "verror";
 import { z } from "zod";
 import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
-type JwtSignFnWithKey = ConstructorParameters<typeof SignJWT>;
+import { JwkCacheLocalStorage } from "./JwkCache/JwkCache.mjs";
 
-export type JwtSignFnJose = (payload?: JwtSignFnWithKey[0]) => Exclude<
-	SignJWT,
-	"sign"
-> & {
-	readonly sign: () => Promise<string>;
-};
+export type JwtSignFnJose = (
+	signer: (token: SignJWT) => SignJWT,
+) => Promise<string>;
 
 export type JwtSignatureInterface = {
 	jwtSign: JwtSignFnJose | null;
-	initializeToken?: (token: Exclude<SignJWT, "sign">) => SignJWT;
+	initializeToken?: (token: SignJWT) => SignJWT;
 };
 
 export class JwtSignature extends Context.Tag("JwtSignature")<
@@ -60,10 +57,31 @@ export class JwtSignatureJose {
 				);
 			})();
 		} else {
-			const defaultKey: CryptoKey = (await generateSecret("HS256", {
+			const local = JwkCacheLocalStorage.getStore();
+			if (local?.jwks?.keys?.[0]) {
+				this.logger
+					.withMetadata({
+						JwtSignatureJose,
+						context: this.context,
+						jwks: local.jwks.keys,
+					})
+					.debug(`Using local JWK cache`);
+				this.jwks = await importJWK(local.jwks.keys[0]);
+				return;
+			}
+
+			const defaultKey: CryptoKey = (await generateSecret("RS256", {
 				extractable: true,
 			})) as CryptoKey;
 			this.jwks = defaultKey;
+
+			const exported = await exportJWK(defaultKey);
+			JwkCacheLocalStorage.enterWith({
+				jwks: {
+					keys: [exported],
+				},
+				uat: Date.now(),
+			});
 
 			this.logger
 				.withMetadata({
@@ -127,15 +145,11 @@ export class JwtSignatureJose {
 		}
 
 		const jwks = this.jwks;
-		let result = new SignJWT(payload);
+		let result = new SignJWT();
 		if (this.initializeToken) {
 			result = this.initializeToken(result);
 		}
-		let originalSign = result.sign.bind(result);
-		Object.assign(result, { sign: () => originalSign(jwks) });
-		return result as SignJWT & {
-			readonly sign: () => Promise<string>;
-		};
+		return payload(result).sign(jwks);
 	};
 }
 
@@ -162,13 +176,6 @@ export const JwtSignatureLayer = Layer.effect(
 		const logger = yield* console.logger;
 		const config = yield* JwtSignatureLayerConfig;
 		logger.withMetadata({ JwtLayer: { config } }).debug("JwtSignatureLayer");
-
-		if (!config.JWT_SIGNATURE_JWKS_URI) {
-			logger
-				.withMetadata({ JwtLayer: { config } })
-				.warn(`${$$$JWT_SIGNATURE_JWKS_URI} not provided`);
-			return new JwtSignatureNoop();
-		}
 
 		const jwtSignature = new JwtSignatureJose(logger, config);
 		try {

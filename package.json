@@ -35,6 +35,7 @@
     "@loglayer/transport-aws-lambda-powertools": "catalog:log-loglayer",
     "@loglayer/transport-consola": "catalog:log-loglayer",
     "@loglayer/transport-pino": "catalog:log-loglayer",
+    "@paralleldrive/cuid2": "catalog:id",
     "@stricli/core": "catalog:cli",
     "chokidar": "catalog:fs",
     "consola": "catalog:log-consola",
@@ -49,6 +50,7 @@
     "slonik": "catalog:database-sql",
     "std-env": "catalog:runtime-env",
     "ts-proto": "catalog:protobuf",
+    "ulidx": "catalog:id",
     "unstorage": "catalog:database-unstorage",
     "verror": "catalog:error",
     "zod": "catalog:schema-zod"

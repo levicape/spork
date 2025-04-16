@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { createMiddleware } from "hono/factory";
 import type { ILogLayer } from "loglayer";
-import type { HonoHttpMiddlewareContext } from "../HonoHttpMiddleware.mjs";
+import type { HonoHttpMiddleware } from "../HonoHttpMiddleware.mjs";
 
 // const HEALTHCHECK_SAMPLE_PERCENT = 0.08;
 
@@ -76,7 +76,7 @@ export type HonoRequestLoggerProps = {
 };
 export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 	const logger = props.logger.withPrefix("REQUEST");
-	return createMiddleware<HonoHttpMiddlewareContext>(
+	return createMiddleware<HonoHttpMiddleware>(
 		async function RequestLogger(c, next) {
 			const { method } = c.req;
 			const path = getPath(c.req.raw);
