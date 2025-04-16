@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { HonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServer";
 import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/security/HonoGuardAuthentication";
-import type { HonoHttpMiddlewareContext } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
+import type { HonoHttpMiddleware } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
 import {
 	type HonoHttpAuthentication,
 	HonoHttpAuthenticationMiddleware,
@@ -19,8 +19,8 @@ import { deserializeError, serializeError } from "serialize-error";
 import { env } from "std-env";
 import { z } from "zod";
 import { HTTP_BASE_PATH, MagmapRoutemap } from "./Atlas.mjs";
-
 // import { getConnInfo } from "@hono/node-server/conninfo";
+
 const getConnInfo = (c: Parameters<typeof SporkRateLimiterKeyGenerator>[0]) => {
 	const bindings = c.env.server ? c.env.server : c.env;
 	const address = bindings.incoming.socket.remoteAddress;
@@ -80,7 +80,7 @@ const SporkRateLimiterKeyGenerator = (
 };
 
 export const { server, stream } = await HonoHttpServer(
-	createFactory<HonoHttpMiddlewareContext & HonoHttpAuthentication>({
+	createFactory<HonoHttpMiddleware & HonoHttpAuthentication>({
 		initApp(app) {
 			app.use(HonoHttpAuthenticationMiddleware());
 			app.use(

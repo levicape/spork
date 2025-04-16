@@ -21,7 +21,11 @@ import { deserializeError } from "serialize-error";
 import VError from "verror";
 import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
-import { JwkCache, type JwkCacheInterface } from "./JwkCache/JwkCache.mjs";
+import {
+	JwkCache,
+	type JwkCacheInterface,
+	JwkCacheLocalStorage,
+} from "./JwkCache/JwkCache.mjs";
 
 type JwtVerifyFnWithKey = typeof jwtVerify;
 export type JwtVerifyFnJose = (
@@ -66,6 +70,10 @@ export class JwtVerificationJose {
 	) {}
 
 	initialize = async () => {
+		// const cached = JwkCacheLocalStorage.getStore();
+		// if (cached) {
+		// 	this.jwks = cached.jwks;
+		// }
 		if (this.context.JWT_VERIFICATION_JWKS_URI) {
 			const { JWT_VERIFICATION_JWKS_URI } = this.context;
 			this.jwks = await (async () => {
@@ -82,7 +90,20 @@ export class JwtVerificationJose {
 				);
 			})();
 		} else {
-			const defaultKey: CryptoKey = (await generateSecret("HS256", {
+			const local = JwkCacheLocalStorage.getStore();
+			if (local) {
+				this.logger
+					.withMetadata({
+						JwtVerificationJose,
+						context: this.context,
+						jwks: local.jwks,
+					})
+					.debug(`Using local JWK cache`);
+				this.jwks = createLocalJWKSet(local.jwks);
+				return;
+			}
+
+			const defaultKey: CryptoKey = (await generateSecret("RS256", {
 				extractable: true,
 			})) as CryptoKey;
 
@@ -90,6 +111,13 @@ export class JwtVerificationJose {
 
 			this.jwks = createLocalJWKSet({
 				keys: [exported],
+			});
+
+			JwkCacheLocalStorage.enterWith({
+				jwks: {
+					keys: [exported],
+				},
+				uat: Date.now(),
 			});
 
 			this.logger
@@ -133,7 +161,8 @@ export class JwtVerificationJose {
 				.error("Failed to read JWK file");
 			throw e;
 		}
-		return createLocalJWKSet(json as unknown as { keys: JWK[] });
+		const keyset = json as unknown as { keys: JWK[] };
+		return createLocalJWKSet(keyset);
 	};
 
 	private jwksFromUrl = async (url: string) => {
@@ -144,6 +173,7 @@ export class JwtVerificationJose {
 				},
 			})
 			.debug(`Using remote ${$$$JWT_VERIFICATION_JWKS_URI}`);
+
 		return createRemoteJWKSet(new URL(url), {
 			[jwksCache]: this.cache,
 		});
@@ -201,13 +231,6 @@ export const JwtVerificationLayer = Layer.effect(
 		const config = yield* JwtVerificationLayerConfig;
 		const jwkCache = (yield* JwkCache).cache("verify.json");
 		logger.withMetadata({ JwtLayer: { config } }).debug("JwtVerificationLayer");
-
-		if (!config.JWT_VERIFICATION_JWKS_URI) {
-			logger
-				.withMetadata({ JwtLayer: { config } })
-				.warn(`${$$$JWT_VERIFICATION_JWKS_URI} not provided`);
-			return new JwtVerificationNoop();
-		}
 
 		const jwtTools = new JwtVerificationJose(logger, config, jwkCache);
 		try {
