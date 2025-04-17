@@ -61,16 +61,17 @@ export class JwtSignatureJose {
 			if (local?.jwks?.keys?.[0]) {
 				this.logger
 					.withMetadata({
-						JwtSignatureJose,
-						context: this.context,
-						jwks: local.jwks.keys,
+						JwtSignatureJose: {
+							context: this.context,
+							jwks: local.jwks.keys,
+						},
 					})
-					.debug(`Using local JWK cache`);
+					.info(`Using local JWK cache`);
 				this.jwks = await importJWK(local.jwks.keys[0]);
 				return;
 			}
 
-			const defaultKey: CryptoKey = (await generateSecret("RS256", {
+			const defaultKey: CryptoKey = (await generateSecret("HS512", {
 				extractable: true,
 			})) as CryptoKey;
 			this.jwks = defaultKey;
@@ -85,11 +86,15 @@ export class JwtSignatureJose {
 
 			this.logger
 				.withMetadata({
-					JwtSignatureJose,
-					context: this.context,
-					key: inspect(defaultKey),
+					JwtSignatureJose: {
+						context: this.context,
+						key: inspect(defaultKey),
+					},
 				})
-				.warn(`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using default key`);
+				.warn(
+					`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
+										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+				);
 		}
 	};
 
@@ -175,14 +180,23 @@ export const JwtSignatureLayer = Layer.effect(
 		const console = yield* LoggingContext;
 		const logger = yield* console.logger;
 		const config = yield* JwtSignatureLayerConfig;
-		logger.withMetadata({ JwtLayer: { config } }).debug("JwtSignatureLayer");
+		logger
+			.withMetadata({ JwtSignatureLayer: { config } })
+			.debug("JwtSignatureLayer");
+
+		if (config?.JWT_SIGNATURE_JWKS_URI?.toLowerCase() === "unload") {
+			logger
+				.withMetadata({ JwtSignatureLayer: { config } })
+				.info("JwtSignatureLayer not loaded due to URI = 'unload'");
+			return new JwtSignatureNoop();
+		}
 
 		const jwtSignature = new JwtSignatureJose(logger, config);
 		try {
 			yield* Effect.promise(() => jwtSignature.initialize());
 		} catch (error) {
 			logger
-				.withMetadata({ JwtLayer: { error } })
+				.withMetadata({ JwtSignatureLayer: { error } })
 				.withError(deserializeError(error))
 				.error("Failed to initialize JwtLayer");
 		}

@@ -1,5 +1,5 @@
 import type { Context } from "hono";
-import type { JwtPayload } from "jsonwebtoken";
+import type { JWTPayload } from "jose";
 import type { ILogLayer } from "loglayer";
 import { serializeError } from "serialize-error";
 import {
@@ -7,8 +7,7 @@ import {
 	type JwtVerificationInterface,
 	JwtVerificationNoop,
 } from "../../../../server/security/JwtVerification.mjs";
-import { LoginToken } from "../../../../server/security/model/LoginToken.mjs";
-import type { HonoHttpMiddleware } from "../HonoHttpMiddleware.mjs";
+import type { HonoHttp } from "../HonoHttpMiddleware.mjs";
 import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
 import { __internal_HonoBearerAuth } from "./HonoBearerAuth.mjs";
 
@@ -24,67 +23,86 @@ export type HonoHttpAuthenticationBearerContext<Token> = {
 		  };
 };
 
-export type HonoHttpAuthenticationBearerProps = {
+export type HonoHttpAuthenticationHandler = (
+	token: JWTPayload,
+) => boolean | Promise<boolean>;
+
+export function HonoHttpAuthenticationDerive<Token extends JWTPayload>({
+	hook,
+	jwtVerification,
+	logging,
+}: {
 	/**
-	 *	 The JWT verification function. If not provided, the default JWT verification function will be used.
+	 * Advanced usage only. Override the JWT verification interface. If not provided, the default verifyJWT will be used.
 	 * @default JwtVerificationJose
 	 * @see `JwtVerificationLayerConfig`
 	 */
 	jwtVerification?: JwtVerificationInterface;
-};
-
-const JWT_SAMPLE_PERCENT = 0.22;
-
-function HonoHttpAuthenticationDerive<Token>({
-	jwtVerification,
-	logging,
-}: HonoHttpAuthenticationBearerProps & {
+	hook?: Array<HonoHttpAuthenticationHandler>;
 	logging?: ILogLayer;
 }) {
 	return async function HonoVerifyTokenDerivation(
 		token: string | undefined,
-		context: Context<HonoHttpMiddleware & HonoHttpAuthentication<Token>>,
+		context: Context<HonoHttp & HonoHttpAuthentication<Token>>,
 	): Promise<boolean> {
-		let jwt: JwtPayload | undefined;
+		let jwt: JWTPayload | undefined;
 		let unparseable: boolean | string = false;
 		let error: unknown | undefined;
-
 		let requestLogger = context.var.Logging ?? logging;
 		if (token) {
 			try {
-				jwt = await jwtVerification?.jwtVerify?.(token, {});
+				jwt = (await jwtVerification?.jwtVerify?.(token, {}))?.payload;
 
-				// Cognito specific
-				// verifyClaims: (jwt) => boolean
-				if (jwt?.["payload"]?.["token_use"] !== "access") {
-					requestLogger
-						?.withMetadata({
+				requestLogger
+					?.withMetadata({
+						HonoAuthenticationBearer: {
 							jwt,
-						})
-						.warn("JwT valid but token_use is not access");
+							unparseable,
+						},
+						error,
+					})
+					.debug("ATOKO Parsing request jwt");
 
-					throw "NOT_ACCESS_TOKEN";
+				if (jwt) {
+					let valid = true;
+					for (const check of hook ?? []) {
+						if (valid) {
+							valid = await check(jwt);
+						}
+					}
+					if (!valid) {
+						throw "Invalid token";
+					}
+
+					context.set(HonoHttpAuthenticationBearerPrincipal, {
+						$case: "authenticated",
+						value: jwt as Token,
+					});
+
+					requestLogger?.withContext({
+						HonoAuthenticationBearer: {
+							principal: jwt.sub,
+						},
+					});
 				}
-
-				context.set(HonoHttpAuthenticationBearerPrincipal, {
-					$case: "authenticated",
-					// TODO: this should be a type guard
-					// token: <Token>(jwt) => Token = ((jwt) => LoginToken),
-					value: new LoginToken(
-						jwt.sub ?? "",
-						Date.now().toString(),
-						"localhost",
-					) as Token,
-				});
-				requestLogger?.withContext({
-					principal: {
-						id: jwt.sub,
-					},
-				});
 			} catch (e) {
+				jwt = undefined;
 				error = serializeError(e);
 				unparseable = typeof e === "string" ? e : true;
 			}
+		}
+
+		if (error) {
+			requestLogger
+				?.withMetadata({
+					HonoAuthenticationBearer: {
+						jwt,
+						unparseable,
+					},
+					error,
+				})
+				.warn("Error parsing request jwt");
+			return false;
 		}
 
 		if (!jwt) {
@@ -94,26 +112,11 @@ function HonoHttpAuthenticationDerive<Token>({
 			});
 		}
 
-		const random = Math.random();
-		const ignored = random > JWT_SAMPLE_PERCENT;
-		if (unparseable === true || !ignored) {
-			requestLogger
-				?.withMetadata({
-					HonoAuthenticationBearer: {
-						jwt,
-						unparseable,
-						randomset: `${random}/1 < ${JWT_SAMPLE_PERCENT}`,
-					},
-					error,
-				})
-				.debug("Parsing request jwt");
-		}
-
-		return !unparseable;
+		return true;
 	};
 }
 
-export type HonoHttpAuthentication<Token = LoginToken> = {
+export type HonoHttpAuthentication<Token extends JWTPayload = JWTPayload> = {
 	Variables: {
 		JwtVerification: JwtVerificationInterface;
 		HonoHttpAuthenticationBearerPrincipal: HonoHttpAuthenticationBearerContext<Token>["principal"];
@@ -127,32 +130,32 @@ export const HonoHttpAuthenticationBearerPrincipal =
 
 /**
  * Middleware for Hono that provides JWT verification of a bearer token.
+ * This middleware will provide a JwtSignature in context and also parse the current Authentication header
+ * By default, requests without a JWT are not rejected unless any hook handler returns false.
+ * To secure an endpoint, please use `HonoHttpAuthenticationGuard` to check the value of the principal.
  * @requires `JwtVerificationInterface`
+ * @see `HonoHttpAuthenticationGuard`
  */
-export function HonoHttpAuthenticationMiddleware<Token = LoginToken>(
-	props?: HonoHttpAuthenticationBearerProps,
-) {
+export function HonoHttpAuthenticationMiddleware<
+	Token extends JWTPayload = JWTPayload,
+>(...hook: Array<HonoHttpAuthenticationHandler>) {
 	const { logging } = HonoLoggingStorage.getStore() ?? {};
 	let jwtVerification: JwtVerificationInterface;
-	if (props?.jwtVerification) {
+	const store = JwtVerificationAsyncLocalStorage.getStore();
+
+	if (store !== undefined) {
 		logging?.debug(
-			"Building HonoHttpAuthenticationBearer with custom jwtVerification",
+			"Building HonoHttpAuthenticationBearer with default jwtVerification",
 		);
-		jwtVerification = props.jwtVerification;
 	} else {
-		const store = JwtVerificationAsyncLocalStorage.getStore();
-		if (store !== undefined) {
-			logging?.debug(
-				"Building HonoHttpAuthenticationBearer with default jwtVerification",
-			);
-		} else {
-			logging?.warn(
-				"Building HonoHttpAuthenticationBearer with default jwtVerification but no store found. This feature is only supported within a HonoHttpServer app",
-			);
-		}
-		jwtVerification = store?.JwtVerification ?? new JwtVerificationNoop();
+		logging?.warn(
+			"Building HonoHttpAuthenticationBearer with default jwtVerification but no store found. This feature is only supported within a HonoHttpServer app",
+		);
 	}
+	jwtVerification = store?.JwtVerification ?? new JwtVerificationNoop();
+
 	const derive = HonoHttpAuthenticationDerive<Token>({
+		hook,
 		logging,
 		jwtVerification,
 	});

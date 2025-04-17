@@ -59,7 +59,6 @@
     "@biomejs/biome": "catalog:lint",
     "@levicape/fourtwo": "catalog:",
     "@levicape/spork-atlas": "workspace:",
-    "@types/jsonwebtoken": "catalog:types",
     "@types/node": "catalog:types",
     "@types/verror": "catalog:types",
     "depcheck": "catalog:package",

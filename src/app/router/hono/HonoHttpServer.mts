@@ -30,7 +30,7 @@ import {
 	JwtVerificationLayer,
 } from "../../server/security/JwtVerification.mjs";
 import { HonoHttpAppFactory } from "./HonoHttpAppFactory.mjs";
-import { HonoHttpMiddlewareBuilder } from "./middleware/HonoHttpMiddleware.mjs";
+import { HonoHttpMiddleware } from "./middleware/HonoHttpMiddleware.mjs";
 
 const { trace } = await Effect.runPromise(
 	Effect.provide(
@@ -286,7 +286,14 @@ export const HonoHttpServer = async <
 									const logger = yield* consola.logger;
 									const jwtVerification = yield* JwtVerification;
 									const jwtSignature = yield* JwtSignature;
-									const middleware = HonoHttpMiddlewareBuilder();
+									const middleware = HonoHttpMiddleware();
+
+									JwtVerificationAsyncLocalStorage.enterWith({
+										JwtVerification: jwtVerification,
+									});
+									JwtSignatureAsyncLocalStorage.enterWith({
+										JwtSignature: jwtSignature,
+									});
 
 									if (middleware.length > 0) {
 										logger
@@ -299,18 +306,11 @@ export const HonoHttpServer = async <
 									} else {
 										logger.debug("No middleware added");
 									}
-
 									return yield* Effect.flatMap(
 										HonoHttpAppFactory(factory, {
 											middleware,
 										}),
 										(spork) => {
-											JwtVerificationAsyncLocalStorage.enterWith({
-												JwtVerification: jwtVerification,
-											});
-											JwtSignatureAsyncLocalStorage.enterWith({
-												JwtSignature: jwtSignature,
-											});
 											const instance = app(
 												spork as unknown as ReturnType<
 													typeof factory.createApp

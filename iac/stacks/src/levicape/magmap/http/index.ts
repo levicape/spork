@@ -198,6 +198,7 @@ const ENVIRONMENT = (
 		JWT_REGION: idpUsers.region,
 		JWT_CACHE_FS_ROOT: `${efs.mountPath}/levicape/jwks/azc`,
 		JWT_CACHE_FS_KEY: `${idpUsers.poolId}.json`,
+		JWT_SIGNATURE_JWKS_URI: "unload",
 	} as const;
 };
 
@@ -221,7 +222,17 @@ export = async () => {
 
 	// Object Store
 	const s3 = (() => {
-		const bucket = (name: string) => {
+		const bucket = (
+			name: string,
+			props?: {
+				daysToRetain?: number;
+			},
+		) => {
+			const { daysToRetain } = {
+				daysToRetain: context.environment.isProd ? 30 : 8,
+				...props,
+			};
+
 			const randomid = new RandomId(_(`${name}-id`), {
 				byteLength: 4,
 			});
@@ -299,58 +310,70 @@ export = async () => {
 				},
 			);
 
-			new BucketLifecycleConfigurationV2(
-				_(`${name}-lifecycle`),
-				{
-					bucket: bucket.bucket,
-					rules: [
-						{
-							status: "Enabled",
-							id: "DeleteMarkers",
-							expiration: {
-								expiredObjectDeleteMarker: true,
+			if (daysToRetain && daysToRetain > 0) {
+				new BucketLifecycleConfigurationV2(
+					_(`${name}-lifecycle`),
+					{
+						bucket: bucket.bucket,
+						rules: [
+							{
+								status: "Enabled",
+								id: "DeleteMarkers",
+								expiration: {
+									expiredObjectDeleteMarker: true,
+								},
 							},
-						},
-						{
-							status: "Enabled",
-							id: "IncompleteMultipartUploads",
-							abortIncompleteMultipartUpload: {
-								daysAfterInitiation: context.environment.isProd ? 3 : 7,
+							{
+								status: "Enabled",
+								id: "IncompleteMultipartUploads",
+								abortIncompleteMultipartUpload: {
+									daysAfterInitiation: context.environment.isProd ? 3 : 7,
+								},
 							},
-						},
-						{
-							status: "Enabled",
-							id: "NonCurrentVersions",
-							noncurrentVersionExpiration: {
-								noncurrentDays: context.environment.isProd ? 13 : 6,
+							{
+								status: "Enabled",
+								id: "NonCurrentVersions",
+								noncurrentVersionExpiration: {
+									noncurrentDays: context.environment.isProd ? 13 : 6,
+								},
+								filter: {
+									objectSizeGreaterThan: 1,
+								},
 							},
-							filter: {
-								objectSizeGreaterThan: 1,
+							{
+								status: "Enabled",
+								id: "ExpireObjects",
+								expiration: {
+									days: context.environment.isProd ? 20 : 10,
+								},
+								filter: {
+									objectSizeGreaterThan: 1,
+								},
 							},
-						},
-						{
-							status: "Enabled",
-							id: "ExpireObjects",
-							expiration: {
-								days: context.environment.isProd ? 20 : 10,
-							},
-							filter: {
-								objectSizeGreaterThan: 1,
-							},
-						},
-					],
-				},
-				{
-					deletedWith: bucket,
-				},
-			);
+						],
+					},
+					{
+						deletedWith: bucket,
+					},
+				);
+			}
 
 			return bucket;
 		};
 
 		return {
+			/*
+			 * CodePipeline cache
+			 */
 			pipeline: bucket("pipeline"),
+			/*
+			 * Staging bucket for Lambda zip files and CodeDeploy appspec
+			 */
 			artifacts: bucket("artifacts"),
+			/*
+			 * CodeBuild and Appconfig resources
+			 */
+			resources: bucket("resources", { daysToRetain: 0 }),
 		};
 	})();
 
@@ -412,7 +435,7 @@ export = async () => {
 		const loggroup = cloudwatch.function.loggroup;
 
 		const zip = new BucketObjectv2(_("zip"), {
-			bucket: s3.artifacts.bucket,
+			bucket: s3.resources.bucket,
 			source: new AssetArchive({
 				"index.js": new StringAsset(
 					`export const handler = (${(
@@ -457,7 +480,7 @@ export = async () => {
 				),
 			}),
 			contentType: "application/zip",
-			key: "http.zip",
+			key: `bootstrap/code.zip`,
 			tags: {
 				Name: _(`zip`),
 				StackRef: STACKREF_ROOT,
@@ -481,10 +504,10 @@ export = async () => {
 			const object = new BucketObjectv2(
 				_(`${kind}-configfile`),
 				{
-					bucket: s3.artifacts.bucket,
+					bucket: s3.resources.bucket,
 					source: new StringAsset(stringcontent),
 					contentType: "application/json",
-					key: `${HANDLER_TYPE}/${kind}.${first6}${last6}.json`,
+					key: `configuration/${kind}.${first6}${last6}.json`,
 					tags: {
 						Name: _(`${kind}-configfile`),
 						StackRef: STACKREF_ROOT,
@@ -597,7 +620,7 @@ export = async () => {
 				packageType: "Zip",
 				runtime: LLRT_ARCH ? Runtime.CustomAL2023 : Runtime.NodeJS22dX,
 				handler: "index.handler",
-				s3Bucket: s3.artifacts.bucket,
+				s3Bucket: s3.resources.bucket,
 				s3Key: zip.key,
 				s3ObjectVersion: zip.versionId,
 				vpcConfig: {
@@ -1327,9 +1350,9 @@ export = async () => {
 						);
 
 						const upload = new BucketObjectv2(_(`${artifact.name}-buildspec`), {
-							bucket: s3.artifacts.bucket,
+							bucket: s3.resources.bucket,
 							content,
-							key: `${artifact.name}/Buildspec.yml`,
+							key: `build/${artifact.name}/Buildspec.yml`,
 						});
 
 						const project = new Project(

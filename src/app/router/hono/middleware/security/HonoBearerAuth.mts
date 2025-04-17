@@ -3,8 +3,10 @@ import type { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import type { JWTPayload } from "jose";
 import VError from "verror";
 import type { JwtVerificationInterface } from "../../../../server/security/JwtVerification.mjs";
+import type { HonoHttp } from "../HonoHttpMiddleware.mjs";
 import type { HonoHttpAuthentication } from "./HonoAuthenticationBearer.mjs";
 
 // TODO: Use unenv crypto to support LLRT
@@ -109,7 +111,7 @@ const timingSafeEqual = async (
  * @see {@link https://hono.dev/docs/middleware/builtin/bearer-auth}
  *
  */
-export const __internal_HonoBearerAuth = <Token,>(
+export const __internal_HonoBearerAuth = <Token extends JWTPayload>(
 	options: BearerAuthOptions,
 ) => {
 	if (!("token" in options || "verifyToken" in options)) {
@@ -154,10 +156,9 @@ export const __internal_HonoBearerAuth = <Token,>(
 		throw new HTTPException(status, { res });
 	};
 
-	return createMiddleware<HonoHttpAuthentication<Token>>(
+	return createMiddleware<HonoHttp & HonoHttpAuthentication<Token>>(
 		async function BearerAuth(c, next) {
 			const headerToken = c.req.header(options.headerName || HEADER);
-			c.set("JwtVerification", options.jwtVerification);
 
 			let equal = false;
 			if (!headerToken) {

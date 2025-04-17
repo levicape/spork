@@ -97,12 +97,12 @@ export const HonoHttpMiddlewareCore: HonoHttpMiddlewareProps["core"] = {
 	prettyJSON: true,
 } as const;
 
-export type HonoHttpMiddleware = HonoLoglayer;
+export type HonoHttp = HonoLoglayer;
 
 export const HonoHttpMiddlewareLocalStorage =
 	new AsyncLocalStorage<HonoHttpMiddlewareProps>();
 
-export const HonoHttpMiddlewareBuilder = () => {
+export const HonoHttpMiddleware = () => {
 	const props = HonoHttpMiddlewareLocalStorage.getStore();
 	const middleware = [
 		...HonoHttpCore(props?.core ?? HonoHttpMiddlewareCore),

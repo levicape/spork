@@ -362,9 +362,21 @@ export = async () => {
 		};
 
 		return {
+			/*
+			 * CodePipeline cache
+			 */
 			pipeline: bucket("pipeline"),
-			artifacts: bucket("artifacts"),
-			staticwww: bucket("staticwww", { www: true }),
+			/*
+			 * CodeBuild resources
+			 */
+			resources: bucket("resources", { daysToRetain: 0 }),
+			/*
+			 * S3 bucket for static website
+			 */
+			staticwww: bucket("staticwww", {
+				daysToRetain: 0,
+				www: true,
+			}),
 		};
 	})();
 
@@ -583,7 +595,7 @@ export = async () => {
 			const upload = new BucketObjectv2(
 				_(`${artifactIdentifier}-buildspec-upload`),
 				{
-					bucket: s3.artifacts.bucket.bucket,
+					bucket: s3.resources.bucket.bucket,
 					content,
 					key: `${artifactIdentifier}/Buildspec.yml`,
 				},
@@ -721,7 +733,7 @@ export = async () => {
 			const upload = new BucketObjectv2(
 				_(`${artifactIdentifier}-buildspec-upload`),
 				{
-					bucket: s3.artifacts.bucket.bucket,
+					bucket: s3.resources.bucket.bucket,
 					content,
 					key: `${artifactIdentifier}/Buildspec.yml`,
 				},
@@ -846,7 +858,7 @@ export = async () => {
 			const upload = new BucketObjectv2(
 				_(`${artifactIdentifier}-buildspec-upload`),
 				{
-					bucket: s3.artifacts.bucket.bucket,
+					bucket: s3.resources.bucket.bucket,
 					content,
 					key: `${artifactIdentifier}/Buildspec.yml`,
 				},
@@ -1141,7 +1153,7 @@ export = async () => {
 			{
 				dependsOn: [
 					s3.pipeline.bucket,
-					s3.artifacts.bucket,
+					s3.resources.bucket,
 					extractimage.project,
 					publishchange.project,
 				],
@@ -1207,7 +1219,7 @@ export = async () => {
 
 	return all([
 		s3.pipeline.bucket.bucket,
-		s3.artifacts.bucket.bucket,
+		s3.resources.bucket.bucket,
 		s3.staticwww.bucket.arn,
 		s3.staticwww.bucket.bucket,
 		s3.staticwww.bucket.bucketDomainName,
@@ -1272,7 +1284,7 @@ export = async () => {
 					pipeline: {
 						bucket: pipelineBucket,
 					},
-					artifacts: {
+					resources: {
 						bucket: artifactsBucket,
 					},
 					staticwww: {
