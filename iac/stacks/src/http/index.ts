@@ -271,7 +271,7 @@ export = async () => {
 								days: context.environment.isProd ? 20 : 10,
 							},
 							filter: {
-								objectSizeGreaterThan: 1,
+								objectSizeGreaterThan: 1024 * 1024 * 5, // 5MB
 							},
 						},
 					],
@@ -1250,7 +1250,7 @@ export = async () => {
 
 						const content = stringify(
 							new CodeBuildBuildspecBuilder()
-								.setVersion("0.2")
+								.setVersion(0.2)
 								.setArtifacts(artifacts)
 								.setEnv(env)
 								.setPhases({

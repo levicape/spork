@@ -9,7 +9,7 @@ export const SporkMagmapWebStackExportsZod = z
 			pipeline: z.object({
 				bucket: z.string(),
 			}),
-			artifacts: z.object({
+			resources: z.object({
 				bucket: z.string(),
 			}),
 			staticwww: z.object({

@@ -3,7 +3,7 @@ import type { Factory } from "hono/factory";
 import type { BlankEnv, ErrorHandler } from "hono/types";
 import { WellknownHonoRouter } from "../../domains/wellknown/WellknownHonoRouter.mjs";
 import { LoggingContext } from "../../server/logging/LoggingContext.mjs";
-import type { HonoHttpMiddlewareBuilder } from "./middleware/HonoHttpMiddleware.mjs";
+import type { HonoHttpMiddleware } from "./middleware/HonoHttpMiddleware.mjs";
 import { Hono404Handler } from "./middleware/exception/Hono404Handler.js";
 import { HonoExceptionMiddleware } from "./middleware/exception/HonoExceptionMiddleware.mjs";
 import { HonoLoggingContext } from "./middleware/log/HonoLoggingContext.mjs";
@@ -38,7 +38,7 @@ export const HonoHttpAppFactory = <
 	BasePath extends string,
 >(
 	factory: Factory<Env, BasePath>,
-	{ middleware }: { middleware: ReturnType<typeof HonoHttpMiddlewareBuilder> },
+	{ middleware }: { middleware: ReturnType<typeof HonoHttpMiddleware> },
 ) =>
 	Effect.gen(function* () {
 		const consola = yield* LoggingContext;

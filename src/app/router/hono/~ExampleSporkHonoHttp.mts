@@ -1,9 +1,9 @@
 import { createFactory } from "hono/factory";
 import { HonoHttpServer } from "./HonoHttpServer.mjs";
-import type { HonoHttpMiddleware } from "./middleware/HonoHttpMiddleware.mjs";
+import type { HonoHttp } from "./middleware/HonoHttpMiddleware.mjs";
 
 export const { server, handler } = await HonoHttpServer(
-	createFactory<HonoHttpMiddleware>(),
+	createFactory<HonoHttp>(),
 	(app) => {
 		let news = app.get("/test123", async (c) => {
 			c.get("Logging")?.info("Hello, world!");

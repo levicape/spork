@@ -40,7 +40,6 @@ catalogs:
     bcryptjs: ^2.4.3
     crypto-js: ^4.2.0
     crypto.js: ^3.2.2
-    jsonwebtoken: ^9.0.2
   crypto-jwk:
     jose: "^6.0.10"
   database-postgres:
@@ -189,7 +188,6 @@ catalogs:
     '@types/fs-extra': ^11.0.4
     '@types/ini': ^4.1.1
     '@types/js-yaml': ^4.0.9
-    '@types/jsonwebtoken': ^9.0.9
     '@types/klaw': ^3.0.6
     '@types/module-alias': ^2.0.4
     '@types/node': ^22.13.17

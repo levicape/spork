@@ -1,11 +1,12 @@
 import { zValidator } from "@hono/zod-validator";
 import { HonoHttpServer } from "@levicape/spork/router/hono/HonoHttpServer";
 import { HonoGuardAuthentication } from "@levicape/spork/router/hono/guard/security/HonoGuardAuthentication";
-import type { HonoHttpMiddleware } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
+import type { HonoHttp } from "@levicape/spork/router/hono/middleware/HonoHttpMiddleware";
 import {
 	type HonoHttpAuthentication,
 	HonoHttpAuthenticationMiddleware,
 } from "@levicape/spork/router/hono/middleware/security/HonoAuthenticationBearer";
+import { JwtClaimsCognitoTokenUse } from "@levicape/spork/server/security/claims/JwtClaimsCognito";
 import type { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
 import type {
@@ -80,9 +81,8 @@ const SporkRateLimiterKeyGenerator = (
 };
 
 export const { server, stream } = await HonoHttpServer(
-	createFactory<HonoHttpMiddleware & HonoHttpAuthentication>({
+	createFactory<HonoHttp & HonoHttpAuthentication>({
 		initApp(app) {
-			app.use(HonoHttpAuthenticationMiddleware());
 			app.use(
 				rateLimiter({
 					windowMs: 2 * 60 * 1000, // 2 minutes
@@ -91,11 +91,32 @@ export const { server, stream } = await HonoHttpServer(
 					keyGenerator: SporkRateLimiterKeyGenerator,
 				}),
 			);
+			app.use(
+				HonoHttpAuthenticationMiddleware((_token) => {
+					return true;
+				}, JwtClaimsCognitoTokenUse("access")),
+			);
 		},
 	}),
 	(app) =>
 		app
 			.basePath(HTTP_BASE_PATH)
+			.get("/anon", async (c) => {
+				return c.json({
+					data: {
+						magmap: {
+							atlas: {
+								routes: "elo",
+							},
+						},
+					},
+				});
+			})
+			.use(
+				HonoGuardAuthentication(async ({ principal }) => {
+					return principal.$case !== "anonymous";
+				}),
+			)
 			.get("/atlas", async (c) => {
 				return c.json({
 					data: {
@@ -107,11 +128,6 @@ export const { server, stream } = await HonoHttpServer(
 					},
 				});
 			})
-			.use(
-				HonoGuardAuthentication(async ({ principal }) => {
-					return principal.$case !== "anonymous";
-				}),
-			)
 			.post(
 				"/atlas/routes/!/status",
 				zValidator(

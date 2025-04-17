@@ -236,9 +236,6 @@ catalogs:
     '@types/fs-extra':
       specifier: ^11.0.4
       version: 11.0.4
-    '@types/jsonwebtoken':
-      specifier: ^9.0.9
-      version: 9.0.9
     '@types/node':
       specifier: ^22.13.17
       version: 22.13.17
@@ -392,9 +389,6 @@ importers:
       '@levicape/spork-atlas':
         specifier: 'workspace:'
         version: link:packages/atlas
-      '@types/jsonwebtoken':
-        specifier: catalog:types
-        version: 9.0.9
       '@types/node':
         specifier: catalog:types
         version: 22.13.17
@@ -2935,17 +2929,11 @@ packages:
   '@types/jsonfile@6.1.4':
     resolution: {integrity: sha512-D5qGUYwjvnNNextdU59/+fI+spnwtTFmyQP0h+PfIOSkNfpU6AOICUOkm4i0OnSk+NyjdPJrxCDro0sJsWlRpQ==}
 
-  '@types/jsonwebtoken@9.0.9':
-    resolution: {integrity: sha512-uoe+GxEuHbvy12OUQct2X9JenKM3qAscquYymuQN4fMWG9DBQtykrQEFcAbVACF7qaLw9BePSodUL0kquqBJpQ==}
-
   '@types/keyv@3.1.4':
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
 
   '@types/minimatch@3.0.5':
     resolution: {integrity: sha512-Klz949h02Gz2uZCMGwDUSDS1YBlTdDDgbWHi+81l29tQALUtvz4rAYi5uoVhE5Lagoq6DeqAUlbrHvW/mXDgdQ==}
-
-  '@types/ms@2.1.0':
-    resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
   '@types/node@22.13.17':
     resolution: {integrity: sha512-nAJuQXoyPj04uLgu+obZcSmsfOenUg6DxPKogeUy6yNCFwWaj5sBF8/G/pNo8EtBJjAfSVgfIlugR/BCOleO+g==}
@@ -8864,18 +8852,11 @@ snapshots:
     dependencies:
       '@types/node': 22.13.17
 
-  '@types/jsonwebtoken@9.0.9':
-    dependencies:
-      '@types/ms': 2.1.0
-      '@types/node': 22.13.17
-
   '@types/keyv@3.1.4':
     dependencies:
       '@types/node': 22.13.17
 
   '@types/minimatch@3.0.5': {}
-
-  '@types/ms@2.1.0': {}
 
   '@types/node@22.13.17':
     dependencies:

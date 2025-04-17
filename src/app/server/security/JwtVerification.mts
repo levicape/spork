@@ -70,10 +70,6 @@ export class JwtVerificationJose {
 	) {}
 
 	initialize = async () => {
-		// const cached = JwkCacheLocalStorage.getStore();
-		// if (cached) {
-		// 	this.jwks = cached.jwks;
-		// }
 		if (this.context.JWT_VERIFICATION_JWKS_URI) {
 			const { JWT_VERIFICATION_JWKS_URI } = this.context;
 			this.jwks = await (async () => {
@@ -94,16 +90,17 @@ export class JwtVerificationJose {
 			if (local) {
 				this.logger
 					.withMetadata({
-						JwtVerificationJose,
-						context: this.context,
-						jwks: local.jwks,
+						JwtVerificationJose: {
+							context: this.context,
+							jwks: local.jwks,
+						},
 					})
-					.debug(`Using local JWK cache`);
+					.info(`Using local JWK cache`);
 				this.jwks = createLocalJWKSet(local.jwks);
 				return;
 			}
 
-			const defaultKey: CryptoKey = (await generateSecret("RS256", {
+			const defaultKey: CryptoKey = (await generateSecret("HS512", {
 				extractable: true,
 			})) as CryptoKey;
 
@@ -122,12 +119,14 @@ export class JwtVerificationJose {
 
 			this.logger
 				.withMetadata({
-					JwtVerificationJose,
-					context: this.context,
-					key: inspect(exported),
+					JwtVerificationJose: {
+						context: this.context,
+						key: inspect(exported),
+					},
 				})
 				.warn(
-					`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using default key`,
+					`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using generated key.
+					To disable this behavior, set ${$$$JWT_VERIFICATION_JWKS_URI} to "unload"`,
 				);
 		}
 	};
@@ -183,15 +182,24 @@ export class JwtVerificationJose {
 		if (this.jwks === undefined) {
 			this.logger
 				.withMetadata({
-					JwtVerificationJose,
-					jwt,
-					options,
+					JwtVerificationJose: {
+						jwt,
+						options,
+					},
 				})
 				.error("JWTVerificationJose not initialized");
 			throw new VError("JWTVerificationJose not initialized");
 		}
 
 		const result = await jwtVerify(jwt, this.jwks, options);
+		this.logger
+			.withMetadata({
+				JwtVerificationJose: {
+					jwt,
+					result,
+				},
+			})
+			.debug("ATOKO JwtVerificationJose jwtVerify");
 		if (this.cache) {
 			this.jwkCache.setJwks(this.cache as ExportedJWKSCache);
 		}
@@ -230,14 +238,23 @@ export const JwtVerificationLayer = Layer.effect(
 		const logger = yield* console.logger;
 		const config = yield* JwtVerificationLayerConfig;
 		const jwkCache = (yield* JwkCache).cache("verify.json");
-		logger.withMetadata({ JwtLayer: { config } }).debug("JwtVerificationLayer");
+		logger
+			.withMetadata({ JwtVerificationLayer: { config } })
+			.debug("JwtVerificationLayer");
+
+		if (config?.JWT_VERIFICATION_JWKS_URI?.toLowerCase() === "unload") {
+			logger
+				.withMetadata({ JwtVerificationLayer: { config } })
+				.info("JwtVerificationLayer not loaded due to URI = 'unload'");
+			return new JwtVerificationNoop();
+		}
 
 		const jwtTools = new JwtVerificationJose(logger, config, jwkCache);
 		try {
 			yield* Effect.promise(() => jwtTools.initialize());
 		} catch (error) {
 			logger
-				.withMetadata({ JwtLayer: { error } })
+				.withMetadata({ JwtVerificationLayer: { error } })
 				.withError(deserializeError(error))
 				.error("Failed to initialize JwtLayer");
 		}
