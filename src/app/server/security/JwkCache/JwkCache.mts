@@ -1,5 +1,5 @@
-import { AsyncLocalStorage } from "node:async_hooks";
-import { Config, Effect, Layer } from "effect";
+import { Config, Effect, Layer, Ref } from "effect";
+import { Service } from "effect/Effect";
 import type { ExportedJWKSCache } from "jose";
 import { ConsoleTransport, type ILogLayer } from "loglayer";
 import { type Storage, createStorage } from "unstorage";
@@ -151,4 +151,13 @@ export const FilesystemJwkCache = Layer.effect(
 	}),
 );
 
-export const JwkCacheLocalStorage = new AsyncLocalStorage<ExportedJWKSCache>();
+export class JwkMutex extends Service<JwkMutex>()("JwkMutex", {
+	effect: Effect.cached(
+		Effect.gen(function* () {
+			return {
+				ref: yield* Ref.make<ExportedJWKSCache | null>(null),
+				cache: yield* Effect.makeSemaphore(1),
+			};
+		}),
+	),
+}) {}

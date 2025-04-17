@@ -1,5 +1,5 @@
 import { serve } from "@hono/node-server";
-import { Context, Effect, Layer, pipe } from "effect";
+import { Context, Effect, Layer, Runtime, pipe } from "effect";
 import type { Hono } from "hono";
 import {
 	type APIGatewayProxyResult,
@@ -18,7 +18,10 @@ import {
 	LoggingContext,
 	withStructuredLogging,
 } from "../../server/logging/LoggingContext.mjs";
-import { FilesystemJwkCache } from "../../server/security/JwkCache/JwkCache.mjs";
+import {
+	FilesystemJwkCache,
+	JwkMutex,
+} from "../../server/security/JwkCache/JwkCache.mjs";
 import {
 	JwtSignature,
 	JwtSignatureAsyncLocalStorage,
@@ -274,7 +277,7 @@ export const HonoHttpServer = async <
 		app: ReturnType<typeof factory.createApp>,
 	) => Hono<Env, AppSchema, AppPath>,
 ) => {
-	return await Effect.runPromise(
+	return await Runtime.runPromise(Runtime.defaultRuntime)(
 		pipe(
 			HonoHttpServerFold(
 				HonoHttpServerBuilder({
@@ -284,8 +287,8 @@ export const HonoHttpServer = async <
 								Effect.gen(function* () {
 									const consola = yield* LoggingContext;
 									const logger = yield* consola.logger;
-									const jwtVerification = yield* JwtVerification;
 									const jwtSignature = yield* JwtSignature;
+									const jwtVerification = yield* JwtVerification;
 									const middleware = HonoHttpMiddleware();
 
 									JwtVerificationAsyncLocalStorage.enterWith({
@@ -334,9 +337,12 @@ export const HonoHttpServer = async <
 									});
 								}),
 							),
-							Layer.merge(
-								Layer.provide(JwtVerificationLayer, FilesystemJwkCache),
-								JwtSignatureLayer,
+							Layer.provide(
+								Layer.merge(JwtVerificationLayer, JwtSignatureLayer).pipe(
+									Layer.provide(JwkMutex.Default),
+									Layer.provide(FilesystemJwkCache),
+								),
+								Layer.scope,
 							),
 						),
 						Context.empty().pipe(withStructuredLogging({ prefix: "APP" })),

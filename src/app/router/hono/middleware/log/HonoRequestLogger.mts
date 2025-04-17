@@ -67,6 +67,17 @@ function after(
 	}).info("Response");
 }
 
+export type HonoRequestLoggerFilter = {
+	/**
+	 * The HTTP path to filter on.
+	 */
+	path?: string;
+};
+
+export const HonoRequestLoggerLocalStorage = new AsyncLocalStorage<{
+	filters?: HonoRequestLoggerFilter[];
+}>();
+
 export const HonoRequestLoggingStorage = new AsyncLocalStorage<{
 	logging?: ILogLayer;
 }>();
@@ -81,9 +92,17 @@ export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 		const path = getPath(c.req.raw);
 		const requestLogger = c.var.Logging ?? logger;
 		const withMetadata = requestLogger.withMetadata.bind(requestLogger);
+
+		const { filters } = HonoRequestLoggerLocalStorage.getStore() ?? {};
+		if (filters) {
+			for (const filter of filters) {
+				if (filter.path && path.includes(filter.path)) {
+					return next();
+				}
+			}
+		}
 		before(withMetadata, method, path);
 		const start: number = Date.now();
-
 		await HonoRequestLoggingStorage.run({ logging: requestLogger }, () => {
 			return next();
 		});

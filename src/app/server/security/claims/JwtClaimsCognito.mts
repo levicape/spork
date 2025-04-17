@@ -50,13 +50,6 @@ export const JwtClaimsCognitoTokenUse =
 			HonoRequestLoggingStorage.getStore()?.logging ??
 			HonoLoggingStorage.getStore()?.logging;
 
-		logger
-			?.withMetadata({
-				jwt,
-				token_use,
-			})
-			.debug("ATOKO Check token_use");
-
 		if (jwt?.["token_use"] !== token_use) {
 			logger
 				?.withMetadata({
