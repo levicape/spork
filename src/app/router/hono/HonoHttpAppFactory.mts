@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import { Hono } from "hono";
 import type { Factory } from "hono/factory";
 import type { BlankEnv, ErrorHandler } from "hono/types";
 import { WellknownHonoRouter } from "../../domains/wellknown/WellknownHonoRouter.mjs";
@@ -53,8 +54,7 @@ export const HonoHttpAppFactory = <
 			})
 			.debug("Building HonoHttpApp");
 
-		return factory
-			.createApp()
+		return new Hono()
 			.use(...middleware)
 			.use(HonoLoggingContext({ logger }))
 			.use(HonoRequestLogger({ logger }))
@@ -63,5 +63,6 @@ export const HonoHttpAppFactory = <
 				return c.json(json, status);
 			})
 			.onError(HonoExceptionMiddleware({ logger }) as unknown as ErrorHandler)
-			.route("/.well-known", WellknownHonoRouter());
+			.route("/.well-known", WellknownHonoRouter())
+			.route("/", factory.createApp());
 	});

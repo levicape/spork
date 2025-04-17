@@ -1,9 +1,10 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
-import { Config, Context, Effect, Layer } from "effect";
+import { Config, Context, Effect, Layer, Ref } from "effect";
 import {
+	type ExportedJWKSCache,
 	type JWK,
 	type JWTPayload,
 	SignJWT,
@@ -17,7 +18,7 @@ import VError from "verror";
 import { z } from "zod";
 import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
-import { JwkCacheLocalStorage } from "./JwkCache/JwkCache.mjs";
+import { JwkMutex } from "./JwkCache/JwkCache.mjs";
 
 export type JwtSignFnJose<Token extends JWTPayload> = (
 	payload: Token,
@@ -49,66 +50,67 @@ export class JwtSignatureJose {
 	public initializeToken: ((token: SignJWT) => SignJWT) | undefined = undefined;
 
 	constructor(
-		private logger: ILogLayer,
+		private logger: ILogLayer | undefined,
 		private context: JwtSignatureJoseEnvs,
 	) {}
 
-	initialize = async () => {
+	initialize = async (local: ExportedJWKSCache | null) => {
 		if (this.context.JWT_SIGNATURE_JWKS_URI) {
 			const { JWT_SIGNATURE_JWKS_URI } = this.context;
 			this.jwks = await (async () => {
 				if (JWT_SIGNATURE_JWKS_URI.startsWith("file")) {
-					return this.importJWK(JWT_SIGNATURE_JWKS_URI);
+					return await this.importJWK(JWT_SIGNATURE_JWKS_URI);
 				}
 				throw new VError(
 					`Unsupported JWK format: ${JWT_SIGNATURE_JWKS_URI}. Supported protocols: file`,
 				);
 			})();
-		} else {
-			const local = JwkCacheLocalStorage.getStore();
-			if (local?.jwks?.keys?.[0]) {
-				this.logger
-					.withMetadata({
-						JwtSignatureJose: {
-							context: this.context,
-							jwks: local.jwks.keys,
-						},
-					})
-					.info(`Using local JWK cache`);
-				this.jwks = await importJWK(local.jwks.keys[0]);
-				return;
-			}
-
-			const defaultKey: CryptoKey = (await generateSecret("HS512", {
-				extractable: true,
-			})) as CryptoKey;
-			this.jwks = defaultKey;
-
-			const exported = await exportJWK(defaultKey);
-			JwkCacheLocalStorage.enterWith({
-				jwks: {
-					keys: [exported],
-				},
-				uat: Date.now(),
-			});
-
+			return Promise.resolve();
+		}
+		if (local?.jwks?.keys?.[0]) {
 			this.logger
-				.withMetadata({
+				?.withMetadata({
 					JwtSignatureJose: {
 						context: this.context,
-						key: inspect(defaultKey),
+						jwks: local.jwks.keys,
 					},
 				})
-				.warn(
-					`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
-										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
-				);
+				.info(`Using local JWK cache`);
+			this.jwks = await importJWK(local.jwks.keys[0]);
+			return local;
 		}
+
+		const defaultKey: CryptoKey = (await generateSecret("HS512", {
+			extractable: true,
+		})) as CryptoKey;
+		this.jwks = defaultKey;
+
+		const exported = await exportJWK(defaultKey);
+		const localJwk = {
+			jwks: {
+				keys: [exported],
+			},
+			uat: Date.now(),
+		};
+		this.logger
+			?.withMetadata({
+				JwtSignatureJose: {
+					local: inspect(local ?? {}),
+					context: this.context,
+					key: inspect(defaultKey),
+				},
+			})
+			.warn(
+				`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
+										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+			);
+
+		return localJwk;
 	};
 
 	private importJWK = async (file: string) => {
 		this.logger
-			.withMetadata({
+			?.withMetadata({
 				JwtSignatureJose: {
 					context: this.context,
 					file,
@@ -119,7 +121,7 @@ export class JwtSignatureJose {
 		let content: unknown;
 		let json: unknown;
 		try {
-			content = await readFile(fileURLToPath(file), "utf-8");
+			content = readFileSync(fileURLToPath(file), "utf-8");
 			json = JSON.parse(content as string);
 			const JwkZod = z.strictObject({
 				kty: z.string(),
@@ -132,7 +134,7 @@ export class JwtSignatureJose {
 			JwkZod.parse(json);
 		} catch (e) {
 			this.logger
-				.withMetadata({
+				?.withMetadata({
 					JwtSignatureJose: {
 						context: this.context,
 						file,
@@ -144,19 +146,19 @@ export class JwtSignatureJose {
 				.error("Failed to read JWK file");
 			throw e;
 		}
-		return importJWK(json as unknown as JWK);
+		return await importJWK(json as unknown as JWK);
 	};
 
-	public jwtSign<Token extends JWTPayload>(
+	public async jwtSign<Token extends JWTPayload>(
 		payload: Token,
 		signer: (result: SignJWT) => SignJWT,
 	) {
 		if (this.jwks === undefined) {
 			this.logger
-				.withMetadata({
+				?.withMetadata({
 					JwtSignatureJose,
 				})
-				.error("JwtSignatureJose not initialized");
+				.error("J`wtSignatureJose not initialized");
 			throw new VError("JwtSignatureJose not initialized");
 		}
 
@@ -165,7 +167,7 @@ export class JwtSignatureJose {
 		if (this.initializeToken) {
 			result = this.initializeToken(result);
 		}
-		return signer(result).sign(jwks);
+		return await signer(result).sign(jwks);
 	}
 }
 
@@ -191,27 +193,46 @@ export const JwtSignatureLayer = Layer.effect(
 		const console = yield* LoggingContext;
 		const logger = yield* console.logger;
 		const config = yield* JwtSignatureLayerConfig;
+		const mutex = yield* JwkMutex;
+		const { cache, ref } = yield* mutex;
+
 		logger
-			.withMetadata({ JwtSignatureLayer: { config } })
-			.debug("JwtSignatureLayer");
+			.withMetadata({ JwtVerificationLayer: { config } })
+			.debug("JwtSignatureLayer waiting mutex");
 
-		if (config?.JWT_SIGNATURE_JWKS_URI?.toLowerCase() === "unload") {
-			logger
-				.withMetadata({ JwtSignatureLayer: { config } })
-				.info("JwtSignatureLayer not loaded due to URI = 'unload'");
-			return new JwtSignatureNoop();
-		}
+		return yield* cache.withPermits(1)(
+			Effect.gen(function* () {
+				logger
+					.withMetadata({ JwtVerificationLayer: { config } })
+					.debug("JwtSignatureLayer with mutex");
 
-		const jwtSignature = new JwtSignatureJose(logger, config);
-		try {
-			yield* Effect.promise(() => jwtSignature.initialize());
-		} catch (error) {
-			logger
-				.withMetadata({ JwtSignatureLayer: { error } })
-				.withError(deserializeError(error))
-				.error("Failed to initialize JwtLayer");
-		}
-		return jwtSignature;
+				if (config?.JWT_SIGNATURE_JWKS_URI?.toLowerCase() === "unload") {
+					logger
+						.withMetadata({ JwtVerificationLayer: { config } })
+						.info("JwtSignatureLayer not loaded due to URI = 'unload'");
+					return new JwtSignatureNoop();
+				}
+
+				const jwtSignature = new JwtSignatureJose(logger, config);
+				const refvalue = yield* Ref.get(ref);
+				const initialized = yield* Effect.tryPromise({
+					try: async () => {
+						logger.debug("JwtSignatureLayer initializing");
+						return jwtSignature.initialize(refvalue);
+					},
+					catch: (error) => {
+						logger
+							.withMetadata({ JwtSignatureLayer: { error } })
+							.withError(deserializeError(error))
+							.error("Failed to initialize JwtSignatureLayer");
+					},
+				});
+				if (initialized) {
+					yield* Ref.update(ref, (existing) => initialized ?? existing);
+				}
+				return jwtSignature;
+			}),
+		);
 	}),
 );
 

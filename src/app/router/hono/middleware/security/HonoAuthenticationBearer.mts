@@ -53,16 +53,6 @@ export function HonoHttpAuthenticationDerive<Token extends JWTPayload>({
 			try {
 				jwt = (await jwtVerification?.jwtVerify?.(token, {}))?.payload;
 
-				requestLogger
-					?.withMetadata({
-						HonoAuthenticationBearer: {
-							jwt,
-							unparseable,
-						},
-						error,
-					})
-					.debug("ATOKO Parsing request jwt");
-
 				if (jwt) {
 					let valid = true;
 					for (const check of hook ?? []) {

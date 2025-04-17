@@ -1,8 +1,8 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { readFile } from "node:fs/promises";
+import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
-import { Config, Context, Effect, Layer } from "effect";
+import { Config, Context, Effect, Layer, Ref } from "effect";
 import {
 	type ExportedJWKSCache,
 	type JWK,
@@ -24,7 +24,7 @@ import { LoggingContext } from "../logging/LoggingContext.mjs";
 import {
 	JwkCache,
 	type JwkCacheInterface,
-	JwkCacheLocalStorage,
+	JwkMutex,
 } from "./JwkCache/JwkCache.mjs";
 
 type JwtVerifyFnWithKey = typeof jwtVerify;
@@ -69,66 +69,72 @@ export class JwtVerificationJose {
 		private jwkCache: JwkCacheInterface,
 	) {}
 
-	initialize = async () => {
+	initialize = async (local: ExportedJWKSCache | null) => {
 		if (this.context.JWT_VERIFICATION_JWKS_URI) {
 			const { JWT_VERIFICATION_JWKS_URI } = this.context;
 			this.jwks = await (async () => {
 				if (JWT_VERIFICATION_JWKS_URI.startsWith("http")) {
 					this.cache = await this.jwkCache.getJwks();
-					return this.jwksFromUrl(JWT_VERIFICATION_JWKS_URI);
+					return await this.jwksFromUrl(JWT_VERIFICATION_JWKS_URI);
 				}
 
 				if (JWT_VERIFICATION_JWKS_URI.startsWith("file")) {
-					return this.jwksFromFile(JWT_VERIFICATION_JWKS_URI);
+					return await this.jwksFromFile(JWT_VERIFICATION_JWKS_URI);
 				}
 				throw new VError(
 					`Unsupported JWK URL format: ${JWT_VERIFICATION_JWKS_URI}`,
 				);
 			})();
-		} else {
-			const local = JwkCacheLocalStorage.getStore();
-			if (local) {
-				this.logger
-					.withMetadata({
-						JwtVerificationJose: {
-							context: this.context,
-							jwks: local.jwks,
-						},
-					})
-					.info(`Using local JWK cache`);
-				this.jwks = createLocalJWKSet(local.jwks);
-				return;
-			}
-
-			const defaultKey: CryptoKey = (await generateSecret("HS512", {
-				extractable: true,
-			})) as CryptoKey;
-
-			const exported = await exportJWK(defaultKey);
-
-			this.jwks = createLocalJWKSet({
-				keys: [exported],
+			await new Promise((resolve) => {
+				setTimeout(resolve, 2);
 			});
-
-			JwkCacheLocalStorage.enterWith({
-				jwks: {
-					keys: [exported],
-				},
-				uat: Date.now(),
-			});
-
+			return Promise.resolve();
+		}
+		await new Promise((resolve) => {
+			setTimeout(resolve, 2);
+		});
+		if (local) {
 			this.logger
 				.withMetadata({
 					JwtVerificationJose: {
 						context: this.context,
-						key: inspect(exported),
+						jwks: local.jwks,
 					},
 				})
-				.warn(
-					`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using generated key.
-					To disable this behavior, set ${$$$JWT_VERIFICATION_JWKS_URI} to "unload"`,
-				);
+				.info(`Using local JWK cache`);
+			this.jwks = createLocalJWKSet(local.jwks);
+			return local;
 		}
+
+		const defaultKey: CryptoKey = (await generateSecret("HS512", {
+			extractable: true,
+		})) as CryptoKey;
+
+		const exported = await exportJWK(defaultKey);
+
+		this.jwks = createLocalJWKSet({
+			keys: [exported],
+		});
+		const localJwk = {
+			jwks: {
+				keys: [exported],
+			},
+			uat: Date.now(),
+		};
+
+		this.logger
+			.withMetadata({
+				JwtVerificationJose: {
+					local: inspect(local ?? {}),
+					context: this.context,
+					key: inspect(exported),
+				},
+			})
+			.warn(
+				`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using generated key.
+				To disable this behavior, set ${$$$JWT_VERIFICATION_JWKS_URI} to "unload"`,
+			);
+		return localJwk;
 	};
 
 	private jwksFromFile = async (file: string) => {
@@ -144,7 +150,7 @@ export class JwtVerificationJose {
 		let content: unknown;
 		let json: unknown;
 		try {
-			content = await readFile(fileURLToPath(file), "utf-8");
+			content = readFileSync(fileURLToPath(file), "utf-8");
 			json = JSON.parse(content as string);
 		} catch (e) {
 			this.logger
@@ -192,16 +198,8 @@ export class JwtVerificationJose {
 		}
 
 		const result = await jwtVerify(jwt, this.jwks, options);
-		this.logger
-			.withMetadata({
-				JwtVerificationJose: {
-					jwt,
-					result,
-				},
-			})
-			.debug("ATOKO JwtVerificationJose jwtVerify");
 		if (this.cache) {
-			this.jwkCache.setJwks(this.cache as ExportedJWKSCache);
+			await this.jwkCache.setJwks(this.cache as ExportedJWKSCache);
 		}
 		return result;
 	};
@@ -238,27 +236,48 @@ export const JwtVerificationLayer = Layer.effect(
 		const logger = yield* console.logger;
 		const config = yield* JwtVerificationLayerConfig;
 		const jwkCache = (yield* JwkCache).cache("verify.json");
+		const mutex = yield* JwkMutex;
+		const { ref, cache } = yield* mutex;
+
 		logger
 			.withMetadata({ JwtVerificationLayer: { config } })
-			.debug("JwtVerificationLayer");
+			.debug("JwtVerificationLayer waiting mutex");
 
-		if (config?.JWT_VERIFICATION_JWKS_URI?.toLowerCase() === "unload") {
-			logger
-				.withMetadata({ JwtVerificationLayer: { config } })
-				.info("JwtVerificationLayer not loaded due to URI = 'unload'");
-			return new JwtVerificationNoop();
-		}
+		const jwtVerify = yield* cache.withPermits(1)(
+			Effect.gen(function* () {
+				logger
+					.withMetadata({ JwtVerificationLayer: { config } })
+					.debug("JwtVerificationLayer with mutex");
 
-		const jwtTools = new JwtVerificationJose(logger, config, jwkCache);
-		try {
-			yield* Effect.promise(() => jwtTools.initialize());
-		} catch (error) {
-			logger
-				.withMetadata({ JwtVerificationLayer: { error } })
-				.withError(deserializeError(error))
-				.error("Failed to initialize JwtLayer");
-		}
-		return jwtTools;
+				if (config?.JWT_VERIFICATION_JWKS_URI?.toLowerCase() === "unload") {
+					logger
+						.withMetadata({ JwtVerificationLayer: { config } })
+						.info("JwtVerificationLayer not loaded due to URI = 'unload'");
+					return new JwtVerificationNoop();
+				}
+
+				const jwtVerify = new JwtVerificationJose(logger, config, jwkCache);
+
+				const refvalue = yield* Ref.get(ref);
+				const initialized = yield* Effect.tryPromise({
+					try: async () => {
+						logger.debug("JwtVerificationLayer initializing");
+						return jwtVerify.initialize(refvalue);
+					},
+					catch: (error) => {
+						logger
+							.withMetadata({ JwtVerificationLayer: { error } })
+							.withError(deserializeError(error))
+							.error("Failed to initialize JwtVerificationLayer");
+					},
+				});
+				if (initialized) {
+					yield* Ref.update(ref, (existing) => initialized ?? existing);
+				}
+				return jwtVerify;
+			}),
+		);
+		return jwtVerify;
 	}),
 );
 
