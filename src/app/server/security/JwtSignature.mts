@@ -3,7 +3,14 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { inspect } from "node:util";
 import { Config, Context, Effect, Layer } from "effect";
-import { type JWK, SignJWT, exportJWK, generateSecret, importJWK } from "jose";
+import {
+	type JWK,
+	type JWTPayload,
+	SignJWT,
+	exportJWK,
+	generateSecret,
+	importJWK,
+} from "jose";
 import type { ILogLayer } from "loglayer";
 import { deserializeError } from "serialize-error";
 import VError from "verror";
@@ -12,18 +19,19 @@ import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
 import { JwkCacheLocalStorage } from "./JwkCache/JwkCache.mjs";
 
-export type JwtSignFnJose = (
+export type JwtSignFnJose<Token extends JWTPayload> = (
+	payload: Token,
 	signer: (token: SignJWT) => SignJWT,
 ) => Promise<string>;
 
-export type JwtSignatureInterface = {
-	jwtSign: JwtSignFnJose | null;
+export type JwtSignatureInterface<Token extends JWTPayload> = {
+	jwtSign: JwtSignFnJose<Token> | null;
 	initializeToken?: (token: SignJWT) => SignJWT;
 };
 
 export class JwtSignature extends Context.Tag("JwtSignature")<
 	JwtSignature,
-	JwtSignatureInterface
+	JwtSignatureInterface<JWTPayload>
 >() {}
 
 export const $$$JWT_SIGNATURE_JWKS_URI = "JWT_SIGNATURE_JWKS_URI";
@@ -32,7 +40,7 @@ export class JwtSignatureJoseEnvs {
 	constructor(readonly JWT_SIGNATURE_JWKS_URI: string | undefined) {}
 }
 
-export class JwtSignatureNoop implements JwtSignatureInterface {
+export class JwtSignatureNoop implements JwtSignatureInterface<JWTPayload> {
 	jwtSign = null;
 }
 
@@ -139,7 +147,10 @@ export class JwtSignatureJose {
 		return importJWK(json as unknown as JWK);
 	};
 
-	public jwtSign: JwtSignFnJose = (payload) => {
+	public jwtSign<Token extends JWTPayload>(
+		payload: Token,
+		signer: (result: SignJWT) => SignJWT,
+	) {
 		if (this.jwks === undefined) {
 			this.logger
 				.withMetadata({
@@ -150,12 +161,12 @@ export class JwtSignatureJose {
 		}
 
 		const jwks = this.jwks;
-		let result = new SignJWT();
+		let result = new SignJWT(payload);
 		if (this.initializeToken) {
 			result = this.initializeToken(result);
 		}
-		return payload(result).sign(jwks);
-	};
+		return signer(result).sign(jwks);
+	}
 }
 
 export const SUPPORTED_PROTOCOLS = ["file"] as const;
@@ -205,5 +216,5 @@ export const JwtSignatureLayer = Layer.effect(
 );
 
 export const JwtSignatureAsyncLocalStorage = new AsyncLocalStorage<{
-	JwtSignature: JwtSignatureInterface;
+	JwtSignature: JwtSignatureInterface<JWTPayload>;
 }>();

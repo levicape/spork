@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory";
-import type { SignJWT } from "jose";
+import type { JWTPayload, SignJWT } from "jose";
 import {
 	JwtSignatureAsyncLocalStorage,
 	type JwtSignatureInterface,
@@ -7,22 +7,22 @@ import {
 } from "../../../../server/security/JwtSignature.mjs";
 import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
 
-export type HonoJwtIssuerProps = {
+export type HonoJwtIssuerProps<Token extends JWTPayload> = {
 	/**
 	 * The JWT signature function. If not provided, the default JWT signature function will be used.
 	 * @default JwtSignatureJose
 	 * @see {@link JwtSignatureLayerConfig}
 	 */
-	jwtSign?: JwtSignatureInterface["jwtSign"];
+	jwtSign?: JwtSignatureInterface<Token>["jwtSign"];
 	/**
 	 * Initializer for tokens created by this middleware.
 	 */
 	initializeToken?: (token: Exclude<SignJWT, "sign">) => SignJWT;
 };
 
-export type HonoJwtIssuer = {
+export type HonoJwtIssuer<Token extends JWTPayload> = {
 	Variables: {
-		JwtSignature: JwtSignatureInterface["jwtSign"];
+		JwtSignature: JwtSignatureInterface<Token>["jwtSign"];
 	};
 };
 
@@ -30,9 +30,11 @@ export type HonoJwtIssuer = {
  * Middleware for Hono that provides JWT issuance.
  * @requires `JwtSignatureInterface`
  */
-export function HonoHttpJwtIssuerMiddleware(props?: HonoJwtIssuerProps) {
+export function HonoHttpJwtIssuerMiddleware<Token extends JWTPayload>(
+	props?: HonoJwtIssuerProps<Token>,
+) {
 	const { logging } = HonoLoggingStorage.getStore() ?? {};
-	let jwtSignature: JwtSignatureInterface;
+	let jwtSignature: JwtSignatureInterface<Token>;
 	if (props?.jwtSign) {
 		logging?.debug("Building HonoHttpJwtIssuer with custom jwtSign function");
 		jwtSignature = { jwtSign: props.jwtSign };
@@ -51,7 +53,7 @@ export function HonoHttpJwtIssuerMiddleware(props?: HonoJwtIssuerProps) {
 	const { jwtSign } = jwtSignature;
 	jwtSignature.initializeToken = props?.initializeToken;
 
-	return createMiddleware<HonoJwtIssuer>(async (context, next) => {
+	return createMiddleware<HonoJwtIssuer<Token>>(async (context, next) => {
 		context.set("JwtSignature", jwtSign);
 		await next();
 	});
