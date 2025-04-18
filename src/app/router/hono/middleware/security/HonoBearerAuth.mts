@@ -9,8 +9,6 @@ import type { JwtVerificationInterface } from "../../../../server/security/JwtVe
 import type { HonoHttp } from "../HonoHttpMiddleware.mjs";
 import type { HonoHttpAuthentication } from "./HonoAuthenticationBearer.mjs";
 
-// TODO: Use unenv crypto to support LLRT
-
 type MessageFunction = (
 	c: Context,
 ) => string | object | Promise<string | object>;
