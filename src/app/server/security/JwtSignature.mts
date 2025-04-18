@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { inspect } from "node:util";
 import { Config, Context, Effect, Layer, Ref } from "effect";
 import {
 	type ExportedJWKSCache,
@@ -68,21 +67,22 @@ export class JwtSignatureJose {
 			return Promise.resolve();
 		}
 		if (local?.jwks?.keys?.[0]) {
+			this.jwks = await importJWK(local.jwks.keys[0]);
 			this.logger
 				?.withMetadata({
 					JwtSignatureJose: {
 						context: this.context,
 						jwks: local.jwks.keys,
+						jwksDefined: this.jwks !== undefined,
 					},
 				})
 				.info(`Using local JWK cache`);
-			this.jwks = await importJWK(local.jwks.keys[0]);
 			return local;
 		}
 
-		const defaultKey: CryptoKey = (await generateSecret("HS512", {
+		const defaultKey = await generateSecret("HS512", {
 			extractable: true,
-		})) as CryptoKey;
+		});
 		this.jwks = defaultKey;
 
 		const exported = await exportJWK(defaultKey);
@@ -95,9 +95,9 @@ export class JwtSignatureJose {
 		this.logger
 			?.withMetadata({
 				JwtSignatureJose: {
-					local: inspect(local ?? {}),
+					local: local ?? {},
 					context: this.context,
-					key: inspect(defaultKey),
+					key: defaultKey,
 				},
 			})
 			.warn(
@@ -149,16 +149,16 @@ export class JwtSignatureJose {
 		return await importJWK(json as unknown as JWK);
 	};
 
-	public async jwtSign<Token extends JWTPayload>(
+	public jwtSign = async <Token extends JWTPayload>(
 		payload: Token,
 		signer: (result: SignJWT) => SignJWT,
-	) {
+	) => {
 		if (this.jwks === undefined) {
 			this.logger
 				?.withMetadata({
 					JwtSignatureJose,
 				})
-				.error("J`wtSignatureJose not initialized");
+				.error("JwtSignatureJose not initialized");
 			throw new VError("JwtSignatureJose not initialized");
 		}
 
@@ -168,7 +168,7 @@ export class JwtSignatureJose {
 			result = this.initializeToken(result);
 		}
 		return await signer(result).sign(jwks);
-	}
+	};
 }
 
 export const SUPPORTED_PROTOCOLS = ["file"] as const;

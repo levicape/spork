@@ -85,17 +85,11 @@ export class JwtVerificationJose {
 					`Unsupported JWK URL format: ${JWT_VERIFICATION_JWKS_URI}`,
 				);
 			})();
-			await new Promise((resolve) => {
-				setTimeout(resolve, 2);
-			});
 			return Promise.resolve();
 		}
-		await new Promise((resolve) => {
-			setTimeout(resolve, 2);
-		});
 		if (local) {
 			this.logger
-				.withMetadata({
+				?.withMetadata({
 					JwtVerificationJose: {
 						context: this.context,
 						jwks: local.jwks,
@@ -106,9 +100,9 @@ export class JwtVerificationJose {
 			return local;
 		}
 
-		const defaultKey: CryptoKey = (await generateSecret("HS512", {
+		const defaultKey = await generateSecret("HS512", {
 			extractable: true,
-		})) as CryptoKey;
+		});
 
 		const exported = await exportJWK(defaultKey);
 
@@ -123,7 +117,7 @@ export class JwtVerificationJose {
 		};
 
 		this.logger
-			.withMetadata({
+			?.withMetadata({
 				JwtVerificationJose: {
 					local: inspect(local ?? {}),
 					context: this.context,
@@ -139,7 +133,7 @@ export class JwtVerificationJose {
 
 	private jwksFromFile = async (file: string) => {
 		this.logger
-			.withMetadata({
+			?.withMetadata({
 				JwtVerificationJose: {
 					context: this.context,
 					file,
@@ -154,7 +148,7 @@ export class JwtVerificationJose {
 			json = JSON.parse(content as string);
 		} catch (e) {
 			this.logger
-				.withMetadata({
+				?.withMetadata({
 					JwtVerificationJose: {
 						context: this.context,
 						file,
@@ -172,7 +166,7 @@ export class JwtVerificationJose {
 
 	private jwksFromUrl = async (url: string) => {
 		this.logger
-			.withMetadata({
+			?.withMetadata({
 				JwtVerificationJose: {
 					context: this.context,
 				},
@@ -187,7 +181,7 @@ export class JwtVerificationJose {
 	public jwtVerify: JwtVerifyFnJose = async (jwt, options) => {
 		if (this.jwks === undefined) {
 			this.logger
-				.withMetadata({
+				?.withMetadata({
 					JwtVerificationJose: {
 						jwt,
 						options,
