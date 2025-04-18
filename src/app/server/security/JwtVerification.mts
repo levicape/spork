@@ -18,11 +18,8 @@ import { deserializeError } from "serialize-error";
 import VError from "verror";
 import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
-import {
-	JwkCache,
-	type JwkCacheInterface,
-	LocalSynchronizedJwk,
-} from "./JwkCache/JwkCache.mjs";
+import { JwkCache, type JwkCacheInterface } from "./JwkCache/JwkCache.mjs";
+import { JwkLocalSynchronized } from "./JwkCache/JwkLocalSynchronized.mjs";
 
 type JwtVerifyFnWithKey = typeof jwtVerify;
 export type JwtVerifyFnJose = (
@@ -200,7 +197,7 @@ export const JwtVerificationLayer = Layer.effect(
 		const logger = yield* console.logger;
 		const config = yield* JwtVerificationLayerConfig;
 		const jwkCache = (yield* JwkCache).cache("verify.json");
-		const mutex = yield* LocalSynchronizedJwk;
+		const mutex = yield* JwkLocalSynchronized;
 		const { ref, cache } = yield* mutex;
 
 		logger

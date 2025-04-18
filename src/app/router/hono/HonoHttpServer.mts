@@ -18,10 +18,8 @@ import {
 	LoggingContext,
 	withStructuredLogging,
 } from "../../server/logging/LoggingContext.mjs";
-import {
-	FilesystemJwkCache,
-	LocalSynchronizedJwk,
-} from "../../server/security/JwkCache/JwkCache.mjs";
+import { FilesystemJwkCache } from "../../server/security/JwkCache/JwkCache.mjs";
+import { JwkLocalSynchronized } from "../../server/security/JwkCache/JwkLocalSynchronized.mjs";
 import {
 	JwtSignature,
 	JwtSignatureAsyncLocalStorage,
@@ -339,7 +337,7 @@ export const HonoHttpServer = async <
 							),
 							Layer.provide(
 								Layer.merge(JwtVerificationLayer, JwtSignatureLayer).pipe(
-									Layer.provide(LocalSynchronizedJwk.Default),
+									Layer.provide(JwkLocalSynchronized.Default),
 									Layer.provide(FilesystemJwkCache),
 								),
 								Layer.scope,

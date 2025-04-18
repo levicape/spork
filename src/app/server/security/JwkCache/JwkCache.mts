@@ -1,6 +1,5 @@
-import { Config, Effect, Layer, Ref } from "effect";
-import { Service } from "effect/Effect";
-import { type ExportedJWKSCache, exportJWK, generateKeyPair } from "jose";
+import { Config, Effect, Layer } from "effect";
+import type { ExportedJWKSCache } from "jose";
 import { ConsoleTransport, type ILogLayer } from "loglayer";
 import { type Storage, createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs-lite";
@@ -150,52 +149,3 @@ export const FilesystemJwkCache = Layer.effect(
 		};
 	}),
 );
-
-const $$$JWK_LOCAL_SYNCHRONIZED_ALG = "JWK_LOCAL_SYNCHRONIZED_ALG";
-export class LocalSynchronizedJwkEnvs {
-	constructor(readonly JWK_LOCAL_SYNCHRONIZED_ALG: string) {}
-}
-
-export const LocalSynchronizedJwkConfig = Config.map(
-	Config.all([
-		Config.string($$$JWK_LOCAL_SYNCHRONIZED_ALG).pipe(
-			Config.withDescription(
-				`Algorithm to use for the local synchronized JWK. Defaults to "EdDSA".`,
-			),
-			Config.withDefault("ES384"),
-		),
-	]),
-	([JWK_LOCAL_SYNCHRONIZED_ALG]) =>
-		new LocalSynchronizedJwkEnvs(JWK_LOCAL_SYNCHRONIZED_ALG),
-);
-
-export class LocalSynchronizedJwk extends Service<LocalSynchronizedJwk>()(
-	"LocalSynchronizedJwk",
-	{
-		effect: Effect.cached(
-			Effect.gen(function* () {
-				const config = yield* LocalSynchronizedJwkConfig;
-
-				const keypair = yield* Effect.promise(() =>
-					generateKeyPair(config.JWK_LOCAL_SYNCHRONIZED_ALG, {
-						extractable: true,
-					}),
-				);
-				const publicJwk = yield* Effect.promise(() =>
-					exportJWK(keypair.publicKey),
-				);
-
-				return {
-					keypair,
-					ref: yield* Ref.make<ExportedJWKSCache | null>({
-						jwks: {
-							keys: [publicJwk],
-						},
-						uat: Date.now(),
-					}),
-					cache: yield* Effect.makeSemaphore(1),
-				};
-			}),
-		),
-	},
-) {}

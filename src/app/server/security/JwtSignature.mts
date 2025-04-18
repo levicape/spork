@@ -15,7 +15,7 @@ import VError from "verror";
 import { z } from "zod";
 import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
-import { LocalSynchronizedJwk } from "./JwkCache/JwkCache.mjs";
+import { JwkLocalSynchronized } from "./JwkCache/JwkLocalSynchronized.mjs";
 
 export type JwtSignFnJose<Token extends JWTPayload> = (
 	payload: Token,
@@ -164,7 +164,7 @@ export const JwtSignatureLayer = Layer.effect(
 		const console = yield* LoggingContext;
 		const logger = yield* console.logger;
 		const config = yield* JwtSignatureLayerConfig;
-		const mutex = yield* LocalSynchronizedJwk;
+		const mutex = yield* JwkLocalSynchronized;
 		const { cache, keypair } = yield* mutex;
 
 		logger
