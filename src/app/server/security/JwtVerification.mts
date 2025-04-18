@@ -21,7 +21,7 @@ import { LoggingContext } from "../logging/LoggingContext.mjs";
 import {
 	JwkCache,
 	type JwkCacheInterface,
-	JwkMutex,
+	LocalSynchronizedJwk,
 } from "./JwkCache/JwkCache.mjs";
 
 type JwtVerifyFnWithKey = typeof jwtVerify;
@@ -200,7 +200,7 @@ export const JwtVerificationLayer = Layer.effect(
 		const logger = yield* console.logger;
 		const config = yield* JwtVerificationLayerConfig;
 		const jwkCache = (yield* JwkCache).cache("verify.json");
-		const mutex = yield* JwkMutex;
+		const mutex = yield* LocalSynchronizedJwk;
 		const { ref, cache } = yield* mutex;
 
 		logger

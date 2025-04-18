@@ -151,23 +151,31 @@ export const FilesystemJwkCache = Layer.effect(
 	}),
 );
 
-export class JwkMutex extends Service<JwkMutex>()("JwkMutex", {
-	effect: Effect.cached(
-		Effect.gen(function* () {
-			const keypair = yield* Effect.promise(() => generateKeyPair("RS512"));
-			const publicJwk = yield* Effect.promise(() =>
-				exportJWK(keypair.publicKey),
-			);
-			return {
-				keypair,
-				ref: yield* Ref.make<ExportedJWKSCache | null>({
-					jwks: {
-						keys: [publicJwk],
-					},
-					uat: Date.now(),
-				}),
-				cache: yield* Effect.makeSemaphore(1),
-			};
-		}),
-	),
-}) {}
+export class LocalSynchronizedJwk extends Service<LocalSynchronizedJwk>()(
+	"LocalSynchronizedJwk",
+	{
+		effect: Effect.cached(
+			Effect.gen(function* () {
+				const keypair = yield* Effect.promise(() =>
+					generateKeyPair("EdDSA", {
+						extractable: true,
+					}),
+				);
+				const publicJwk = yield* Effect.promise(() =>
+					exportJWK(keypair.publicKey),
+				);
+
+				return {
+					keypair,
+					ref: yield* Ref.make<ExportedJWKSCache | null>({
+						jwks: {
+							keys: [publicJwk],
+						},
+						uat: Date.now(),
+					}),
+					cache: yield* Effect.makeSemaphore(1),
+				};
+			}),
+		),
+	},
+) {}

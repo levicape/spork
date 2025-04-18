@@ -20,7 +20,7 @@ import {
 } from "../../server/logging/LoggingContext.mjs";
 import {
 	FilesystemJwkCache,
-	JwkMutex,
+	LocalSynchronizedJwk,
 } from "../../server/security/JwkCache/JwkCache.mjs";
 import {
 	JwtSignature,
@@ -339,7 +339,7 @@ export const HonoHttpServer = async <
 							),
 							Layer.provide(
 								Layer.merge(JwtVerificationLayer, JwtSignatureLayer).pipe(
-									Layer.provide(JwkMutex.Default),
+									Layer.provide(LocalSynchronizedJwk.Default),
 									Layer.provide(FilesystemJwkCache),
 								),
 								Layer.scope,
