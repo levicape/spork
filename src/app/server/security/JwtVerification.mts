@@ -1,7 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { inspect } from "node:util";
 import { Config, Context, Effect, Layer, Ref } from "effect";
 import {
 	type ExportedJWKSCache,
@@ -11,8 +10,6 @@ import {
 	type JWTVerifyResult,
 	createLocalJWKSet,
 	createRemoteJWKSet,
-	exportJWK,
-	generateSecret,
 	jwksCache,
 	jwtVerify,
 } from "jose";
@@ -88,47 +85,20 @@ export class JwtVerificationJose {
 			return Promise.resolve();
 		}
 		if (local) {
+			this.jwks = createLocalJWKSet(local.jwks);
+
 			this.logger
 				?.withMetadata({
 					JwtVerificationJose: {
+						local,
 						context: this.context,
-						jwks: local.jwks,
 					},
 				})
-				.info(`Using local JWK cache`);
-			this.jwks = createLocalJWKSet(local.jwks);
-			return local;
-		}
-
-		const defaultKey = await generateSecret("HS512", {
-			extractable: true,
-		});
-
-		const exported = await exportJWK(defaultKey);
-
-		this.jwks = createLocalJWKSet({
-			keys: [exported],
-		});
-		const localJwk = {
-			jwks: {
-				keys: [exported],
-			},
-			uat: Date.now(),
-		};
-
-		this.logger
-			?.withMetadata({
-				JwtVerificationJose: {
-					local: inspect(local ?? {}),
-					context: this.context,
-					key: inspect(exported),
-				},
-			})
-			.warn(
-				`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using generated key.
+				.warn(
+					`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using generated key.
 				To disable this behavior, set ${$$$JWT_VERIFICATION_JWKS_URI} to "unload"`,
-			);
-		return localJwk;
+				);
+		}
 	};
 
 	private jwksFromFile = async (file: string) => {
@@ -253,7 +223,7 @@ export const JwtVerificationLayer = Layer.effect(
 				const jwtVerify = new JwtVerificationJose(logger, config, jwkCache);
 
 				const refvalue = yield* Ref.get(ref);
-				const initialized = yield* Effect.tryPromise({
+				yield* Effect.tryPromise({
 					try: async () => {
 						logger.debug("JwtVerificationLayer initializing");
 						return jwtVerify.initialize(refvalue);
@@ -265,9 +235,7 @@ export const JwtVerificationLayer = Layer.effect(
 							.error("Failed to initialize JwtVerificationLayer");
 					},
 				});
-				if (initialized) {
-					yield* Ref.update(ref, (existing) => initialized ?? existing);
-				}
+
 				return jwtVerify;
 			}),
 		);

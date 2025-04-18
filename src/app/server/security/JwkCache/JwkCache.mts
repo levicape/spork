@@ -1,6 +1,6 @@
 import { Config, Effect, Layer, Ref } from "effect";
 import { Service } from "effect/Effect";
-import type { ExportedJWKSCache } from "jose";
+import { type ExportedJWKSCache, exportJWK, generateKeyPair } from "jose";
 import { ConsoleTransport, type ILogLayer } from "loglayer";
 import { type Storage, createStorage } from "unstorage";
 import fsDriver from "unstorage/drivers/fs-lite";
@@ -154,8 +154,20 @@ export const FilesystemJwkCache = Layer.effect(
 export class JwkMutex extends Service<JwkMutex>()("JwkMutex", {
 	effect: Effect.cached(
 		Effect.gen(function* () {
+			const keypair = yield* Effect.promise(() => generateKeyPair("RS512"));
+			const publicJwk = yield* Effect.promise(() =>
+				exportJWK(keypair.publicKey),
+			);
+			const privateJwk = yield* Effect.promise(() =>
+				exportJWK(keypair.privateKey),
+			);
 			return {
-				ref: yield* Ref.make<ExportedJWKSCache | null>(null),
+				ref: yield* Ref.make<ExportedJWKSCache | null>({
+					jwks: {
+						keys: [privateJwk, publicJwk],
+					},
+					uat: Date.now(),
+				}),
 				cache: yield* Effect.makeSemaphore(1),
 			};
 		}),

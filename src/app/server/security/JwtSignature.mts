@@ -7,8 +7,6 @@ import {
 	type JWK,
 	type JWTPayload,
 	SignJWT,
-	exportJWK,
-	generateSecret,
 	importJWK,
 } from "jose";
 import type { ILogLayer } from "loglayer";
@@ -64,48 +62,23 @@ export class JwtSignatureJose {
 					`Unsupported JWK format: ${JWT_SIGNATURE_JWKS_URI}. Supported protocols: file`,
 				);
 			})();
-			return Promise.resolve();
 		}
 		if (local?.jwks?.keys?.[0]) {
 			this.jwks = await importJWK(local.jwks.keys[0]);
+
 			this.logger
 				?.withMetadata({
 					JwtSignatureJose: {
+						local: local ?? {},
 						context: this.context,
-						jwks: local.jwks.keys,
-						jwksDefined: this.jwks !== undefined,
+						key: this.jwks,
 					},
 				})
-				.info(`Using local JWK cache`);
-			return local;
-		}
-
-		const defaultKey = await generateSecret("HS512", {
-			extractable: true,
-		});
-		this.jwks = defaultKey;
-
-		const exported = await exportJWK(defaultKey);
-		const localJwk = {
-			jwks: {
-				keys: [exported],
-			},
-			uat: Date.now(),
-		};
-		this.logger
-			?.withMetadata({
-				JwtSignatureJose: {
-					local: local ?? {},
-					context: this.context,
-					key: defaultKey,
-				},
-			})
-			.warn(
-				`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
+				.warn(
+					`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
 										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
-			);
-
-		return localJwk;
+				);
+		}
 	};
 
 	private importJWK = async (file: string) => {
@@ -215,7 +188,7 @@ export const JwtSignatureLayer = Layer.effect(
 
 				const jwtSignature = new JwtSignatureJose(logger, config);
 				const refvalue = yield* Ref.get(ref);
-				const initialized = yield* Effect.tryPromise({
+				yield* Effect.tryPromise({
 					try: async () => {
 						logger.debug("JwtSignatureLayer initializing");
 						return jwtSignature.initialize(refvalue);
@@ -227,9 +200,6 @@ export const JwtSignatureLayer = Layer.effect(
 							.error("Failed to initialize JwtSignatureLayer");
 					},
 				});
-				if (initialized) {
-					yield* Ref.update(ref, (existing) => initialized ?? existing);
-				}
 				return jwtSignature;
 			}),
 		);
