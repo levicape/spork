@@ -1,9 +1,9 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { Config, Context, Effect, Layer, Ref } from "effect";
+import { Config, Context, Effect, Layer } from "effect";
 import {
-	type ExportedJWKSCache,
+	type GenerateKeyPairResult,
 	type JWK,
 	type JWTPayload,
 	SignJWT,
@@ -43,7 +43,7 @@ export class JwtSignatureNoop implements JwtSignatureInterface<JWTPayload> {
 }
 
 export class JwtSignatureJose {
-	private jwks: Awaited<ReturnType<typeof importJWK>> | undefined;
+	private signKey: Awaited<ReturnType<typeof importJWK>> | undefined;
 	public initializeToken: ((token: SignJWT) => SignJWT) | undefined = undefined;
 
 	constructor(
@@ -51,10 +51,10 @@ export class JwtSignatureJose {
 		private context: JwtSignatureJoseEnvs,
 	) {}
 
-	initialize = async (local: ExportedJWKSCache | null) => {
+	initialize = async (local: GenerateKeyPairResult) => {
 		if (this.context.JWT_SIGNATURE_JWKS_URI) {
 			const { JWT_SIGNATURE_JWKS_URI } = this.context;
-			this.jwks = await (async () => {
+			this.signKey = await (async () => {
 				if (JWT_SIGNATURE_JWKS_URI.startsWith("file")) {
 					return await this.importJWK(JWT_SIGNATURE_JWKS_URI);
 				}
@@ -63,22 +63,20 @@ export class JwtSignatureJose {
 				);
 			})();
 		}
-		if (local?.jwks?.keys?.[0]) {
-			this.jwks = await importJWK(local.jwks.keys[0]);
+		this.signKey = local.privateKey;
 
-			this.logger
-				?.withMetadata({
-					JwtSignatureJose: {
-						local: local ?? {},
-						context: this.context,
-						key: this.jwks,
-					},
-				})
-				.warn(
-					`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
-										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
-				);
-		}
+		this.logger
+			?.withMetadata({
+				JwtSignatureJose: {
+					local: local ?? {},
+					context: this.context,
+					key: this.signKey,
+				},
+			})
+			.warn(
+				`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
+									To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+			);
 	};
 
 	private importJWK = async (file: string) => {
@@ -126,7 +124,7 @@ export class JwtSignatureJose {
 		payload: Token,
 		signer: (result: SignJWT) => SignJWT,
 	) => {
-		if (this.jwks === undefined) {
+		if (this.signKey === undefined) {
 			this.logger
 				?.withMetadata({
 					JwtSignatureJose,
@@ -135,7 +133,7 @@ export class JwtSignatureJose {
 			throw new VError("JwtSignatureJose not initialized");
 		}
 
-		const jwks = this.jwks;
+		const jwks = this.signKey;
 		let result = new SignJWT(payload);
 		if (this.initializeToken) {
 			result = this.initializeToken(result);
@@ -167,7 +165,7 @@ export const JwtSignatureLayer = Layer.effect(
 		const logger = yield* console.logger;
 		const config = yield* JwtSignatureLayerConfig;
 		const mutex = yield* JwkMutex;
-		const { cache, ref } = yield* mutex;
+		const { cache, keypair } = yield* mutex;
 
 		logger
 			.withMetadata({ JwtVerificationLayer: { config } })
@@ -187,11 +185,10 @@ export const JwtSignatureLayer = Layer.effect(
 				}
 
 				const jwtSignature = new JwtSignatureJose(logger, config);
-				const refvalue = yield* Ref.get(ref);
 				yield* Effect.tryPromise({
 					try: async () => {
 						logger.debug("JwtSignatureLayer initializing");
-						return jwtSignature.initialize(refvalue);
+						return jwtSignature.initialize(keypair);
 					},
 					catch: (error) => {
 						logger

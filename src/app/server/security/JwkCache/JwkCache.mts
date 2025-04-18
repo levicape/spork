@@ -158,13 +158,11 @@ export class JwkMutex extends Service<JwkMutex>()("JwkMutex", {
 			const publicJwk = yield* Effect.promise(() =>
 				exportJWK(keypair.publicKey),
 			);
-			const privateJwk = yield* Effect.promise(() =>
-				exportJWK(keypair.privateKey),
-			);
 			return {
+				keypair,
 				ref: yield* Ref.make<ExportedJWKSCache | null>({
 					jwks: {
-						keys: [privateJwk, publicJwk],
+						keys: [publicJwk],
 					},
 					uat: Date.now(),
 				}),
