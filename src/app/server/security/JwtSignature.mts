@@ -23,6 +23,7 @@ export type JwtSignFnJose<Token extends JWTPayload> = (
 ) => Promise<string>;
 
 export type JwtSignatureInterface<Token extends JWTPayload> = {
+	config: JwtSignatureJoseEnvs;
 	jwtSign: JwtSignFnJose<Token> | null;
 	initializeToken?: (token: SignJWT) => SignJWT;
 };
@@ -33,12 +34,12 @@ export class JwtSignature extends Context.Tag("JwtSignature")<
 >() {}
 
 export const $$$JWT_SIGNATURE_JWKS_URI = "JWT_SIGNATURE_JWKS_URI";
-export const $$$JWT_SIGNATURE_JWKS_CACHE_KEY = "JWT_SIGNATURE_JWKS_CACHE_KEY";
 export class JwtSignatureJoseEnvs {
-	constructor(readonly JWT_SIGNATURE_JWKS_URI: string | undefined) {}
+	constructor(readonly JWT_SIGNATURE_JWKS_URI?: string | undefined) {}
 }
 
 export class JwtSignatureNoop implements JwtSignatureInterface<JWTPayload> {
+	config = new JwtSignatureJoseEnvs();
 	jwtSign = null;
 }
 
@@ -48,12 +49,12 @@ export class JwtSignatureJose {
 
 	constructor(
 		private logger: ILogLayer | undefined,
-		private context: JwtSignatureJoseEnvs,
+		public config: JwtSignatureJoseEnvs,
 	) {}
 
 	initialize = async (local: GenerateKeyPairResult) => {
-		if (this.context.JWT_SIGNATURE_JWKS_URI) {
-			const { JWT_SIGNATURE_JWKS_URI } = this.context;
+		if (this.config.JWT_SIGNATURE_JWKS_URI) {
+			const { JWT_SIGNATURE_JWKS_URI } = this.config;
 			this.signKey = await (async () => {
 				if (JWT_SIGNATURE_JWKS_URI.startsWith("file")) {
 					return await this.importJWK(JWT_SIGNATURE_JWKS_URI);
@@ -69,7 +70,7 @@ export class JwtSignatureJose {
 			?.withMetadata({
 				JwtSignatureJose: {
 					local: local ?? {},
-					context: this.context,
+					context: this.config,
 					key: this.signKey,
 				},
 			})
@@ -83,7 +84,7 @@ export class JwtSignatureJose {
 		this.logger
 			?.withMetadata({
 				JwtSignatureJose: {
-					context: this.context,
+					context: this.config,
 					file,
 				},
 			})
@@ -107,7 +108,7 @@ export class JwtSignatureJose {
 			this.logger
 				?.withMetadata({
 					JwtSignatureJose: {
-						context: this.context,
+						context: this.config,
 						file,
 						content,
 						json,
