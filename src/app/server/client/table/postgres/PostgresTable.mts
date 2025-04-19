@@ -158,7 +158,7 @@ export class PostgresTable<
 		const result = await this.reads.query(
 			sql.unsafe`SELECT * FROM ${sql.identifier([this.tableName])} WHERE ${sql.join(conditions, sql.fragment` AND `)}`,
 		);
-		return result.rows[0];
+		return result.rows[0] as T;
 	};
 
 	getByMultiplePartitionIds = async (
@@ -173,6 +173,7 @@ export class PostgresTable<
 			);
 			return sql.fragment`(${sql.join(keyConditions, sql.fragment` AND `)})`;
 		});
+
 		const result = await this.reads.query(
 			sql.unsafe`SELECT * FROM ${sql.identifier([this.tableName])} WHERE ${sql.join(conditions, sql.fragment` OR `)}`,
 		);
@@ -207,7 +208,7 @@ export class PostgresTable<
 			);
 
 			for (const row of result.rows) {
-				yield row;
+				yield row as T;
 			}
 		})();
 	};

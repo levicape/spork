@@ -28,6 +28,8 @@ services:
       environment: 
         COMPOSE_PROJECT_NAME: $COMPOSE_PROJECT_NAME
         ATLAS_CADDYFILE: /conf/Caddyfile
+        ATLAS_CADDYFILE_DOMAIN: spork.platform
+        ATLAS_CADDYFILE_REPLACE: true
         MAGMAP_HTTP: $MAGMAP_HTTP
         MAGMAP_UI: $MAGMAP_UI
       volumes: 

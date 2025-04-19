@@ -1,3 +1,4 @@
+import { writeFileSync } from "node:fs";
 import { destr } from "destr";
 import { deserializeError, serializeError } from "serialize-error";
 import { env, isNode, process } from "std-env";
@@ -5,7 +6,12 @@ import VError from "verror";
 import { AtlasEnvironmentZod } from "../AtlasEnvironment.mjs";
 import { fileURLToPath } from "../transform/FileUrlToPath.mjs";
 import { type Prefix, type Route, RoutePathsZod } from "./RouteResource.mjs";
-import { CaddyfileReverseProxy } from "./caddy/Caddyfile.mjs";
+import {
+	CADDYFILE_LOCAL_CERTIFICATES,
+	CaddyfileLocalBlock,
+	CaddyfileLocation,
+	CaddyfileReverseProxy,
+} from "./caddy/Caddyfile.mjs";
 
 let readFileSync: (path: string, mode: string) => string;
 let appendFileSync: (path: string, data: string) => void;
@@ -104,7 +110,12 @@ export function AtlasRoutes<Paths extends Prefix>(
 	// Parse environment
 	//
 	const parsedEnv = AtlasEnvironmentZod.safeParse(env);
-	const { ATLAS_ROUTES, ATLAS_CADDYFILE } = parsedEnv.data ?? {};
+	const {
+		ATLAS_ROUTES,
+		ATLAS_CADDYFILE,
+		ATLAS_CADDYFILE_DOMAIN,
+		ATLAS_CADDYFILE_REPLACE,
+	} = parsedEnv.data ?? {};
 	if (!parsedEnv.success) {
 		console.error(
 			`AtlasEnvZod failed to parse env: ${JSON.stringify(parsedEnv.error.flatten())}\n`,
@@ -173,24 +184,49 @@ export function AtlasRoutes<Paths extends Prefix>(
 				"RoutePathsZod failed to validate routes",
 			);
 		}
+	} else {
+		console.info(
+			`Atlas: No ATLAS_ROUTES specified. Using routes from AtlasRoutes()`,
+		);
 	}
 	///
 	// Caddyfile transform
 	//
 	if (ATLAS_CADDYFILE) {
 		console.info(`Atlas: Appending Caddyfile to ${ATLAS_CADDYFILE}\n`);
-		const caddy = Object.entries(resolved)
+		const local = CaddyfileLocalBlock();
+		const location = CaddyfileLocation(ATLAS_CADDYFILE_DOMAIN);
+		const proxies = Object.entries(resolved)
 			.map(([path, route]) => {
 				let routeObject =
 					route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
+
 				return CaddyfileReverseProxy(path, routeObject);
 			})
 			.map((line) => {
 				return line.endsWith("\n") ? line : `${line}\n`;
 			})
 			.join("");
-		console.info(`Caddyfile:\n${caddy}\n`);
-		appendFileSync(ATLAS_CADDYFILE, caddy);
+
+		if (ATLAS_CADDYFILE_REPLACE) {
+			const caddyfile = `${local([CADDYFILE_LOCAL_CERTIFICATES].join("\n"))}\n${location(proxies)}\n`;
+			console.info(`Caddyfile:\n${caddyfile}`);
+			writeFileSync(
+				ATLAS_CADDYFILE,
+				caddyfile.endsWith("\n") ? caddyfile : `${caddyfile}\n`,
+			);
+		} else {
+			const caddyfile = `${location(proxies)}\n`;
+			console.info(`Caddyfile:\n${caddyfile}`);
+			appendFileSync(
+				ATLAS_CADDYFILE,
+				caddyfile.endsWith("\n") ? caddyfile : `${caddyfile}\n`,
+			);
+		}
+	} else {
+		console.info(
+			`Atlas: No Caddyfile specified. Skipping Caddyfile generation. To enable this feature, set the \`ATLAS_CADDYFILE\` environment variable to a valid, writable filepath\n`,
+		);
 	}
 
 	return Object.entries(resolved).reduce(
@@ -246,8 +282,9 @@ export function AtlasRoutes<Paths extends Prefix>(
 
 									The general format for the DNS hostname to reach a specific instance is:
 									<instance-id>.<service-name>.<namespace-name>.<region>.aws
+	
 									For example, if the namespace is "my-namespace", the service is "my-service",
-									and the instance ID is "my-instance", the URL would be:
+										and the instance ID is "my-instance", the URL would be:
 									my-instance.my-service.my-namespace.us-east-1.aws
 								*/
 								const { id } = instance;

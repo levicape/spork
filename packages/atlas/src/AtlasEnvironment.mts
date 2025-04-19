@@ -24,7 +24,7 @@ const { R_OK, W_OK } = constants;
  * @see {@link AtlasEnvironmentZod}
  * @see {@link Atlas}
  */
-export interface AtlasEnvironment {
+export interface AtlasTopologyEnvironment {
 	/**
 	 * ATLAS_ROUTES is a URL to a JSON file that contains an Atlas configuration.
 	 * Supported protocols:
@@ -32,14 +32,24 @@ export interface AtlasEnvironment {
 	 */
 	ATLAS_ROUTES?: string;
 	/**
-	 * ATLAS_CADDYFILE is an optional path to a Caddyfile. Atlas will append the current configuration in Caddyfile format when instantiated.
+	 * ATLAS_CADDYFILE is an optional path to a Caddyfile.
+	 * Atlas will edit the file at this path to include the routes
+	 * in Caddyfile format when instantiated.
 	 */
 	ATLAS_CADDYFILE?: string;
+	/**
+	 * ATLAS_CADDYFILE_LOCAL replaces the file and adds a local block for certificates.
+	 */
+	ATLAS_CADDYFILE_REPLACE?: string;
+	/**
+	 * ATLAS_CADDYFILE_DOMAIN adds a domain block around the rendered locations.
+	 */
+	ATLAS_CADDYFILE_DOMAIN?: string;
 }
 
 /**
  * AtlasEnvironmentZod parses and validates environment variables. It is used in lieu of Effect-js to keep this package lightweight.
- * @see {@link AtlasEnvironment}
+ * @see {@link AtlasTopologyEnvironment}
  */
 export const AtlasEnvironmentZod = z.object({
 	ATLAS_ROUTES: z
@@ -86,4 +96,21 @@ export const AtlasEnvironmentZod = z.object({
 			},
 			{ message: "ATLAS_CADDYFILE is not writable" },
 		),
+	ATLAS_CADDYFILE_DOMAIN: z
+		.string()
+		.optional()
+		.transform((path) => (path ? envsubst(path) : undefined))
+		.refine(
+			(path) => {
+				if (path?.includes(" ")) {
+					process.stderr?.write(
+						`ATLAS_CADDYFILE_DOMAIN (${path}) contains spaces\n`,
+					);
+					return false;
+				}
+				return true;
+			},
+			{ message: "ATLAS_CADDYFILE_DOMAIN contains spaces" },
+		),
+	ATLAS_CADDYFILE_REPLACE: z.coerce.boolean().optional(),
 });

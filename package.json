@@ -42,7 +42,7 @@
     "effect": "catalog:effect",
     "hono": "catalog:hono",
     "hono-rate-limiter": "catalog:hono",
-    "jose": "catalog:crypto-jwk",
+    "jose": "catalog:crypto",
     "loglayer": "catalog:log-loglayer",
     "pino": "catalog:log-pino",
     "pino-pretty": "catalog:log-pino",

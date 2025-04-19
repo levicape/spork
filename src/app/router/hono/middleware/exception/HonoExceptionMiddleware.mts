@@ -28,11 +28,11 @@ export const HonoExceptionMiddleware = (props: { logger: ILogLayer }) => {
 						code: "VALIDATION_FAILED",
 						message: "Validation failed",
 						cause: error.cause,
-						validations: error.errors.map((e) => ({
+						validations: error.issues.map((e) => ({
 							code: e.code,
 							message: e.message,
 							field: e.path.join("."),
-							unrecoverable: e.fatal ?? false,
+							unrecoverable: e.code === "custom",
 						})),
 						unrecoverable: false,
 					},
