@@ -28,7 +28,9 @@ export type JwtVerifyFnJose = (
 ) => Promise<JWTVerifyResult<JWTPayload>>;
 
 export type JwtVerificationInterface = {
+	config: JwtVerificationJoseEnvs;
 	jwtVerify: JwtVerifyFnJose | null;
+	pubkeys: () => JWKSCacheInput | undefined;
 };
 
 export class JwtVerification extends Context.Tag("JwtVerification")<
@@ -47,7 +49,9 @@ export class JwtVerificationJoseEnvs {
 }
 
 export class JwtVerificationNoop implements JwtVerificationInterface {
+	config = new JwtVerificationJoseEnvs();
 	jwtVerify = null;
+	pubkeys = () => undefined;
 }
 
 export class JwtVerificationJose {
@@ -59,13 +63,13 @@ export class JwtVerificationJose {
 
 	constructor(
 		private logger: ILogLayer,
-		private context: JwtVerificationJoseEnvs,
+		public config: JwtVerificationJoseEnvs,
 		private jwkCache: JwkCacheInterface,
 	) {}
 
 	initialize = async (local: ExportedJWKSCache | null) => {
-		if (this.context.JWT_VERIFICATION_JWKS_URI) {
-			const { JWT_VERIFICATION_JWKS_URI } = this.context;
+		if (this.config.JWT_VERIFICATION_JWKS_URI) {
+			const { JWT_VERIFICATION_JWKS_URI } = this.config;
 			this.jwks = await (async () => {
 				if (JWT_VERIFICATION_JWKS_URI.startsWith("http")) {
 					this.cache = await this.jwkCache.getJwks();
@@ -83,12 +87,12 @@ export class JwtVerificationJose {
 		}
 		if (local) {
 			this.jwks = createLocalJWKSet(local.jwks);
-
+			this.cache = local;
 			this.logger
 				?.withMetadata({
 					JwtVerificationJose: {
 						local,
-						context: this.context,
+						context: this.config,
 					},
 				})
 				.warn(
@@ -102,7 +106,7 @@ export class JwtVerificationJose {
 		this.logger
 			?.withMetadata({
 				JwtVerificationJose: {
-					context: this.context,
+					context: this.config,
 					file,
 				},
 			})
@@ -117,7 +121,7 @@ export class JwtVerificationJose {
 			this.logger
 				?.withMetadata({
 					JwtVerificationJose: {
-						context: this.context,
+						context: this.config,
 						file,
 						content,
 						json,
@@ -128,6 +132,12 @@ export class JwtVerificationJose {
 			throw e;
 		}
 		const keyset = json as unknown as { keys: JWK[] };
+		if (this.cache) {
+			await this.jwkCache.setJwks({
+				jwks: keyset,
+				uat: Math.floor(Date.now() / 1000),
+			} as ExportedJWKSCache);
+		}
 		return createLocalJWKSet(keyset);
 	};
 
@@ -135,7 +145,7 @@ export class JwtVerificationJose {
 		this.logger
 			?.withMetadata({
 				JwtVerificationJose: {
-					context: this.context,
+					context: this.config,
 				},
 			})
 			.debug(`Using remote ${$$$JWT_VERIFICATION_JWKS_URI}`);
@@ -145,6 +155,12 @@ export class JwtVerificationJose {
 		});
 	};
 
+	/**
+	 * Verifies a JWT using the JWKs.
+	 * @param jwt The JWT to verify.
+	 * @param options The options to use for verification.
+	 * @returns The result of the verification.
+	 */
 	public jwtVerify: JwtVerifyFnJose = async (jwt, options) => {
 		if (this.jwks === undefined) {
 			this.logger
@@ -163,6 +179,20 @@ export class JwtVerificationJose {
 			await this.jwkCache.setJwks(this.cache as ExportedJWKSCache);
 		}
 		return result;
+	};
+
+	public pubkeys = () => {
+		if (this.jwks === undefined) {
+			this.logger
+				?.withMetadata({
+					JwtVerificationJose: {
+						jwt: "pubkeys",
+					},
+				})
+				.error("JWTVerificationJose not initialized");
+			throw new VError("JWTVerificationJose not initialized");
+		}
+		return this.cache;
 	};
 }
 

@@ -3,6 +3,7 @@ import type { JWTPayload, SignJWT } from "jose";
 import {
 	JwtSignatureAsyncLocalStorage,
 	type JwtSignatureInterface,
+	JwtSignatureJoseEnvs,
 	JwtSignatureNoop,
 } from "../../../../server/security/JwtSignature.mjs";
 import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
@@ -37,7 +38,10 @@ export function HonoHttpJwtIssuerMiddleware<Token extends JWTPayload>(
 	let jwtSignature: JwtSignatureInterface<Token>;
 	if (props?.jwtSign) {
 		logging?.debug("Building HonoHttpJwtIssuer with custom jwtSign function");
-		jwtSignature = { jwtSign: props.jwtSign };
+		jwtSignature = {
+			config: new JwtSignatureJoseEnvs(),
+			jwtSign: props.jwtSign,
+		};
 	} else {
 		const store = JwtSignatureAsyncLocalStorage.getStore();
 		if (store !== undefined && store.JwtSignature !== undefined) {
