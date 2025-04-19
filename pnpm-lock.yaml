@@ -32,7 +32,7 @@ catalogs:
     '@stricli/core':
       specifier: ^1.1.2
       version: 1.1.2
-  crypto-jwk:
+  crypto:
     jose:
       specifier: ^6.0.10
       version: 6.0.10
@@ -96,8 +96,8 @@ catalogs:
       version: 11.3.0
   hono:
     '@hono/node-server':
-      specifier: ^1.14.0
-      version: 1.14.0
+      specifier: ^1.14.1
+      version: 1.14.1
     '@hono/vite-build':
       specifier: ^1.3.0
       version: 1.4.0
@@ -111,14 +111,14 @@ catalogs:
       specifier: ^0.4.3
       version: 0.4.3
     hono:
-      specifier: ^4.7.5
-      version: 4.7.5
+      specifier: ^4.7.6
+      version: 4.7.7
     hono-rate-limiter:
       specifier: ^0.4.2
       version: 0.4.2
     honox:
-      specifier: ^0.1.38
-      version: 0.1.38
+      specifier: ^0.1.40
+      version: 0.1.40
   id:
     '@paralleldrive/cuid2':
       specifier: ^2.2.2
@@ -182,8 +182,8 @@ catalogs:
       version: 2.7.1
   project-nx:
     nx:
-      specifier: ^20.7.0
-      version: 20.7.0
+      specifier: ^20.8.0-rc.0
+      version: 20.8.0
   protobuf:
     '@bufbuild/buf':
       specifier: ^1.44.0
@@ -222,8 +222,8 @@ catalogs:
       version: 3.8.1
   schema-zod:
     zod:
-      specifier: ^3.24.2
-      version: 3.24.2
+      specifier: next
+      version: 4.0.0-beta.20250418T202744
   state:
     jotai:
       specifier: ^2.12.2
@@ -312,7 +312,7 @@ importers:
         version: 0.76.7(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4)
       '@hono/node-server':
         specifier: catalog:hono
-        version: 1.14.0(hono@4.7.5)
+        version: 1.14.1(hono@4.7.7)
       '@loglayer/transport-aws-lambda-powertools':
         specifier: catalog:log-loglayer
         version: 3.0.4(@aws-lambda-powertools/logger@2.17.0)
@@ -339,12 +339,12 @@ importers:
         version: 3.14.4
       hono:
         specifier: catalog:hono
-        version: 4.7.5
+        version: 4.7.7
       hono-rate-limiter:
         specifier: catalog:hono
-        version: 0.4.2(hono@4.7.5)
+        version: 0.4.2(hono@4.7.7)
       jose:
-        specifier: catalog:crypto-jwk
+        specifier: catalog:crypto
         version: 6.0.10
       loglayer:
         specifier: catalog:log-loglayer
@@ -360,7 +360,7 @@ importers:
         version: 12.0.0
       slonik:
         specifier: catalog:database-sql
-        version: 46.4.0(zod@3.24.2)
+        version: 46.4.0(zod@4.0.0-beta.20250418T202744)
       std-env:
         specifier: catalog:runtime-env
         version: 3.8.1
@@ -378,7 +378,7 @@ importers:
         version: 1.10.1
       zod:
         specifier: catalog:schema-zod
-        version: 3.24.2
+        version: 4.0.0-beta.20250418T202744
     devDependencies:
       '@biomejs/biome':
         specifier: catalog:lint
@@ -406,7 +406,7 @@ importers:
         version: 29.7.0
       nx:
         specifier: catalog:project-nx
-        version: 20.7.0
+        version: 20.8.0
       publint:
         specifier: catalog:package
         version: 0.3.9
@@ -461,7 +461,7 @@ importers:
         version: link:../..
       hono:
         specifier: catalog:hono
-        version: 4.7.5
+        version: 4.7.7
       ts-proto:
         specifier: catalog:protobuf
         version: 2.7.0
@@ -552,7 +552,7 @@ importers:
         version: 2.7.1
       zod:
         specifier: catalog:schema-zod
-        version: 3.24.2
+        version: 4.0.0-beta.20250418T202744
     devDependencies:
       '@types/node':
         specifier: catalog:types
@@ -583,7 +583,7 @@ importers:
         version: 1.10.1
       zod:
         specifier: catalog:schema-zod
-        version: 3.24.2
+        version: 4.0.0-beta.20250418T202744
     devDependencies:
       '@biomejs/biome':
         specifier: catalog:lint
@@ -611,7 +611,7 @@ importers:
         version: 3.778.0(@aws-sdk/client-dynamodb@3.777.0)
       hono-rate-limiter:
         specifier: ^0.4.2
-        version: 0.4.2(hono@4.7.5)
+        version: 0.4.2(hono@4.7.7)
     devDependencies:
       '@biomejs/biome':
         specifier: catalog:lint
@@ -652,7 +652,7 @@ importers:
         version: 2.2.5
       '@hono/zod-validator':
         specifier: catalog:hono
-        version: 0.4.3(hono@4.7.5)(zod@3.24.2)
+        version: 0.4.3(hono@4.7.7)(zod@4.0.0-beta.20250418T202744)
       '@levicape/paloma':
         specifier: 'catalog:'
         version: 0.3.9-main.3(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)
@@ -667,10 +667,10 @@ importers:
         version: 3.14.4
       hono:
         specifier: catalog:hono
-        version: 4.7.5
+        version: 4.7.7
       hono-rate-limiter:
         specifier: catalog:hono
-        version: 0.4.2(hono@4.7.5)
+        version: 0.4.2(hono@4.7.7)
       loglayer:
         specifier: catalog:log-loglayer
         version: 6.3.3
@@ -685,7 +685,7 @@ importers:
         version: 2.7.0
       zod:
         specifier: catalog:schema-zod
-        version: 3.24.2
+        version: 4.0.0-beta.20250418T202744
     devDependencies:
       '@biomejs/biome':
         specifier: catalog:lint
@@ -704,10 +704,10 @@ importers:
     dependencies:
       '@base-ui-components/react':
         specifier: catalog:web-components
-        version: 1.0.0-alpha.6(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))(@types/react@19.0.12)
+        version: 1.0.0-alpha.6(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))(@types/react@19.0.12)
       '@hono/node-server':
         specifier: catalog:hono
-        version: 1.14.0(hono@4.7.5)
+        version: 1.14.1(hono@4.7.7)
       '@levicape/paloma':
         specifier: 'catalog:'
         version: 0.3.9-main.3(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)
@@ -731,31 +731,31 @@ importers:
         version: 3.14.4
       hono:
         specifier: catalog:hono
-        version: 4.7.5
+        version: 4.7.7
       honox:
         specifier: catalog:hono
-        version: 0.1.38(hono@4.7.5)
+        version: 0.1.40(hono@4.7.7)
       intl-messageformat:
         specifier: catalog:web-i18n
         version: 10.7.16
       jotai:
         specifier: catalog:state
-        version: 2.12.2(@hono/react-compat@0.0.1(hono@4.7.5))(@types/react@19.0.12)
+        version: 2.12.2(@hono/react-compat@0.0.1(hono@4.7.7))(@types/react@19.0.12)
       oidc-client-ts:
         specifier: catalog:oidc-client
         version: 3.2.0
       react:
         specifier: npm:@hono/react-compat@^0.0.1
-        version: '@hono/react-compat@0.0.1(hono@4.7.5)'
+        version: '@hono/react-compat@0.0.1(hono@4.7.7)'
       react-dom:
         specifier: npm:@hono/react-compat@^0.0.1
-        version: '@hono/react-compat@0.0.1(hono@4.7.5)'
+        version: '@hono/react-compat@0.0.1(hono@4.7.7)'
       react-range:
         specifier: catalog:web-components
-        version: 1.10.0(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
+        version: 1.10.0(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
       react-router:
         specifier: catalog:web-react-router
-        version: 7.4.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
+        version: 7.4.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
       serialize-error:
         specifier: catalog:error
         version: 12.0.0
@@ -771,13 +771,13 @@ importers:
         version: 1.9.4
       '@hono/vite-build':
         specifier: catalog:hono
-        version: 1.4.0(hono@4.7.5)
+        version: 1.4.0(hono@4.7.7)
       '@hono/vite-dev-server':
         specifier: catalog:hono
-        version: 0.19.0(hono@4.7.5)
+        version: 0.19.0(hono@4.7.7)
       '@hono/vite-ssg':
         specifier: catalog:hono
-        version: 0.1.2(hono@4.7.5)
+        version: 0.1.2(hono@4.7.7)
       '@tailwindcss/vite':
         specifier: catalog:web-tailwind
         version: 4.0.16(vite@6.2.3(@types/node@22.13.17)(jiti@2.4.2)(lightningcss@1.29.2)(tsx@4.19.3)(yaml@2.7.1))
@@ -1677,8 +1677,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  '@hono/node-server@1.14.0':
-    resolution: {integrity: sha512-YUCxJwgHRKSqjrdTk9e4VMGKN27MK5r4+MGPyZTgKH+IYbK+KtYbHeOcPGJ91KGGD6RIQiz2dAHxvjauNhOS8g==}
+  '@hono/node-server@1.14.1':
+    resolution: {integrity: sha512-vmbuM+HPinjWzPe7FFPWMMQMsbKE9gDPhaH0FFdqbGpkT5lp++tcWDTxwBl5EgS5y6JVgIaCdjeHRfQ4XRBRjQ==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
@@ -1937,62 +1937,62 @@ packages:
     resolution: {integrity: sha512-y7efHHwghQfk28G2z3tlZ67pLG0XdfYbcVG26r7YIXALRsrVQcTq4/tdenSmdOrEsNahIYA/eh8aEVROWGFUDg==}
     engines: {node: ^16.14.0 || >=18.0.0}
 
-  '@nx/nx-darwin-arm64@20.7.0':
-    resolution: {integrity: sha512-SuPP4AlBGuQjfkgFaGAO66GEUll0Isir5HKa0w0LcehHmxncE9LT4YagEJONPDp6SVDIjpoFIRw71jf9toFvPQ==}
+  '@nx/nx-darwin-arm64@20.8.0':
+    resolution: {integrity: sha512-A6Te2KlINtcOo/depXJzPyjbk9E0cmgbom/sm/49XdQ8G94aDfyIIY1RIdwmDCK5NVd74KFG3JIByTk5+VnAhA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [darwin]
 
-  '@nx/nx-darwin-x64@20.7.0':
-    resolution: {integrity: sha512-eJnGtZmXzhRqitBBSIU7CjUjEGyo7QMZlvTQsqIpkZDay3v3JyQ9tikdGe3L6BwnTgeFQsBxNfK3ddmwTyK19g==}
+  '@nx/nx-darwin-x64@20.8.0':
+    resolution: {integrity: sha512-UpqayUjgalArXaDvOoshqSelTrEp42cGDsZGy0sqpxwBpm3oPQ8wE1d7oBAmRo208rAxOuFP0LZRFUqRrwGvLA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [darwin]
 
-  '@nx/nx-freebsd-x64@20.7.0':
-    resolution: {integrity: sha512-WhuK5XGy2c7WNMrVW2+mWMb0MCvgoOaSUxvxpl8OORdENYmgsUjYUDVnndjqRdSzcQTB/WfQX5G7bJQhySzaww==}
+  '@nx/nx-freebsd-x64@20.8.0':
+    resolution: {integrity: sha512-dUR2fsLyKZYMHByvjy2zvmdMbsdXAiP+6uTlIAuu8eHMZ2FPQCAtt7lPYLwOFUxUXChbek2AJ+uCI0gRAgK/eg==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [freebsd]
 
-  '@nx/nx-linux-arm-gnueabihf@20.7.0':
-    resolution: {integrity: sha512-TZKDjO/YyOT/Zq449kIpkw9OUD4EQlmMk+aM8WW29VirJnnIfGxhjfCBkSRmVIOvwSlIf7GKLQjDuWwcObIZRg==}
+  '@nx/nx-linux-arm-gnueabihf@20.8.0':
+    resolution: {integrity: sha512-GuZ7t0SzSX5ksLYva7koKZovQ5h/Kr1pFbOsQcBf3VLREBqFPSz6t7CVYpsIsMhiu/I3EKq6FZI3wDOJbee5uw==}
     engines: {node: '>= 10'}
     cpu: [arm]
     os: [linux]
 
-  '@nx/nx-linux-arm64-gnu@20.7.0':
-    resolution: {integrity: sha512-wEkE/MRcPQHZK10SgocPGCEyqFksLDdsSeE2fyVZb+N+vUGSp5YBu7OE6mUKobIs3uUXgftqP4d7QXTlehb7gw==}
+  '@nx/nx-linux-arm64-gnu@20.8.0':
+    resolution: {integrity: sha512-CiI955Q+XZmBBZ7cQqQg0MhGEFwZIgSpJnjPfWBt3iOYP8aE6nZpNOkmD7O8XcN/nEwwyeCOF8euXqEStwsk8w==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@nx/nx-linux-arm64-musl@20.7.0':
-    resolution: {integrity: sha512-je7OmX7d41ihMzq4/q6AOsYGfiH5B3xIsAKBfXHSmlGcaijnxMCzSHzjR3znxhmOS0bMcfICXCCwm1AVcyUAUA==}
+  '@nx/nx-linux-arm64-musl@20.8.0':
+    resolution: {integrity: sha512-Iy9DpvVisxsfNh4gOinmMQ4cLWdBlgvt1wmry1UwvcXg479p1oJQ1Kp1wksUZoWYqrAG8VPZUmkE0f7gjyHTGg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
 
-  '@nx/nx-linux-x64-gnu@20.7.0':
-    resolution: {integrity: sha512-dF5/VJgtbydSgu9WjL1CrzNIXZR/9Z92b4f7lrvd/KO/LwBB3EVavgV0tSq0TAFuu4n5eSo66SA1j0miIBA1dg==}
+  '@nx/nx-linux-x64-gnu@20.8.0':
+    resolution: {integrity: sha512-kZrrXXzVSbqwmdTmQ9xL4Jhi0/FSLrePSxYCL9oOM3Rsj0lmo/aC9kz4NBv1ZzuqT7fumpBOnhqiL1QyhOWOeQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@nx/nx-linux-x64-musl@20.7.0':
-    resolution: {integrity: sha512-Jy760sdTDgzplpWerrUpfugmHnjQoNbCdcrNiBm1HaL2+P/6Wl2eZ2zLW3Uw5/D/wf7z8qsokMrPO9XdvnZ3cA==}
+  '@nx/nx-linux-x64-musl@20.8.0':
+    resolution: {integrity: sha512-0l9jEMN8NhULKYCFiDF7QVpMMNG40duya+OF8dH0OzFj52N0zTsvsgLY72TIhslCB/cC74oAzsmWEIiFslscnA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
 
-  '@nx/nx-win32-arm64-msvc@20.7.0':
-    resolution: {integrity: sha512-5UvJg1RfOeSwcMr/7ghQA5yH3kpU8wye81sCLtyKPfBeH312Ntm52+ckc1IiCFAIkVyo2rmWF9ogRzOTR1O9sw==}
+  '@nx/nx-win32-arm64-msvc@20.8.0':
+    resolution: {integrity: sha512-5miZJmRSwx1jybBsiB3NGocXL9TxGdT2D+dOqR2fsLklpGz0ItEWm8+i8lhDjgOdAr2nFcuQUfQMY57f9FOHrA==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [win32]
 
-  '@nx/nx-win32-x64-msvc@20.7.0':
-    resolution: {integrity: sha512-Ddtk/owLLj1wRHB5MUuUjEfxn9h6sQntOpCC1qDYJLCLRGe3jCEx7MHxKWo5MlmtShXeHRrS27CrA5AGzSS+6w==}
+  '@nx/nx-win32-x64-msvc@20.8.0':
+    resolution: {integrity: sha512-0P5r+bDuSNvoWys+6C1/KqGpYlqwSHpigCcyRzR62iZpT3OooZv+nWO06RlURkxMR8LNvYXTSSLvoLkjxqM8uQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [win32]
@@ -3028,6 +3028,9 @@ packages:
     resolution: {integrity: sha512-nrUSn7hzt7J6JWgWGz78ZYI8wj+gdIJdk0Ynjpp8l+trkn58Uqsf6RYrYkEK+3X18EX+TNdtJI0WxAtc+L84SQ==}
     hasBin: true
 
+  '@zod/core@0.8.0':
+    resolution: {integrity: sha512-c93EH8NXxc08ATS+yuDfjrHVsUi6KNcAM+JE8UZuZsfJuYraP+pg7WhurS/CwDB3FG2NuTpXnozyRpwAHItFhA==}
+
   abbrev@2.0.0:
     resolution: {integrity: sha512-6/mh1E2u2YgEsCHdY0Yx5oW+61gZU+1vXaoiHHrpKeuRNNgFvS+/jrwHiQhB5apAf5oB7UB7E19ol2R2LKH8hQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
@@ -3928,12 +3931,12 @@ packages:
     peerDependencies:
       hono: ^4.1.1
 
-  hono@4.7.5:
-    resolution: {integrity: sha512-fDOK5W2C1vZACsgLONigdZTRZxuBqFtcKh7bUQ5cVSbwI2RWjloJDcgFOVzbQrlI6pCmhlTsVYZ7zpLj4m4qMQ==}
+  hono@4.7.7:
+    resolution: {integrity: sha512-2PCpQRbN87Crty8/L/7akZN3UyZIAopSoRxCwRbJgUuV1+MHNFHzYFxZTg4v/03cXUm+jce/qa2VSBZpKBm3Qw==}
     engines: {node: '>=16.9.0'}
 
-  honox@0.1.38:
-    resolution: {integrity: sha512-UW6Ao7nobujpkwhD1mcaJIK7zVCTEBrJWV+gmcYBEVfMR7f/zS7XeSlpTuGPGfODS10ldzHWljJ3V0rf1fcrYA==}
+  honox@0.1.40:
+    resolution: {integrity: sha512-yXxx/jHcPPJMxw5VzyaSRgl9Dxlw4sIyzbqb5vcQG8ijpvttxoHT51zombgsIID/oOa2UEHaHOfu8HI+Tgjvww==}
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: '>=4.*'
@@ -4637,8 +4640,8 @@ packages:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
     engines: {node: '>=8'}
 
-  nx@20.7.0:
-    resolution: {integrity: sha512-IcrQr6alrSJTl5pb80Y/ytwK5Bsx7zC0LbJj5Ck5K+dctFKO2sEAvB2hKz5GiZx92NJzcfCVc5Lu44UeZST1bw==}
+  nx@20.8.0:
+    resolution: {integrity: sha512-+BN5B5DFBB5WswD8flDDTnr4/bf1VTySXOv60aUAllHqR+KS6deT0p70TTMZF4/A2n/L2UCWDaDro37MGaYozA==}
     hasBin: true
     peerDependencies:
       '@swc-node/register': ^1.8.0
@@ -5737,11 +5740,6 @@ packages:
     resolution: {integrity: sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==}
     engines: {node: '>= 6'}
 
-  yaml@2.7.0:
-    resolution: {integrity: sha512-+hSoy/QHluxmC9kCIJyL/uyFmLmc+e5CFR5Wa+bpIhIj85LVb9ZH2nVnqrHoSvKogwODv0ClqZkmiSSaIH5LTA==}
-    engines: {node: '>= 14'}
-    hasBin: true
-
   yaml@2.7.1:
     resolution: {integrity: sha512-10ULxpnOCQXxJvBgxsn9ptjq6uviG/htZKk9veJGhlqn3w/DxQ631zFF+nlQXLwmImeS5amR2dl2U8sg6U9jsQ==}
     engines: {node: '>= 14'}
@@ -5773,6 +5771,9 @@ packages:
 
   zod@3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
+
+  zod@4.0.0-beta.20250418T202744:
+    resolution: {integrity: sha512-LFBAGnymB/lmgrvO/6RrcYbkvxulIxaVHyrNWyZ0MTDIxr6IrXAXfZ0pzmBB3E7FlmOEX08n6LPIIZuHcxfwUA==}
 
 snapshots:
 
@@ -6706,16 +6707,16 @@ snapshots:
       '@babel/helper-string-parser': 7.25.9
       '@babel/helper-validator-identifier': 7.25.9
 
-  '@base-ui-components/react@1.0.0-alpha.6(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))(@types/react@19.0.12)':
+  '@base-ui-components/react@1.0.0-alpha.6(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))(@types/react@19.0.12)':
     dependencies:
       '@babel/runtime': 7.27.0
-      '@floating-ui/react': 0.27.5(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@floating-ui/react': 0.27.5(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
       '@floating-ui/utils': 0.2.9
-      '@react-aria/overlays': 3.26.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/overlays': 3.26.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
       prop-types: 15.8.1
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      use-sync-external-store: 1.4.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      use-sync-external-store: 1.4.0(@hono/react-compat@0.0.1(hono@4.7.7))
     optionalDependencies:
       '@types/react': 19.0.12
 
@@ -7126,18 +7127,18 @@ snapshots:
       '@floating-ui/core': 1.6.9
       '@floating-ui/utils': 0.2.9
 
-  '@floating-ui/react-dom@2.1.2(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@floating-ui/react-dom@2.1.2(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
       '@floating-ui/dom': 1.6.13
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@floating-ui/react@0.27.5(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@floating-ui/react@0.27.5(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@floating-ui/react-dom': 2.1.2(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@floating-ui/react-dom': 2.1.2(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
       '@floating-ui/utils': 0.2.9
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
       tabbable: 6.2.0
 
   '@floating-ui/utils@0.2.9': {}
@@ -7180,32 +7181,32 @@ snapshots:
       protobufjs: 7.4.0
       yargs: 17.7.2
 
-  '@hono/node-server@1.14.0(hono@4.7.5)':
+  '@hono/node-server@1.14.1(hono@4.7.7)':
     dependencies:
-      hono: 4.7.5
+      hono: 4.7.7
 
-  '@hono/react-compat@0.0.1(hono@4.7.5)':
+  '@hono/react-compat@0.0.1(hono@4.7.7)':
     dependencies:
-      hono: 4.7.5
+      hono: 4.7.7
 
-  '@hono/vite-build@1.4.0(hono@4.7.5)':
+  '@hono/vite-build@1.4.0(hono@4.7.7)':
     dependencies:
-      hono: 4.7.5
+      hono: 4.7.7
 
-  '@hono/vite-dev-server@0.19.0(hono@4.7.5)':
+  '@hono/vite-dev-server@0.19.0(hono@4.7.7)':
     dependencies:
-      '@hono/node-server': 1.14.0(hono@4.7.5)
-      hono: 4.7.5
+      '@hono/node-server': 1.14.1(hono@4.7.7)
+      hono: 4.7.7
       minimatch: 9.0.5
 
-  '@hono/vite-ssg@0.1.2(hono@4.7.5)':
+  '@hono/vite-ssg@0.1.2(hono@4.7.7)':
     dependencies:
-      hono: 4.7.5
+      hono: 4.7.7
 
-  '@hono/zod-validator@0.4.3(hono@4.7.5)(zod@3.24.2)':
+  '@hono/zod-validator@0.4.3(hono@4.7.7)(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      hono: 4.7.5
-      zod: 3.24.2
+      hono: 4.7.7
+      zod: 4.0.0-beta.20250418T202744
 
   '@internationalized/date@3.7.0':
     dependencies:
@@ -7640,34 +7641,34 @@ snapshots:
       - bluebird
       - supports-color
 
-  '@nx/nx-darwin-arm64@20.7.0':
+  '@nx/nx-darwin-arm64@20.8.0':
     optional: true
 
-  '@nx/nx-darwin-x64@20.7.0':
+  '@nx/nx-darwin-x64@20.8.0':
     optional: true
 
-  '@nx/nx-freebsd-x64@20.7.0':
+  '@nx/nx-freebsd-x64@20.8.0':
     optional: true
 
-  '@nx/nx-linux-arm-gnueabihf@20.7.0':
+  '@nx/nx-linux-arm-gnueabihf@20.8.0':
     optional: true
 
-  '@nx/nx-linux-arm64-gnu@20.7.0':
+  '@nx/nx-linux-arm64-gnu@20.8.0':
     optional: true
 
-  '@nx/nx-linux-arm64-musl@20.7.0':
+  '@nx/nx-linux-arm64-musl@20.8.0':
     optional: true
 
-  '@nx/nx-linux-x64-gnu@20.7.0':
+  '@nx/nx-linux-x64-gnu@20.8.0':
     optional: true
 
-  '@nx/nx-linux-x64-musl@20.7.0':
+  '@nx/nx-linux-x64-musl@20.8.0':
     optional: true
 
-  '@nx/nx-win32-arm64-msvc@20.7.0':
+  '@nx/nx-win32-arm64-msvc@20.8.0':
     optional: true
 
-  '@nx/nx-win32-x64-msvc@20.7.0':
+  '@nx/nx-win32-x64-msvc@20.8.0':
     optional: true
 
   '@opentelemetry/api-logs@0.55.0':
@@ -7974,109 +7975,109 @@ snapshots:
       - ts-node
       - typescript
 
-  '@react-aria/focus@3.20.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/focus@3.20.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-aria/interactions': 3.24.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/interactions': 3.24.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
       clsx: 2.1.1
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-aria/i18n@3.12.7(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/i18n@3.12.7(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
       '@internationalized/date': 3.7.0
       '@internationalized/message': 3.1.6
       '@internationalized/number': 3.6.0
       '@internationalized/string': 3.2.5
-      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-aria/interactions@3.24.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/interactions@3.24.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
       '@react-stately/flags': 3.1.0
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-aria/overlays@3.26.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/overlays@3.26.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-aria/focus': 3.20.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/i18n': 3.12.7(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/interactions': 3.24.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/visually-hidden': 3.8.21(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-stately/overlays': 3.6.14(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/button': 3.11.0(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/overlays': 3.8.13(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/focus': 3.20.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/i18n': 3.12.7(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/interactions': 3.24.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/visually-hidden': 3.8.21(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-stately/overlays': 3.6.14(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/button': 3.11.0(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/overlays': 3.8.13(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-aria/ssr@3.9.7(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/ssr@3.9.7(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-aria/utils@3.28.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/utils@3.28.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/ssr': 3.9.7(@hono/react-compat@0.0.1(hono@4.7.7))
       '@react-stately/flags': 3.1.0
-      '@react-stately/utils': 3.10.5(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-stately/utils': 3.10.5(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
       clsx: 2.1.1
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-aria/visually-hidden@3.8.21(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-aria/visually-hidden@3.8.21(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-aria/interactions': 3.24.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-aria/interactions': 3.24.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-aria/utils': 3.28.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
   '@react-stately/flags@3.1.0':
     dependencies:
       '@swc/helpers': 0.5.15
 
-  '@react-stately/overlays@3.6.14(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-stately/overlays@3.6.14(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-stately/utils': 3.10.5(@hono/react-compat@0.0.1(hono@4.7.5))
-      '@react-types/overlays': 3.8.13(@hono/react-compat@0.0.1(hono@4.7.5))
+      '@react-stately/utils': 3.10.5(@hono/react-compat@0.0.1(hono@4.7.7))
+      '@react-types/overlays': 3.8.13(@hono/react-compat@0.0.1(hono@4.7.7))
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-stately/utils@3.10.5(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-stately/utils@3.10.5(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
       '@swc/helpers': 0.5.15
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-types/button@3.11.0(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-types/button@3.11.0(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-types/overlays@3.8.13(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-types/overlays@3.8.13(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      '@react-types/shared': 3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  '@react-types/shared@3.28.0(@hono/react-compat@0.0.1(hono@4.7.5))':
+  '@react-types/shared@3.28.0(@hono/react-compat@0.0.1(hono@4.7.7))':
     dependencies:
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
   '@rollup/rollup-android-arm-eabi@4.37.0':
     optional: true
@@ -8176,53 +8177,53 @@ snapshots:
 
   '@sindresorhus/merge-streams@2.3.0': {}
 
-  '@slonik/driver@46.4.0(zod@3.24.2)':
+  '@slonik/driver@46.4.0(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      '@slonik/types': 46.4.0(zod@3.24.2)
-      '@slonik/utilities': 46.4.0(zod@3.24.2)
+      '@slonik/types': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/utilities': 46.4.0(zod@4.0.0-beta.20250418T202744)
       roarr: 7.21.1
       serialize-error: 8.1.0
       strict-event-emitter-types: 2.0.0
-      zod: 3.24.2
+      zod: 4.0.0-beta.20250418T202744
 
-  '@slonik/errors@46.4.0(zod@3.24.2)':
+  '@slonik/errors@46.4.0(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      '@slonik/types': 46.4.0(zod@3.24.2)
-      zod: 3.24.2
+      '@slonik/types': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      zod: 4.0.0-beta.20250418T202744
 
-  '@slonik/pg-driver@46.4.0(zod@3.24.2)':
+  '@slonik/pg-driver@46.4.0(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      '@slonik/driver': 46.4.0(zod@3.24.2)
-      '@slonik/errors': 46.4.0(zod@3.24.2)
-      '@slonik/sql-tag': 46.4.0(zod@3.24.2)
-      '@slonik/types': 46.4.0(zod@3.24.2)
-      '@slonik/utilities': 46.4.0(zod@3.24.2)
+      '@slonik/driver': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/errors': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/sql-tag': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/types': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/utilities': 46.4.0(zod@4.0.0-beta.20250418T202744)
       pg: 8.14.0
       pg-query-stream: 4.8.0(pg@8.14.0)
       pg-types: 4.0.2
       postgres-array: 3.0.4
-      zod: 3.24.2
+      zod: 4.0.0-beta.20250418T202744
     transitivePeerDependencies:
       - pg-native
 
-  '@slonik/sql-tag@46.4.0(zod@3.24.2)':
+  '@slonik/sql-tag@46.4.0(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      '@slonik/errors': 46.4.0(zod@3.24.2)
-      '@slonik/types': 46.4.0(zod@3.24.2)
+      '@slonik/errors': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/types': 46.4.0(zod@4.0.0-beta.20250418T202744)
       roarr: 7.21.1
       safe-stable-stringify: 2.5.0
       serialize-error: 8.1.0
-      zod: 3.24.2
+      zod: 4.0.0-beta.20250418T202744
 
-  '@slonik/types@46.4.0(zod@3.24.2)':
+  '@slonik/types@46.4.0(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      zod: 3.24.2
+      zod: 4.0.0-beta.20250418T202744
 
-  '@slonik/utilities@46.4.0(zod@3.24.2)':
+  '@slonik/utilities@46.4.0(zod@4.0.0-beta.20250418T202744)':
     dependencies:
-      '@slonik/errors': 46.4.0(zod@3.24.2)
-      '@slonik/types': 46.4.0(zod@3.24.2)
-      zod: 3.24.2
+      '@slonik/errors': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/types': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      zod: 4.0.0-beta.20250418T202744
 
   '@smithy/abort-controller@4.0.1':
     dependencies:
@@ -8975,6 +8976,8 @@ snapshots:
   '@zkochan/js-yaml@0.0.7':
     dependencies:
       argparse: 2.0.1
+
+  '@zod/core@0.8.0': {}
 
   abbrev@2.0.0: {}
 
@@ -9887,20 +9890,20 @@ snapshots:
     dependencies:
       parse-passwd: 1.0.0
 
-  hono-rate-limiter@0.4.2(hono@4.7.5):
+  hono-rate-limiter@0.4.2(hono@4.7.7):
     dependencies:
-      hono: 4.7.5
+      hono: 4.7.7
 
-  hono@4.7.5: {}
+  hono@4.7.7: {}
 
-  honox@0.1.38(hono@4.7.5):
+  honox@0.1.40(hono@4.7.7):
     dependencies:
       '@babel/generator': 7.25.6
       '@babel/parser': 7.25.6
       '@babel/traverse': 7.25.6
       '@babel/types': 7.25.6
-      '@hono/vite-dev-server': 0.19.0(hono@4.7.5)
-      hono: 4.7.5
+      '@hono/vite-dev-server': 0.19.0(hono@4.7.7)
+      hono: 4.7.7
       jsonc-parser: 3.3.1
       precinct: 12.1.2
     optionalDependencies:
@@ -10098,10 +10101,10 @@ snapshots:
 
   jose@6.0.10: {}
 
-  jotai@2.12.2(@hono/react-compat@0.0.1(hono@4.7.5))(@types/react@19.0.12):
+  jotai@2.12.2(@hono/react-compat@0.0.1(hono@4.7.7))(@types/react@19.0.12):
     optionalDependencies:
       '@types/react': 19.0.12
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
   joycon@3.1.1: {}
 
@@ -10545,7 +10548,7 @@ snapshots:
     dependencies:
       path-key: 3.1.1
 
-  nx@20.7.0:
+  nx@20.8.0:
     dependencies:
       '@napi-rs/wasm-runtime': 0.2.4
       '@yarnpkg/lockfile': 1.1.0
@@ -10578,20 +10581,20 @@ snapshots:
       tmp: 0.2.3
       tsconfig-paths: 4.2.0
       tslib: 2.8.1
-      yaml: 2.7.0
+      yaml: 2.7.1
       yargs: 17.7.2
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@nx/nx-darwin-arm64': 20.7.0
-      '@nx/nx-darwin-x64': 20.7.0
-      '@nx/nx-freebsd-x64': 20.7.0
-      '@nx/nx-linux-arm-gnueabihf': 20.7.0
-      '@nx/nx-linux-arm64-gnu': 20.7.0
-      '@nx/nx-linux-arm64-musl': 20.7.0
-      '@nx/nx-linux-x64-gnu': 20.7.0
-      '@nx/nx-linux-x64-musl': 20.7.0
-      '@nx/nx-win32-arm64-msvc': 20.7.0
-      '@nx/nx-win32-x64-msvc': 20.7.0
+      '@nx/nx-darwin-arm64': 20.8.0
+      '@nx/nx-darwin-x64': 20.8.0
+      '@nx/nx-freebsd-x64': 20.8.0
+      '@nx/nx-linux-arm-gnueabihf': 20.8.0
+      '@nx/nx-linux-arm64-gnu': 20.8.0
+      '@nx/nx-linux-arm64-musl': 20.8.0
+      '@nx/nx-linux-x64-gnu': 20.8.0
+      '@nx/nx-linux-x64-musl': 20.8.0
+      '@nx/nx-win32-arm64-msvc': 20.8.0
+      '@nx/nx-win32-x64-msvc': 20.8.0
     transitivePeerDependencies:
       - debug
 
@@ -11016,20 +11019,20 @@ snapshots:
 
   react-is@18.3.1: {}
 
-  react-range@1.10.0(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5)):
+  react-range@1.10.0(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7)):
     dependencies:
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
-  react-router@7.4.1(@hono/react-compat@0.0.1(hono@4.7.5))(@hono/react-compat@0.0.1(hono@4.7.5)):
+  react-router@7.4.1(@hono/react-compat@0.0.1(hono@4.7.7))(@hono/react-compat@0.0.1(hono@4.7.7)):
     dependencies:
       '@types/cookie': 0.6.0
       cookie: 1.0.2
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
       set-cookie-parser: 2.7.1
       turbo-stream: 2.4.0
     optionalDependencies:
-      react-dom: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react-dom: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
   read-cmd-shim@4.0.0: {}
 
@@ -11218,20 +11221,20 @@ snapshots:
 
   slash@5.1.0: {}
 
-  slonik@46.4.0(zod@3.24.2):
+  slonik@46.4.0(zod@4.0.0-beta.20250418T202744):
     dependencies:
-      '@slonik/driver': 46.4.0(zod@3.24.2)
-      '@slonik/errors': 46.4.0(zod@3.24.2)
-      '@slonik/pg-driver': 46.4.0(zod@3.24.2)
-      '@slonik/sql-tag': 46.4.0(zod@3.24.2)
-      '@slonik/utilities': 46.4.0(zod@3.24.2)
+      '@slonik/driver': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/errors': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/pg-driver': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/sql-tag': 46.4.0(zod@4.0.0-beta.20250418T202744)
+      '@slonik/utilities': 46.4.0(zod@4.0.0-beta.20250418T202744)
       get-stack-trace: 3.1.1
       iso8601-duration: 1.3.0
       postgres-interval: 4.0.2
       roarr: 7.21.1
       serialize-error: 8.1.0
       strict-event-emitter-types: 2.0.0
-      zod: 3.24.2
+      zod: 4.0.0-beta.20250418T202744
     transitivePeerDependencies:
       - pg-native
 
@@ -11546,9 +11549,9 @@ snapshots:
 
   upath@1.2.0: {}
 
-  use-sync-external-store@1.4.0(@hono/react-compat@0.0.1(hono@4.7.5)):
+  use-sync-external-store@1.4.0(@hono/react-compat@0.0.1(hono@4.7.7)):
     dependencies:
-      react: '@hono/react-compat@0.0.1(hono@4.7.5)'
+      react: '@hono/react-compat@0.0.1(hono@4.7.7)'
 
   util-deprecate@1.0.2: {}
 
@@ -11633,8 +11636,6 @@ snapshots:
 
   yaml@1.10.2: {}
 
-  yaml@2.7.0: {}
-
   yaml@2.7.1: {}
 
   yargs-parser@20.2.9: {}
@@ -11666,3 +11667,7 @@ snapshots:
   yocto-queue@1.2.0: {}
 
   zod@3.24.2: {}
+
+  zod@4.0.0-beta.20250418T202744:
+    dependencies:
+      '@zod/core': 0.8.0
