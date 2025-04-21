@@ -27,7 +27,14 @@ export type HonoHttpAuthenticationHandler = (
 	token: JWTPayload,
 ) => boolean | Promise<boolean>;
 
-export function HonoHttpAuthenticationDerive<Token extends JWTPayload>({
+type HttpAuthenticationContext<Token extends JWTPayload> = Context<
+	HonoHttp & HonoHttpAuthentication<Token>
+>;
+
+export function HonoHttpAuthenticationDerive<
+	Token extends JWTPayload,
+	HonoContext extends Context<HonoHttp & HonoHttpAuthentication<Token>>,
+>({
 	hook,
 	jwtVerification,
 	logging,
@@ -43,7 +50,7 @@ export function HonoHttpAuthenticationDerive<Token extends JWTPayload>({
 }) {
 	return async function HonoVerifyTokenDerivation(
 		token: string | undefined,
-		context: Context<HonoHttp & HonoHttpAuthentication<Token>>,
+		context: HonoContext,
 	): Promise<boolean> {
 		let jwt: JWTPayload | undefined;
 		let unparseable: boolean | string = false;
@@ -144,14 +151,21 @@ export function HonoHttpAuthenticationMiddleware<
 	}
 	jwtVerification = store?.JwtVerification ?? new JwtVerificationNoop();
 
-	const derive = HonoHttpAuthenticationDerive<Token>({
+	const derive = HonoHttpAuthenticationDerive<
+		Token,
+		HttpAuthenticationContext<Token>
+	>({
 		hook,
 		logging,
 		jwtVerification,
 	});
 	return __internal_HonoBearerAuth<Token>({
 		jwtVerification,
-		verifyToken: async function HonoVerifyToken(token, c) {
+		verifyToken: async function HonoVerifyToken(
+			token,
+			c: HttpAuthenticationContext<Token>,
+		) {
+			c.set("JwtVerification", jwtVerification);
 			return await derive(token, c);
 		},
 	});
