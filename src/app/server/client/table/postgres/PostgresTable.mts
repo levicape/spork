@@ -75,11 +75,15 @@ export class PostgresTable<
 		T extends Partial<Record<keyof T, BasicDataType>> & IRow<K>,
 		K extends IRow<K>,
 	>(
-		props: PostgresTableProps,
+		props: Omit<PostgresTableProps, "writes" | "reads"> & {
+			writes?: DatabasePool | undefined;
+			reads?: DatabasePool | undefined;
+		},
 		getKey: PostgresGetKey<K>,
 	): Promise<PostgresTable<T, K>> => {
 		const { master, replica, databaseName, schemaName, writer, reader } = props;
 		let { writes, reads } = props;
+
 		if (!writes) {
 			writes = await createPool(
 				`${master.replace(
