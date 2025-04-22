@@ -1,6 +1,8 @@
 import { Config, Effect, Ref } from "effect";
 import { Service } from "effect/Effect";
 import { type ExportedJWKSCache, exportJWK, generateKeyPair } from "jose";
+import { LoggingContext } from "../../logging/LoggingContext.mjs";
+import { JwtSignatureLayerConfig } from "../JwtSignature.mjs";
 
 const $$$JWK_LOCAL_SYNCHRONIZED_ALG = "JWK_LOCAL_SYNCHRONIZED_ALG";
 const $$$JWK_LOCAL_SYNCHRONIZED_CRV = "JWK_LOCAL_SYNCHRONIZED_CRV";
@@ -38,27 +40,44 @@ export class JwkLocalSynchronized extends Service<JwkLocalSynchronized>()(
 	{
 		effect: Effect.cached(
 			Effect.gen(function* () {
+				const console = yield* LoggingContext;
+				const logger = yield* console.logger;
 				const { JWK_LOCAL_SYNCHRONIZED_ALG, JWK_LOCAL_SYNCHRONIZED_CRV } =
 					yield* JwkLocalSynchronizedConfig;
+				const config = yield* JwtSignatureLayerConfig;
 
-				const keypair = yield* Effect.promise(() =>
-					generateKeyPair(JWK_LOCAL_SYNCHRONIZED_ALG, {
-						crv: JWK_LOCAL_SYNCHRONIZED_CRV,
-						extractable: true,
-					}),
-				);
-				const publicJwk = yield* Effect.promise(() =>
-					exportJWK(keypair.publicKey),
-				);
+				let keypair: CryptoKeyPair | undefined;
+				let publicJwk: JsonWebKey | undefined;
+				if (config?.JWT_SIGNATURE_JWKS_URI?.toLowerCase() === "unload") {
+					logger
+						.withMetadata({ JwtVerificationLayer: { config } })
+						.info("JwkLocalSynchronized not initialized due to URI = 'unload'");
+				} else {
+					keypair = yield* Effect.promise(() =>
+						generateKeyPair(JWK_LOCAL_SYNCHRONIZED_ALG, {
+							crv: JWK_LOCAL_SYNCHRONIZED_CRV,
+							extractable: true,
+						}),
+					);
+
+					const isKeypair = keypair;
+					publicJwk = yield* Effect.promise(() =>
+						exportJWK(isKeypair.publicKey),
+					);
+				}
 
 				return {
-					keypair,
-					ref: yield* Ref.make<ExportedJWKSCache | null>({
-						jwks: {
-							keys: [publicJwk],
-						},
-						uat: Date.now(),
-					}),
+					keypair: keypair as typeof keypair | undefined,
+					ref: yield* Ref.make<ExportedJWKSCache | null>(
+						publicJwk
+							? {
+									jwks: {
+										keys: [publicJwk],
+									},
+									uat: Date.now(),
+								}
+							: null,
+					),
 					cache: yield* Effect.makeSemaphore(1),
 				};
 			}),

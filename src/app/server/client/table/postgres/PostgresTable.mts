@@ -18,21 +18,20 @@ export type PostgresTableProps = {
 	schemaName: string;
 	writer: PostgresCredentials;
 	reader: PostgresCredentials;
-	writes?: DatabasePool;
-	reads?: DatabasePool;
+	writes: DatabasePool;
+	reads: DatabasePool;
 };
-// Logger.log({
-// 	ServerContext: {
-// 		message: "Polyfilling BigInt.toJSON",
-// 	},
-// });
-// BigIntJsonSupport();
+
+export type PostgresGetKey<K> = (
+	partitionKey: string,
+	rowKey?: string,
+) => { [k in keyof K]: string };
+
 export class PostgresTable<
 	T extends Partial<Record<keyof T, BasicDataType>> & IRow<K>,
 	K extends IRow<K>,
 > implements ITable<T, K>
 {
-	private readonly init: (role: "writer" | "reader") => Promise<DatabasePool>;
 	private tableName: string;
 	private master: string;
 	private replica: string;
@@ -44,7 +43,7 @@ export class PostgresTable<
 	private writes: DatabasePool;
 
 	static SSL_MODE = "&sslmode=require";
-	constructor(
+	protected constructor(
 		{
 			master,
 			replica,
@@ -68,69 +67,78 @@ export class PostgresTable<
 		this.databaseName = databaseName;
 		this.writer = writer;
 		this.reader = reader;
-
-		if (reads === undefined || writes === undefined) {
-			this.reads = {
-				query: async () => {
-					return { rows: [] };
-				},
-			} as unknown as DatabasePool;
-			this.writes = {
-				query: async () => {
-					return { rows: [] };
-				},
-			} as unknown as DatabasePool;
-			this.init = (role) => {
-				const auth = role === "writer" ? writer : reader;
-				const connection: string = role === "writer" ? master : replica;
-
-				return createPool(
-					`${connection.replace(
-						"postgresql://",
-						`postgresql://${auth.username}:${auth.password}@`,
-					)}/${databaseName}?currentSchema=${schemaName}${PostgresTable.SSL_MODE}`,
-					{
-						typeParsers: [
-							...createTypeParserPreset(),
-							// {
-							//   name: "bytea",
-							//   parse: (value) => {
-							//     if (value instanceof Buffer) {
-							//       return value.toString("base64");
-							//     }
-							//     return value;
-							//   }
-							// }
-						],
-					},
-				);
-			};
-			this.initialize().then((_r) => {
-				// Logger.debug({
-				// 	PostgresTable: {
-				// 		master: this.master,
-				// 		replica: this.replica,
-				// 		databaseName: this.databaseName,
-				// 		tableName: this.tableName,
-				// 		schemaName: this.schemaName,
-				// 		getKey: this.getKey,
-				// 	},
-				// });
-			});
-		} else {
-			this.reads = reads;
-			this.writes = writes;
-			this.init = async () => reads;
-		}
+		this.writes = writes;
+		this.reads = reads;
 	}
 
-	initialize = async (): Promise<void> => {
-		if (this.writes === undefined) {
-			this.writes = await this.init("writer");
+	static for = async <
+		T extends Partial<Record<keyof T, BasicDataType>> & IRow<K>,
+		K extends IRow<K>,
+	>(
+		props: PostgresTableProps,
+		getKey: PostgresGetKey<K>,
+	): Promise<PostgresTable<T, K>> => {
+		const { master, replica, databaseName, schemaName, writer, reader } = props;
+		let { writes, reads } = props;
+		if (!writes) {
+			writes = await createPool(
+				`${master.replace(
+					"postgresql://",
+					`postgresql://${writer.username}:${writer.password}@`,
+				)}/${databaseName}?currentSchema=${schemaName}${PostgresTable.SSL_MODE}`,
+				{
+					typeParsers: [
+						...createTypeParserPreset(),
+						// {
+						//   name: "bytea",
+						//   parse: (value) => {
+						//     if (value instanceof Buffer) {
+						//       return value.toString("base64");
+						//     }
+						//     return value;
+						//   }
+						// }
+					],
+				},
+			);
 		}
-		if (this.reads === undefined) {
-			this.reads = await this.init("reader");
+
+		if (!reads) {
+			reads = await createPool(
+				`${replica.replace(
+					"postgresql://",
+					`postgresql://${reader.username}:${reader.password}@`,
+				)}/${databaseName}?currentSchema=${schemaName}${PostgresTable.SSL_MODE}`,
+				{
+					typeParsers: [
+						...createTypeParserPreset(),
+						// {
+						//   name: "bytea",
+						//   parse: (value) => {
+						//     if (value instanceof Buffer) {
+						//       return value.toString("base64");
+						//     }
+						//     return value;
+						//   }
+						// }
+					],
+				},
+			);
 		}
+		return new PostgresTable(
+			{
+				master,
+				replica,
+				databaseName,
+				tableName: props.tableName,
+				schemaName,
+				writer,
+				reader,
+				writes,
+				reads,
+			},
+			getKey,
+		);
 	};
 
 	forGsi = (gsi: string): ITable<T, K> => {

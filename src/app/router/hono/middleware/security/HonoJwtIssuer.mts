@@ -23,7 +23,7 @@ export type HonoJwtIssuerProps<Token extends JWTPayload> = {
 
 export type HonoJwtIssuer<Token extends JWTPayload> = {
 	Variables: {
-		JwtSignature: JwtSignatureInterface<Token>["jwtSign"];
+		JwtSignature: Omit<JwtSignatureInterface<Token>, "initializeToken">;
 	};
 };
 
@@ -54,11 +54,10 @@ export function HonoHttpJwtIssuerMiddleware<Token extends JWTPayload>(
 		jwtSignature = store?.JwtSignature ?? new JwtSignatureNoop();
 	}
 
-	const { jwtSign } = jwtSignature;
 	jwtSignature.initializeToken = props?.initializeToken;
 
 	return createMiddleware<HonoJwtIssuer<Token>>(async (context, next) => {
-		context.set("JwtSignature", jwtSign);
+		context.set("JwtSignature", jwtSignature);
 		await next();
 	});
 }
