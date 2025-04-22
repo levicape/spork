@@ -26,10 +26,10 @@ describe("PostgresTable", () => {
 	let reads: DatabasePool;
 	let table: PostgresTable<TestRow, TestKey>;
 
-	before(() => {
+	before(async () => {
 		writes = createPool("mock-connection-string") as unknown as DatabasePool;
 		reads = createPool("mock-connection-string") as unknown as DatabasePool;
-		table = new PostgresTable<TestRow, TestKey>(
+		table = await PostgresTable.for<TestRow, TestKey>(
 			{
 				master: "mock-master",
 				replica: "mock-replica",
@@ -44,6 +44,8 @@ describe("PostgresTable", () => {
 					username: "mock-reader-username",
 					password: "mock-reader-password",
 				},
+				writes,
+				reads,
 			},
 			(pk, sk) => ({ primary_key: pk, sort_key: sk || "" }),
 		);

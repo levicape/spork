@@ -104,6 +104,7 @@ export const HonoRequestLogger = (props: HonoRequestLoggerProps) => {
 		before(withMetadata, method, path);
 		const start: number = Date.now();
 		await HonoRequestLoggingStorage.run({ logging: requestLogger }, () => {
+			c.set("RequestLogging", requestLogger);
 			return next();
 		});
 

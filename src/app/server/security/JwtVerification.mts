@@ -20,6 +20,7 @@ import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
 import { JwkCache, type JwkCacheInterface } from "./JwkCache/JwkCache.mjs";
 import { JwkLocalSynchronized } from "./JwkCache/JwkLocalSynchronized.mjs";
+import { $$$JWT_SIGNATURE_JWKS_URI } from "./JwtSignature.mjs";
 
 type JwtVerifyFnWithKey = typeof jwtVerify;
 export type JwtVerifyFnJose = (
@@ -27,10 +28,15 @@ export type JwtVerifyFnJose = (
 	options: Parameters<JwtVerifyFnWithKey>[2],
 ) => Promise<JWTVerifyResult<JWTPayload>>;
 
+export type JoseJwkKeyring =
+	| ReturnType<typeof createLocalJWKSet>
+	| ReturnType<typeof createRemoteJWKSet>
+	| undefined;
+
 export type JwtVerificationInterface = {
 	config: JwtVerificationJoseEnvs;
 	jwtVerify: JwtVerifyFnJose | null;
-	pubkeys: () => JWKSCacheInput | undefined;
+	jwks: JoseJwkKeyring | null;
 };
 
 export class JwtVerification extends Context.Tag("JwtVerification")<
@@ -51,14 +57,10 @@ export class JwtVerificationJoseEnvs {
 export class JwtVerificationNoop implements JwtVerificationInterface {
 	config = new JwtVerificationJoseEnvs();
 	jwtVerify = null;
-	pubkeys = () => undefined;
+	jwks = null;
 }
-
 export class JwtVerificationJose {
-	private jwks:
-		| ReturnType<typeof createLocalJWKSet>
-		| ReturnType<typeof createRemoteJWKSet>
-		| undefined;
+	public jwks: JoseJwkKeyring | null = null;
 	private cache: JWKSCacheInput | undefined;
 
 	constructor(
@@ -83,22 +85,22 @@ export class JwtVerificationJose {
 					`Unsupported JWK URL format: ${JWT_VERIFICATION_JWKS_URI}`,
 				);
 			})();
-			return Promise.resolve();
-		}
-		if (local) {
-			this.jwks = createLocalJWKSet(local.jwks);
-			this.cache = local;
-			this.logger
-				?.withMetadata({
-					JwtVerificationJose: {
-						local,
-						context: this.config,
-					},
-				})
-				.warn(
-					`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using generated key.
-				To disable this behavior, set ${$$$JWT_VERIFICATION_JWKS_URI} to "unload"`,
-				);
+		} else {
+			if (local) {
+				this.jwks = createLocalJWKSet(local.jwks);
+				this.cache = local;
+				this.logger
+					?.withMetadata({
+						JwtVerificationJose: {
+							local,
+							context: this.config,
+						},
+					})
+					.debug(
+						`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using signature local key.
+					To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+					);
+			}
 		}
 	};
 
@@ -162,7 +164,7 @@ export class JwtVerificationJose {
 	 * @returns The result of the verification.
 	 */
 	public jwtVerify: JwtVerifyFnJose = async (jwt, options) => {
-		if (this.jwks === undefined) {
+		if (this.jwks === undefined || this.jwks === null) {
 			this.logger
 				?.withMetadata({
 					JwtVerificationJose: {
@@ -179,20 +181,6 @@ export class JwtVerificationJose {
 			await this.jwkCache.setJwks(this.cache as ExportedJWKSCache);
 		}
 		return result;
-	};
-
-	public pubkeys = () => {
-		if (this.jwks === undefined) {
-			this.logger
-				?.withMetadata({
-					JwtVerificationJose: {
-						jwt: "pubkeys",
-					},
-				})
-				.error("JWTVerificationJose not initialized");
-			throw new VError("JWTVerificationJose not initialized");
-		}
-		return this.cache;
 	};
 }
 

@@ -1,18 +1,16 @@
 import { serve } from "@hono/node-server";
 import { Context, Effect, Layer, Runtime, pipe } from "effect";
 import type { Hono } from "hono";
-import {
-	type APIGatewayProxyResult,
-	type LambdaContext,
-	type LambdaEvent,
-	handle,
-	streamHandle,
+import type {
+	APIGatewayProxyResult,
+	LambdaContext,
+	LambdaEvent,
 } from "hono/aws-lambda";
 import type { Factory } from "hono/factory";
 import type { BlankEnv, BlankSchema } from "hono/types";
 import type { ILogLayer } from "loglayer";
 import { deserializeError, serializeError } from "serialize-error";
-import { env, process } from "std-env";
+import { process } from "std-env";
 import VError from "verror";
 import {
 	LoggingContext,
@@ -146,13 +144,8 @@ const HonoHttpServerBuilder =
 						},
 					})
 					.info("Server built");
-				const { AWS_LAMBDA_FUNCTION_NAME } = env;
 				const initialized = instance.app;
 				return {
-					stream: AWS_LAMBDA_FUNCTION_NAME
-						? (streamHandle(initialized) as HonoHttpLambdaHandler)
-						: undefined,
-					handler: AWS_LAMBDA_FUNCTION_NAME ? handle(initialized) : undefined,
 					server: {
 						app: initialized,
 						serve: async ({ port }: ServeOptions) => {

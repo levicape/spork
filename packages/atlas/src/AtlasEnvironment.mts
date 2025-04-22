@@ -48,13 +48,13 @@ export interface AtlasTopologyEnvironment {
 }
 
 /**
- * AtlasEnvironmentZod parses and validates environment variables. It is used in lieu of Effect-js to keep this package lightweight.
+ * AtlasEnvironmentZod parses and validates environment variables.
  * @see {@link AtlasTopologyEnvironment}
  */
 export const AtlasEnvironmentZod = z.object({
 	ATLAS_ROUTES: z
 		.string()
-		.url()
+		.regex(/^file:\/\/|^https?:\/\//)
 		.optional()
 		.transform((path) => (path ? envsubst(path) : undefined))
 		.refine(

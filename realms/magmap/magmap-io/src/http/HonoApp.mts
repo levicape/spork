@@ -9,10 +9,11 @@ import {
 import { JwtClaimsCognitoTokenUse } from "@levicape/spork/server/security/claims/JwtClaimsCognito";
 import type { Context } from "hono";
 import { rateLimiter } from "hono-rate-limiter";
-import type {
-	ApiGatewayRequestContextV2,
-	LambdaContext,
-	LambdaEvent,
+import {
+	type ApiGatewayRequestContextV2,
+	type LambdaContext,
+	type LambdaEvent,
+	streamHandle,
 } from "hono/aws-lambda";
 import { createFactory } from "hono/factory";
 import { HTTPException } from "hono/http-exception";
@@ -80,7 +81,7 @@ const SporkRateLimiterKeyGenerator = (
 	return info.remote.address || "unknown";
 };
 
-export const { server, stream } = await HonoHttpServer(
+export const { server } = await HonoHttpServer(
 	createFactory<HonoHttp & HonoHttpAuthentication>({
 		initApp(app) {
 			app.use(
@@ -186,5 +187,7 @@ export const { server, stream } = await HonoHttpServer(
 				},
 			),
 );
-
+export const stream = streamHandle(server.app) as ReturnType<
+	typeof streamHandle
+>;
 export type MagmapHonoApp = typeof server.app;

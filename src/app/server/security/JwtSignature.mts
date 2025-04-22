@@ -23,8 +23,25 @@ export type JwtSignFnJose<Token extends JWTPayload> = (
 ) => Promise<string>;
 
 export type JwtSignatureInterface<Token extends JWTPayload> = {
+	/**
+	 * Resolved configuration
+	 * @see {@link JwtSignatureJoseEnvs}
+	 */
 	config: JwtSignatureJoseEnvs;
+	/**
+	 * The JWT signing function.
+	 * @default JwtSignatureJose
+	 * @see {@link JwtSignatureLayerConfig}
+	 */
 	jwtSign: JwtSignFnJose<Token> | null;
+	/**
+	 * The JWT sign (private) key
+	 * @default undefined
+	 */
+	signKey?: Awaited<ReturnType<typeof importJWK>> | undefined;
+	/**
+	 * Initializer for new tokens
+	 */
 	initializeToken?: (token: SignJWT) => SignJWT;
 };
 
@@ -44,7 +61,7 @@ export class JwtSignatureNoop implements JwtSignatureInterface<JWTPayload> {
 }
 
 export class JwtSignatureJose {
-	private signKey: Awaited<ReturnType<typeof importJWK>> | undefined;
+	public signKey: Awaited<ReturnType<typeof importJWK>> | undefined;
 	public initializeToken: ((token: SignJWT) => SignJWT) | undefined = undefined;
 
 	constructor(
@@ -52,7 +69,7 @@ export class JwtSignatureJose {
 		public config: JwtSignatureJoseEnvs,
 	) {}
 
-	initialize = async (local: GenerateKeyPairResult) => {
+	initialize = async (local: GenerateKeyPairResult | undefined) => {
 		if (this.config.JWT_SIGNATURE_JWKS_URI) {
 			const { JWT_SIGNATURE_JWKS_URI } = this.config;
 			this.signKey = await (async () => {
@@ -63,21 +80,22 @@ export class JwtSignatureJose {
 					`Unsupported JWK format: ${JWT_SIGNATURE_JWKS_URI}. Supported protocols: file`,
 				);
 			})();
+		} else {
+			if (local) {
+				this.logger
+					?.withMetadata({
+						JwtSignatureJose: {
+							local,
+							context: this.config,
+						},
+					})
+					.warn(
+						`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
+										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+					);
+				this.signKey = local.privateKey;
+			}
 		}
-		this.signKey = local.privateKey;
-
-		this.logger
-			?.withMetadata({
-				JwtSignatureJose: {
-					local: local ?? {},
-					context: this.config,
-					key: this.signKey,
-				},
-			})
-			.warn(
-				`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
-									To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
-			);
 	};
 
 	private importJWK = async (file: string) => {
@@ -134,12 +152,11 @@ export class JwtSignatureJose {
 			throw new VError("JwtSignatureJose not initialized");
 		}
 
-		const jwks = this.signKey;
 		let result = new SignJWT(payload);
 		if (this.initializeToken) {
 			result = this.initializeToken(result);
 		}
-		return await signer(result).sign(jwks);
+		return await signer(result).sign(this.signKey);
 	};
 }
 

@@ -1,36 +1,22 @@
+import { handle, streamHandle } from "hono/aws-lambda";
 import { createFactory } from "hono/factory";
 import { HonoHttpServer } from "./HonoHttpServer.mjs";
 import type { HonoHttp } from "./middleware/HonoHttpMiddleware.mjs";
 
-export const { server, handler } = await HonoHttpServer(
+export const { server } = await HonoHttpServer(
 	createFactory<HonoHttp>(),
 	(app) => {
 		let news = app.get("/test123", async (c) => {
-			c.get("Logging")?.info("Hello, world!");
+			c.var.RequestLogging?.info("Hello, world!");
 			c.json({ message: `Hello, ${c?.env ?? ""}!` });
 		});
 		return news;
 	},
 );
-// 	(
-// 	// (app) => {
-// 	// 	return app.get("/test123", async (c) => {
-// 	// 		// c.get("Logging")?.info("Hello, world!");
-// 	// 		c.json({ message: `Hello, ${Hono.name}!` });
-// 	// 	});
-// 	// 	// .route(
-// 	// 	// 	"/!",
-// 	// 	// 	new Hono().get("/abba", (c) => c.json("Hello, world!")),
-// 	// 	// )
-// 	// 	// .route("/!/v1/Authenticated/", AuthenticatedRouter());
-// 	// },
-// );
+
+export const handler = handle(server.app);
+export const stream = streamHandle(server.app) as ReturnType<
+	typeof streamHandle
+>;
 
 export type ExampleSporkHonoApp = typeof server.app;
-
-/*
-
-
-the typing for Hono is actually Hono<Env, Schema, Path>, but for middleware it's Middleware<Env, Path, Input>
-
-*/
