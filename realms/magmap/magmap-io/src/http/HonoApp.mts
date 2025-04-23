@@ -93,9 +93,13 @@ export const { server } = await HonoHttpServer(
 				}),
 			);
 			app.use(
-				HonoHttpAuthenticationMiddleware((_token) => {
-					return true;
-				}, JwtClaimsCognitoTokenUse("access")),
+				HonoHttpAuthenticationMiddleware(
+					undefined,
+					(_token) => {
+						return true;
+					},
+					JwtClaimsCognitoTokenUse("access"),
+				),
 			);
 		},
 	}),
@@ -187,7 +191,6 @@ export const { server } = await HonoHttpServer(
 				},
 			),
 );
-export const stream = streamHandle(server.app) as ReturnType<
-	typeof streamHandle
->;
+
+export const stream = env.AWS_REGION && (streamHandle(server.app) as unknown);
 export type MagmapHonoApp = typeof server.app;

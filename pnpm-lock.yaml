@@ -48,9 +48,6 @@ catalogs:
     '@levicape/fourtwo':
       specifier: 0.10.2-main.2
       version: 0.10.2-main.2
-    '@levicape/fourtwo-builders':
-      specifier: 0.10.2-main.2
-      version: 0.10.2-main.2
     '@levicape/fourtwo-pulumi':
       specifier: 0.10.2-main.2
       version: 0.10.2-main.2
@@ -500,9 +497,6 @@ importers:
         specifier: catalog:aws
         version: 3.778.0
       '@levicape/fourtwo':
-        specifier: 'catalog:'
-        version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)
-      '@levicape/fourtwo-builders':
         specifier: 'catalog:'
         version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)
       '@levicape/fourtwo-pulumi':
@@ -1773,10 +1767,6 @@ packages:
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
-
-  '@levicape/fourtwo-builders@0.10.2-main.2':
-    resolution: {integrity: sha512-ToE4o1LN7GgDJ3AhxHpN6jS12SXENh7yTa4d+tlab8fDI/Ag54VzsH8TJgNsGGmAsi/MKG0lb9ncONpNQBb71Q==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-builders/0.10.2-main.2/1ac49f8bfbbd70694cac9d24d925ad0b480433ea}
-    engines: {node: ^22}
 
   '@levicape/fourtwo-pulumi@0.10.2-main.2':
     resolution: {integrity: sha512-/ByA4oNzJ7VpHKw20G2cd6sCQiJ+bWuGLxnSvJ0YSfhQTNRLADfBZRkEH43B5cwpde+JdyhQ0SZu9wkN/yKqrQ==, tarball: https://npm.pkg.github.com/download/@levicape/fourtwo-pulumi/0.10.2-main.2/531f5934e98432fbb776270c91d746bb0678abf4}
@@ -7276,25 +7266,6 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.0
 
   '@js-sdsl/ordered-map@4.4.2': {}
-
-  '@levicape/fourtwo-builders@0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)':
-    dependencies:
-      '@levicape/fourtwo': 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)
-    transitivePeerDependencies:
-      - '@effect/cluster'
-      - '@effect/rpc'
-      - '@effect/sql'
-      - '@middy/core'
-      - bufferutil
-      - mysql
-      - mysql2
-      - pg
-      - pg-native
-      - projen
-      - sqlite3
-      - supports-color
-      - tedious
-      - utf-8-validate
 
   '@levicape/fourtwo-pulumi@0.10.2-main.2(ts-node@10.9.2(@types/node@22.13.17)(typescript@5.8.2))(typescript@5.8.2)':
     dependencies:
