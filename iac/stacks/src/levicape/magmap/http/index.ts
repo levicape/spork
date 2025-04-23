@@ -170,7 +170,7 @@ const ATLASFILE_PATHS: Record<
 			}>(await response.text());
 		},
 		path: "jwks.json",
-		envName: "JWT_VERIFICATION_JWKS_URI",
+		envName: "JWT_VERIFICATION_JWKS_URL",
 	},
 } as const;
 
@@ -198,7 +198,7 @@ const ENVIRONMENT = (
 		JWT_REGION: idpUsers.region,
 		JWT_CACHE_FS_ROOT: `${efs.mountPath}/levicape/jwks/azc`,
 		JWT_CACHE_FS_KEY: `${idpUsers.poolId}.json`,
-		JWT_SIGNATURE_JWKS_URI: "unload",
+		JWT_SIGNATURE_JWKS_URL: "unload",
 	} as const;
 };
 

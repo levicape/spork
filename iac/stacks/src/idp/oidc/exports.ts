@@ -9,7 +9,7 @@ export const SporkIdpOidcStackExportsZod = z
 				arn: z.string(),
 				identityPoolName: z.string(),
 				id: z.string(),
-				supportedLoginProviders: z.record(z.unknown()).nullish(),
+				supportedLoginProviders: z.record(z.string(), z.unknown()).nullish(),
 				cognitoIdentityProviders: z.array(z.unknown()).nullish(),
 				developerProviderName: z.string().nullish(),
 				openidConnectProviderArns: z.array(z.string()).nullish(),

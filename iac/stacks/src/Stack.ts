@@ -13,7 +13,7 @@ const $$refpath = (stack: string) =>
 
 export const $ref = (stack: string) => new StackReference($$refpath(stack));
 
-export const $val = <Z extends z.AnyZodObject | z.ZodRecord>(
+export const $val = <Z extends z.ZodObjectLike | z.ZodRecord>(
 	json: string,
 	schema: Z,
 	opts?: {
@@ -59,7 +59,7 @@ export const $val = <Z extends z.AnyZodObject | z.ZodRecord>(
 
 export type DereferenceConfig = Record<
 	string,
-	Record<string, { refs: Record<string, z.AnyZodObject | z.ZodRecord> }>
+	Record<string, { refs: Record<string, z.ZodObjectLike | z.ZodRecord> }>
 >;
 
 export type DereferencedOutput<T extends DereferenceConfig> = {
