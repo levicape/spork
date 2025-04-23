@@ -3,18 +3,17 @@ import type { JWTPayload, SignJWT } from "jose";
 import {
 	JwtSignatureAsyncLocalStorage,
 	type JwtSignatureInterface,
-	JwtSignatureJoseEnvs,
 	JwtSignatureNoop,
 } from "../../../../server/security/JwtSignature.mjs";
 import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
 
 export type HonoJwtIssuerProps<Token extends JWTPayload> = {
 	/**
-	 * The JWT signature function. If not provided, the default JWT signature function will be used.
+	 * The JWT signature interface. If not provided, the default JWT signature function will be used.
 	 * @default JwtSignatureJose
 	 * @see {@link JwtSignatureLayerConfig}
 	 */
-	jwtSign?: JwtSignatureInterface<Token>["jwtSign"];
+	jwtSignature?: JwtSignatureInterface<Token>;
 	/**
 	 * Initializer for tokens created by this middleware.
 	 */
@@ -36,12 +35,9 @@ export function HonoHttpJwtIssuerMiddleware<Token extends JWTPayload>(
 ) {
 	const { logging } = HonoLoggingStorage.getStore() ?? {};
 	let jwtSignature: JwtSignatureInterface<Token>;
-	if (props?.jwtSign) {
+	if (props?.jwtSignature) {
 		logging?.debug("Building HonoHttpJwtIssuer with custom jwtSign function");
-		jwtSignature = {
-			config: new JwtSignatureJoseEnvs(),
-			jwtSign: props.jwtSign,
-		};
+		jwtSignature = props.jwtSignature;
 	} else {
 		const store = JwtSignatureAsyncLocalStorage.getStore();
 		if (store !== undefined && store.JwtSignature !== undefined) {
@@ -51,7 +47,9 @@ export function HonoHttpJwtIssuerMiddleware<Token extends JWTPayload>(
 				"Building HonoHttpJwtIssuer with default jwtSignature but no store found. This feature is only supported within a HonoHttpServer app",
 			);
 		}
-		jwtSignature = store?.JwtSignature ?? new JwtSignatureNoop();
+		jwtSignature =
+			(store?.JwtSignature as unknown as JwtSignatureInterface<Token>) ??
+			new JwtSignatureNoop<Token>();
 	}
 
 	jwtSignature.initializeToken = props?.initializeToken;
