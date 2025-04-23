@@ -16,7 +16,7 @@ const $$$JWK_LOCAL_SYNCHRONIZED_SECRET = "JWK_LOCAL_SYNCHRONIZED_SECRET";
 
 const JWK_LOCAL_ALG = "ES256";
 const JWK_LOCAL_CRV = "P-256";
-const JWK_LOCAL_SECRET = "HS512";
+const JWK_LOCAL_SECRET = "A256GCM";
 
 /**
  * Configuration for the local synchronized JWK
@@ -34,7 +34,7 @@ export class JwkLocalSynchronizedEnvs {
 		 */
 		readonly JWK_LOCAL_SYNCHRONIZED_CRV: string,
 		/**
-		 * Algorithm to use for the local synchronized JWK secret. Defaults to "HS512".
+		 * Algorithm to use for the local synchronized JWK secret. Defaults to "A256GCM".
 		 * @see {@link JWK_LOCAL_SYNCHRONIZED_SECRET}
 		 */
 		readonly JWK_LOCAL_SYNCHRONIZED_SECRET: string,
@@ -47,19 +47,19 @@ export const JwkLocalSynchronizedConfig = Config.map(
 			Config.withDescription(
 				`Algorithm to use for the local synchronized JWK alg. Defaults to "${JWK_LOCAL_ALG}".`,
 			),
-			Config.withDefault("ES256"),
+			Config.withDefault(JWK_LOCAL_ALG),
 		),
 		Config.string($$$JWK_LOCAL_SYNCHRONIZED_CRV).pipe(
 			Config.withDescription(
 				`Algorithm to use for the local synchronized JWK crv. Defaults to "${JWK_LOCAL_CRV}".`,
 			),
-			Config.withDefault("P-256"),
+			Config.withDefault(JWK_LOCAL_CRV),
 		),
 		Config.string($$$JWK_LOCAL_SYNCHRONIZED_SECRET).pipe(
 			Config.withDescription(
 				`Algorithm to use for the local synchronized JWK secret. Defaults to "${JWK_LOCAL_SECRET}".`,
 			),
-			Config.withDefault("HS512"),
+			Config.withDefault(JWK_LOCAL_SECRET),
 		),
 	]),
 	([

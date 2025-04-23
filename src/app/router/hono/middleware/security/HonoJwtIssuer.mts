@@ -1,5 +1,5 @@
 import { createMiddleware } from "hono/factory";
-import type { JWTPayload, SignJWT } from "jose";
+import type { EncryptJWT, JWTPayload, SignJWT } from "jose";
 import {
 	JwtSignatureAsyncLocalStorage,
 	type JwtSignatureInterface,
@@ -18,11 +18,18 @@ export type HonoJwtIssuerProps<Token extends JWTPayload> = {
 	 * Initializer for tokens created by this middleware.
 	 */
 	initializeToken?: (token: Exclude<SignJWT, "sign">) => SignJWT;
+	/**
+	 * Initializer for encrypted materials created by this middleware.
+	 */
+	initializeMaterial?: (token: Exclude<EncryptJWT, "encrypt">) => EncryptJWT;
 };
 
 export type HonoJwtIssuer<Token extends JWTPayload> = {
 	Variables: {
-		JwtSignature: Omit<JwtSignatureInterface<Token>, "initializeToken">;
+		JwtSignature: Omit<
+			JwtSignatureInterface<Token>,
+			"initializeToken" | "initializeMaterial"
+		>;
 	};
 };
 
@@ -53,6 +60,7 @@ export function HonoHttpJwtIssuerMiddleware<Token extends JWTPayload>(
 	}
 
 	jwtSignature.initializeToken = props?.initializeToken;
+	jwtSignature.initializeMaterial = props?.initializeMaterial;
 
 	return createMiddleware<HonoJwtIssuer<Token>>(async (context, next) => {
 		context.set("JwtSignature", jwtSignature);
