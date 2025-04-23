@@ -2,16 +2,8 @@
 	local_certs
 }
 
-spork.platform {
-	## HOSTNAME: reverse_proxy / {"$kind":"StaticRouteResource","hostname":"undefined","protocol":"http"}
-	reverse_proxy /~/Spork/Magmap/* 32101
-	## HOSTNAME: reverse_proxy /~/Spork/Example {"$kind":"StaticRouteResource","hostname":"undefined","protocol":"http"}
-	
-}
-
-## DOMAIN: lads.platform 
+## DOMAIN: spork.platform 
 ##	## HOSTNAME: reverse_proxy / {"$kind":"StaticRouteResource","hostname":"undefined","protocol":"http"}
 #	## HOSTNAME: reverse_proxy /~/Spork/Magmap {"$kind":"StaticRouteResource","hostname":"undefined","protocol":"http"}
-#	## HOSTNAME: reverse_proxy /~/Spork/Example {"$kind":"StaticRouteResource","hostname":"undefined","protocol":"http"}
 #	
 

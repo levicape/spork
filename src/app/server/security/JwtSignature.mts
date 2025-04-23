@@ -92,6 +92,7 @@ export type JwtSignatureInterface<Token extends JWTPayload> = {
 
 const JWK_SIGNATURE_ALG = "ES256";
 const JWK_SIGNATURE_CRV = "P-256";
+const JWK_ENCRYPTION_ALG = "A256GCM";
 /**
  * @private Environment variable constant for JWT_SIGNATURE_JWK_URL
  */
@@ -111,7 +112,7 @@ export class JwtSignatureJoseEnvs {
 		readonly JWT_SIGNATURE_JWK_URL?: string | undefined,
 		/**
 		 * URL of symmetric JWK for encryption/decryption. Supported protocols: file.
-		 * The key must be valid for HS512 algorithm and be JWK formatted.
+		 * The key must be valid for A256GCM algorithm and be JWK formatted.
 		 * @see {@link JwtSignatureJose}
 		 */
 		readonly JWT_ENCRYPTION_JWK_URL?: string | undefined,
@@ -259,7 +260,7 @@ export class JwtSignatureJose {
 
 	public sign = async <Token extends JWTPayload>(
 		payload: Token,
-		signer: (result: SignJWT) => SignJWT,
+		configure: (result: SignJWT) => SignJWT,
 		options?: SignOptions,
 	) => {
 		if (this.signKey === undefined) {
@@ -275,12 +276,12 @@ export class JwtSignatureJose {
 		if (this.initializeToken) {
 			result = this.initializeToken(result);
 		}
-		return await signer(result).sign(this.signKey, options);
+		return await configure(result).sign(this.signKey, options);
 	};
 
 	public encrypt = async <Token extends JWTPayload>(
 		payload: Token,
-		signer: (result: EncryptJWT) => EncryptJWT,
+		configure: (result: EncryptJWT) => EncryptJWT,
 		options?: EncryptOptions,
 	) => {
 		if (this.encryptKey === undefined) {
@@ -296,7 +297,7 @@ export class JwtSignatureJose {
 		if (this.initializeMaterial) {
 			result = this.initializeMaterial(result);
 		}
-		return await signer(result).encrypt(this.encryptKey, options);
+		return await configure(result).encrypt(this.encryptKey, options);
 	};
 
 	public decrypt = async <Token extends JWTPayload>(
@@ -328,9 +329,9 @@ export const JwtSignatureLayerConfig = Config.map(
 		Config.string($$$JWT_ENCRYPTION_JWK_URL).pipe(
 			Config.map((c) => envsubst(c)),
 			Config.withDescription(
-				`URL of symmetric JWK for encryption/decryption. Supported protocols: ${SUPPORTED_PROTOCOLS.join(
+				`URL of symmetric JWK for encryption and decryption. Supported protocols: ${SUPPORTED_PROTOCOLS.join(
 					", ",
-				)}. The key must be valid for HS512 algorithm.`,
+				)}. The key should be using the ${JWK_ENCRYPTION_ALG} algorithm.`,
 			),
 			Config.withDefault(undefined),
 		),
