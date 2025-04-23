@@ -13,7 +13,7 @@ export const SporkMagmapHttpStackExportsZod = z
 				hostedZone: z.string(),
 			}),
 			instance: z.object({
-				attributes: z.record(z.string()).optional(),
+				attributes: z.record(z.string(), z.string()).optional(),
 				id: z.string(),
 			}),
 			service: z.object({
@@ -67,7 +67,9 @@ export const SporkMagmapHttpStackExportsZod = z
 						actions: z.array(
 							z.object({
 								category: z.string(),
-								configuration: z.record(z.string().optional()).optional(),
+								configuration: z
+									.record(z.string(), z.string().optional())
+									.optional(),
 								name: z.string(),
 								provider: z.string(),
 								runOrder: z.number(),
@@ -79,6 +81,7 @@ export const SporkMagmapHttpStackExportsZod = z
 			}),
 		}),
 		spork_magmap_http_eventbridge: z.record(
+			z.string(),
 			z.object({
 				rule: z.object({
 					arn: z.string(),
@@ -124,6 +127,6 @@ export const SporkMagmapHttpStackExportsZod = z
 				region: z.string(),
 			}),
 		}),
-		spork_magmap_http_routemap: z.record(LambdaRouteResourceZod),
+		spork_magmap_http_routemap: z.record(z.string(), LambdaRouteResourceZod),
 	})
 	.passthrough();

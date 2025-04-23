@@ -58,4 +58,4 @@ export const SporkDnsRootStackExportsZod = z
 				.nullish(),
 		}),
 	})
-	.passthrough();
+	.loose();

@@ -141,14 +141,18 @@ export const LambdaRouteResourceZod = z.object({
 			}),
 			instance: z.object({
 				id: z.string(),
-				attributes: z.record(z.string()).optional(),
+				attributes: z
+					.record(z.string().or(z.number()).or(z.symbol()), z.string())
+					.optional(),
 			}),
 		})
 		.optional(),
 });
 
 export const RouteMapZod = z.record(
+	z.string(),
 	z.record(
+		z.string(),
 		S3RouteResourceZod.or(LambdaRouteResourceZod).or(StaticRouteResourceZod),
 	),
 );

@@ -12,6 +12,7 @@ export const SporkApplicationStackExportsZod = z
 			}),
 		}),
 		spork_application_resourcegroups: z.record(
+			z.string(),
 			z.object({
 				group: z.object({
 					arn: z.string(),

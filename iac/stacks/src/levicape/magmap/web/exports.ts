@@ -48,6 +48,6 @@ export const SporkMagmapWebStackExportsZod = z
 				}),
 			}),
 		}),
-		spork_magmap_web_routemap: z.record(S3RouteResourceZod),
+		spork_magmap_web_routemap: z.record(z.string(), S3RouteResourceZod),
 	})
 	.passthrough();

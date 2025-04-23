@@ -10,7 +10,7 @@ import { Role } from "@pulumi/aws/iam/role";
 import { RolePolicyAttachment } from "@pulumi/aws/iam/rolePolicyAttachment";
 import { PrivateDnsNamespace } from "@pulumi/aws/servicediscovery/privateDnsNamespace";
 import { Vpc } from "@pulumi/awsx/ec2/vpc";
-import { Output, all } from "@pulumi/pulumi";
+import { all } from "@pulumi/pulumi";
 import { error, warn } from "@pulumi/pulumi/log";
 import type { z } from "zod";
 import { $deref } from "../Stack";

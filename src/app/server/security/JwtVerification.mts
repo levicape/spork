@@ -1,3 +1,4 @@
+import assert from "node:assert";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,7 +21,7 @@ import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
 import { JwkCache, type JwkCacheInterface } from "./JwkCache/JwkCache.mjs";
 import { JwkLocalSynchronized } from "./JwkCache/JwkLocalSynchronized.mjs";
-import { $$$JWT_SIGNATURE_JWKS_URI } from "./JwtSignature.mjs";
+import { $$$JWT_SIGNATURE_JWK_URL } from "./JwtSignature.mjs";
 
 type JwtVerifyFnWithKey = typeof jwtVerify;
 export type JwtVerifyFnJose = (
@@ -43,13 +44,20 @@ export class JwtVerification extends Context.Tag("JwtVerification")<
 	JwtVerification,
 	JwtVerificationInterface
 >() {}
-
-export const $$$JWT_VERIFICATION_JWKS_URI = "JWT_VERIFICATION_JWKS_URI";
+/**
+ * @private Environment variable constant for JWT_VERIFICATION_JWK_URL
+ */
+export const $$$JWT_VERIFICATION_JWKS_URL = "JWT_VERIFICATION_JWKS_URL";
 export const $$$JWT_VERIFICATION_JWKS_CACHE_KEY =
 	"JWT_VERIFICATION_JWKS_CACHE_KEY";
 export class JwtVerificationJoseEnvs {
 	constructor(
-		readonly JWT_VERIFICATION_JWKS_URI?: string,
+		/**
+		 * URL of JWK verify key. Supported protocols: file.
+		 * The keys must be in JWK format: `{ keys: [...] }`
+		 * @see {@link JwtSignatureJose}
+		 */
+		readonly JWT_VERIFICATION_JWKS_URL?: string,
 		readonly JWT_VERIFICATION_JWKS_CACHE_KEY?: string,
 	) {}
 }
@@ -70,19 +78,19 @@ export class JwtVerificationJose {
 	) {}
 
 	initialize = async (local: ExportedJWKSCache | null) => {
-		if (this.config.JWT_VERIFICATION_JWKS_URI) {
-			const { JWT_VERIFICATION_JWKS_URI } = this.config;
+		if (this.config.JWT_VERIFICATION_JWKS_URL) {
+			const { JWT_VERIFICATION_JWKS_URL } = this.config;
 			this.jwks = await (async () => {
-				if (JWT_VERIFICATION_JWKS_URI.startsWith("http")) {
+				if (JWT_VERIFICATION_JWKS_URL.startsWith("http")) {
 					this.cache = await this.jwkCache.getJwks();
-					return await this.jwksFromUrl(JWT_VERIFICATION_JWKS_URI);
+					return await this.jwksFromUrl(JWT_VERIFICATION_JWKS_URL);
 				}
 
-				if (JWT_VERIFICATION_JWKS_URI.startsWith("file")) {
-					return await this.jwksFromFile(JWT_VERIFICATION_JWKS_URI);
+				if (JWT_VERIFICATION_JWKS_URL.startsWith("file")) {
+					return await this.jwksFromFile(JWT_VERIFICATION_JWKS_URL);
 				}
 				throw new VError(
-					`Unsupported JWK URL format: ${JWT_VERIFICATION_JWKS_URI}`,
+					`Unsupported JWK URL format: ${JWT_VERIFICATION_JWKS_URL}`,
 				);
 			})();
 		} else {
@@ -97,11 +105,26 @@ export class JwtVerificationJose {
 						},
 					})
 					.debug(
-						`${$$$JWT_VERIFICATION_JWKS_URI} not provided, using signature local key.
-					To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+						`${$$$JWT_VERIFICATION_JWKS_URL} not provided, using signature local key.
+					To disable this behavior, set ${$$$JWT_SIGNATURE_JWK_URL} to "unload"`,
 					);
 			}
 		}
+	};
+
+	static readJwksFile = async (file: string) => {
+		let content: unknown;
+		let json: unknown;
+
+		content = readFileSync(fileURLToPath(file), "utf-8");
+		json = JSON.parse(content as string);
+
+		let keyring = json as unknown as { keys: JWK[] };
+		assert(
+			Array.isArray(keyring?.keys) && keyring.keys.length > 0,
+			`Invalid JWK file: ${file}. Expected an array of keys.`,
+		);
+		return keyring;
 	};
 
 	private jwksFromFile = async (file: string) => {
@@ -112,35 +135,29 @@ export class JwtVerificationJose {
 					file,
 				},
 			})
-			.debug(`Using file ${$$$JWT_VERIFICATION_JWKS_URI}`);
+			.debug(`Using file ${$$$JWT_VERIFICATION_JWKS_URL}`);
 
-		let content: unknown;
-		let json: unknown;
 		try {
-			content = readFileSync(fileURLToPath(file), "utf-8");
-			json = JSON.parse(content as string);
+			const keyset = await JwtVerificationJose.readJwksFile(file);
+			if (this.cache) {
+				await this.jwkCache.setJwks({
+					jwks: keyset,
+					uat: Math.floor(Date.now() / 1000),
+				} as ExportedJWKSCache);
+			}
+			return createLocalJWKSet(keyset);
 		} catch (e) {
 			this.logger
 				?.withMetadata({
 					JwtVerificationJose: {
 						context: this.config,
 						file,
-						content,
-						json,
 					},
 				})
 				.withError(e)
 				.error("Failed to read JWK file");
 			throw e;
 		}
-		const keyset = json as unknown as { keys: JWK[] };
-		if (this.cache) {
-			await this.jwkCache.setJwks({
-				jwks: keyset,
-				uat: Math.floor(Date.now() / 1000),
-			} as ExportedJWKSCache);
-		}
-		return createLocalJWKSet(keyset);
 	};
 
 	private jwksFromUrl = async (url: string) => {
@@ -150,7 +167,7 @@ export class JwtVerificationJose {
 					context: this.config,
 				},
 			})
-			.debug(`Using remote ${$$$JWT_VERIFICATION_JWKS_URI}`);
+			.debug(`Using remote ${$$$JWT_VERIFICATION_JWKS_URL}`);
 
 		return createRemoteJWKSet(new URL(url), {
 			[jwksCache]: this.cache,
@@ -185,15 +202,19 @@ export class JwtVerificationJose {
 }
 
 export const SUPPORTED_PROTOCOLS = ["http", "file"] as const;
+export const JwtVerificationJwksUrlConfig = Config.string(
+	$$$JWT_VERIFICATION_JWKS_URL,
+).pipe(
+	Config.map((c) => envsubst(c)),
+	Config.withDescription(
+		`Oauth jwks_uri. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}`,
+	),
+	Config.withDefault(undefined),
+);
+
 export const JwtVerificationLayerConfig = Config.map(
 	Config.all([
-		Config.string($$$JWT_VERIFICATION_JWKS_URI).pipe(
-			Config.map((c) => envsubst(c)),
-			Config.withDescription(
-				`Oauth jwks_uri. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}`,
-			),
-			Config.withDefault(undefined),
-		),
+		JwtVerificationJwksUrlConfig,
 		Config.string($$$JWT_VERIFICATION_JWKS_CACHE_KEY).pipe(
 			Config.map((c) => envsubst(c)),
 			Config.withDescription(`JWKs cache key. Defaults to "verify.json".`),
@@ -228,7 +249,7 @@ export const JwtVerificationLayer = Layer.effect(
 					.withMetadata({ JwtVerificationLayer: { config } })
 					.debug("JwtVerificationLayer with mutex");
 
-				if (config?.JWT_VERIFICATION_JWKS_URI?.toLowerCase() === "unload") {
+				if (config?.JWT_VERIFICATION_JWKS_URL?.toLowerCase() === "unload") {
 					logger
 						.withMetadata({ JwtVerificationLayer: { config } })
 						.info("JwtVerificationLayer not loaded due to URI = 'unload'");

@@ -34,6 +34,7 @@ export const SporkCodestarStackExportsZod = z
 				s3BucketArn: z.string().nullish(),
 			}),
 			repository: z.record(
+				z.string(),
 				z.object({
 					arn: z.string(),
 					name: z.string(),

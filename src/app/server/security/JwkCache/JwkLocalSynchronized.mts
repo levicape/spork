@@ -6,9 +6,24 @@ import { JwtSignatureLayerConfig } from "../JwtSignature.mjs";
 
 const $$$JWK_LOCAL_SYNCHRONIZED_ALG = "JWK_LOCAL_SYNCHRONIZED_ALG";
 const $$$JWK_LOCAL_SYNCHRONIZED_CRV = "JWK_LOCAL_SYNCHRONIZED_CRV";
+
+const JWK_LOCAL_ALG = "ES256";
+const JWK_LOCAL_CRV = "P-256";
+
+/**
+ * Configuration for the local synchronized JWK
+ */
 export class JwkLocalSynchronizedEnvs {
 	constructor(
+		/**
+		 * Algorithm to use for the local synchronized JWK alg. Defaults to "ES256".
+		 * @see {@link JWK_LOCAL_SYNCHRONIZED_ALG}
+		 */
 		readonly JWK_LOCAL_SYNCHRONIZED_ALG: string,
+		/**
+		 * Algorithm to use for the local synchronized JWK crv. Defaults to "P-256".
+		 * @see {@link JWK_LOCAL_SYNCHRONIZED_CRV}
+		 */
 		readonly JWK_LOCAL_SYNCHRONIZED_CRV: string,
 	) {}
 }
@@ -17,13 +32,13 @@ export const JwkLocalSynchronizedConfig = Config.map(
 	Config.all([
 		Config.string($$$JWK_LOCAL_SYNCHRONIZED_ALG).pipe(
 			Config.withDescription(
-				`Algorithm to use for the local synchronized JWK alg. Defaults to "ES256".`,
+				`Algorithm to use for the local synchronized JWK alg. Defaults to "${JWK_LOCAL_ALG}".`,
 			),
 			Config.withDefault("ES256"),
 		),
 		Config.string($$$JWK_LOCAL_SYNCHRONIZED_CRV).pipe(
 			Config.withDescription(
-				`Algorithm to use for the local synchronized JWK crv. Defaults to "P-256".`,
+				`Algorithm to use for the local synchronized JWK crv. Defaults to "${JWK_LOCAL_CRV}".`,
 			),
 			Config.withDefault("P-256"),
 		),
@@ -48,7 +63,7 @@ export class JwkLocalSynchronized extends Service<JwkLocalSynchronized>()(
 
 				let keypair: CryptoKeyPair | undefined;
 				let publicJwk: JsonWebKey | undefined;
-				if (config?.JWT_SIGNATURE_JWKS_URI?.toLowerCase() === "unload") {
+				if (config?.JWT_SIGNATURE_JWK_URL?.toLowerCase() === "unload") {
 					logger
 						.withMetadata({ JwtVerificationLayer: { config } })
 						.info("JwkLocalSynchronized not initialized due to URI = 'unload'");

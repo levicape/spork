@@ -16,12 +16,19 @@ import { z } from "zod";
 import { envsubst } from "../EnvSubst.mjs";
 import { LoggingContext } from "../logging/LoggingContext.mjs";
 import { JwkLocalSynchronized } from "./JwkCache/JwkLocalSynchronized.mjs";
+import {
+	JwtVerificationJose,
+	JwtVerificationJwksUrlConfig,
+} from "./JwtVerification.mjs";
 
 export type JwtSignFnJose<Token extends JWTPayload> = (
 	payload: Token,
 	signer: (token: SignJWT) => SignJWT,
 ) => Promise<string>;
 
+/**
+ * Provides JWT signing functionality via `jose`
+ */
 export type JwtSignatureInterface<Token extends JWTPayload> = {
 	/**
 	 * Resolved configuration
@@ -29,31 +36,55 @@ export type JwtSignatureInterface<Token extends JWTPayload> = {
 	 */
 	config: JwtSignatureJoseEnvs;
 	/**
-	 * The JWT signing function.
-	 * @default JwtSignatureJose
+	 * JWT signing function.
+	 * @default JwtSignFnJose
 	 * @see {@link JwtSignatureLayerConfig}
 	 */
 	jwtSign: JwtSignFnJose<Token> | null;
 	/**
-	 * The JWT sign (private) key
+	 * JWT sign (private) key. Used for signing and decrypting
 	 * @default undefined
 	 */
 	signKey?: Awaited<ReturnType<typeof importJWK>> | undefined;
+	/**
+	 * JWT public key. Used for encrypting
+	 * @default undefined
+	 */
+	encryptKey?: Awaited<ReturnType<typeof importJWK>> | undefined;
 	/**
 	 * Initializer for new tokens
 	 */
 	initializeToken?: (token: SignJWT) => SignJWT;
 };
 
+const JWK_SIGNATURE_ALG = "ES256";
+const JWK_SIGNATURE_CRV = "P-256";
+/**
+ * @private Environment variable constant for JWT_SIGNATURE_JWK_URL
+ */
+export const $$$JWT_SIGNATURE_JWK_URL = "JWT_SIGNATURE_JWK_URL";
+export class JwtSignatureJoseEnvs {
+	constructor(
+		/**
+		 * URL of JWK signing key. Supported protocols: file.
+		 * The key must use the ES256 algorithm, use P-256 and be JWK formatted.
+		 * @see {@link JwtSignatureJose}
+		 */
+		readonly JWT_SIGNATURE_JWK_URL?: string | undefined,
+		/**
+		 * URL of JWK verify key. Supported protocols: file.
+		 * @see {@link JwtSignatureJose}
+		 */
+		readonly JWT_VERIFICATION_JWKS_URL?: string | undefined,
+	) {}
+}
+/**
+ * Effect tag for the JWT signature layer
+ */
 export class JwtSignature extends Context.Tag("JwtSignature")<
 	JwtSignature,
 	JwtSignatureInterface<JWTPayload>
 >() {}
-
-export const $$$JWT_SIGNATURE_JWKS_URI = "JWT_SIGNATURE_JWKS_URI";
-export class JwtSignatureJoseEnvs {
-	constructor(readonly JWT_SIGNATURE_JWKS_URI?: string | undefined) {}
-}
 
 export class JwtSignatureNoop implements JwtSignatureInterface<JWTPayload> {
 	config = new JwtSignatureJoseEnvs();
@@ -62,6 +93,7 @@ export class JwtSignatureNoop implements JwtSignatureInterface<JWTPayload> {
 
 export class JwtSignatureJose {
 	public signKey: Awaited<ReturnType<typeof importJWK>> | undefined;
+	public encryptKey: Awaited<ReturnType<typeof importJWK>> | undefined;
 	public initializeToken: ((token: SignJWT) => SignJWT) | undefined = undefined;
 
 	constructor(
@@ -70,14 +102,22 @@ export class JwtSignatureJose {
 	) {}
 
 	initialize = async (local: GenerateKeyPairResult | undefined) => {
-		if (this.config.JWT_SIGNATURE_JWKS_URI) {
-			const { JWT_SIGNATURE_JWKS_URI } = this.config;
+		if (this.config.JWT_SIGNATURE_JWK_URL) {
+			const { JWT_SIGNATURE_JWK_URL, JWT_VERIFICATION_JWKS_URL } = this.config;
 			this.signKey = await (async () => {
-				if (JWT_SIGNATURE_JWKS_URI.startsWith("file")) {
-					return await this.importJWK(JWT_SIGNATURE_JWKS_URI);
+				if (JWT_SIGNATURE_JWK_URL.startsWith("file")) {
+					return await this.importJwkCrypto(JWT_SIGNATURE_JWK_URL);
 				}
 				throw new VError(
-					`Unsupported JWK format: ${JWT_SIGNATURE_JWKS_URI}. Supported protocols: file`,
+					`Unsupported JWK format: ${JWT_SIGNATURE_JWK_URL}. Supported protocols: file`,
+				);
+			})();
+			this.encryptKey = await (async () => {
+				if (JWT_VERIFICATION_JWKS_URL?.startsWith("file")) {
+					return await this.imporkJWKRing(JWT_VERIFICATION_JWKS_URL);
+				}
+				throw new VError(
+					`Unsupported JWK format: ${JWT_VERIFICATION_JWKS_URL}. Supported protocols: file`,
 				);
 			})();
 		} else {
@@ -90,15 +130,16 @@ export class JwtSignatureJose {
 						},
 					})
 					.warn(
-						`${$$$JWT_SIGNATURE_JWKS_URI} not provided, using generated key.
-										To disable this behavior, set ${$$$JWT_SIGNATURE_JWKS_URI} to "unload"`,
+						`${$$$JWT_SIGNATURE_JWK_URL} not provided, using generated key.
+										To disable this behavior, set ${$$$JWT_SIGNATURE_JWK_URL} to "unload"`,
 					);
 				this.signKey = local.privateKey;
+				this.encryptKey = local.publicKey;
 			}
 		}
 	};
 
-	private importJWK = async (file: string) => {
+	private importJwkCrypto = async (file: string) => {
 		this.logger
 			?.withMetadata({
 				JwtSignatureJose: {
@@ -106,7 +147,7 @@ export class JwtSignatureJose {
 					file,
 				},
 			})
-			.debug(`Using file ${$$$JWT_SIGNATURE_JWKS_URI}`);
+			.debug(`Using file ${file}`);
 
 		let content: unknown;
 		let json: unknown;
@@ -139,6 +180,33 @@ export class JwtSignatureJose {
 		return await importJWK(json as unknown as JWK);
 	};
 
+	private imporkJWKRing = async (file: string) => {
+		this.logger
+			?.withMetadata({
+				JwtSignatureJose: {
+					context: this.config,
+					file,
+				},
+			})
+			.debug(`Using file ${$$$JWT_SIGNATURE_JWK_URL}`);
+
+		try {
+			const keyset = await JwtVerificationJose.readJwksFile(file);
+			return await importJWK(keyset.keys.find(() => true) as unknown as JWK);
+		} catch (e) {
+			this.logger
+				?.withMetadata({
+					JwtSignatureJose: {
+						context: this.config,
+						file,
+					},
+				})
+				.withError(e)
+				.error("Failed to read JWK file");
+			throw e;
+		}
+	};
+
 	public jwtSign = async <Token extends JWTPayload>(
 		payload: Token,
 		signer: (result: SignJWT) => SignJWT,
@@ -163,17 +231,17 @@ export class JwtSignatureJose {
 export const SUPPORTED_PROTOCOLS = ["file"] as const;
 export const JwtSignatureLayerConfig = Config.map(
 	Config.all([
-		Config.string($$$JWT_SIGNATURE_JWKS_URI).pipe(
+		Config.string($$$JWT_SIGNATURE_JWK_URL).pipe(
 			Config.map((c) => envsubst(c)),
 			Config.withDescription(
-				`Location of signing key in JWK format. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}`,
+				`URL of JWK signing key. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}. The key must use the ${JWK_SIGNATURE_ALG} algorithm and ${JWK_SIGNATURE_CRV} curve.`,
 			),
 			Config.withDefault(undefined),
 		),
+		JwtVerificationJwksUrlConfig,
 	]),
-
-	([JWT_SIGNATURE_JWKS_URI]) =>
-		new JwtSignatureJoseEnvs(JWT_SIGNATURE_JWKS_URI),
+	([JWT_SIGNATURE_JWK_URL, JWT_VERIFICATION_JWKS_URL]) =>
+		new JwtSignatureJoseEnvs(JWT_SIGNATURE_JWK_URL, JWT_VERIFICATION_JWKS_URL),
 );
 
 export const JwtSignatureLayer = Layer.effect(
@@ -186,18 +254,18 @@ export const JwtSignatureLayer = Layer.effect(
 		const { cache, keypair } = yield* mutex;
 
 		logger
-			.withMetadata({ JwtVerificationLayer: { config } })
+			.withMetadata({ JwtSignatureLayer: { config } })
 			.debug("JwtSignatureLayer waiting mutex");
 
 		return yield* cache.withPermits(1)(
 			Effect.gen(function* () {
 				logger
-					.withMetadata({ JwtVerificationLayer: { config } })
+					.withMetadata({ JwtSignatureLayer: { config } })
 					.debug("JwtSignatureLayer with mutex");
 
-				if (config?.JWT_SIGNATURE_JWKS_URI?.toLowerCase() === "unload") {
+				if (config?.JWT_SIGNATURE_JWK_URL?.toLowerCase() === "unload") {
 					logger
-						.withMetadata({ JwtVerificationLayer: { config } })
+						.withMetadata({ JwtSignatureLayer: { config } })
 						.info("JwtSignatureLayer not loaded due to URI = 'unload'");
 					return new JwtSignatureNoop();
 				}

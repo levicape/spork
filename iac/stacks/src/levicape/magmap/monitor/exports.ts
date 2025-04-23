@@ -21,6 +21,7 @@ export const SporkMagmapMonitorStackExportsZod = z
 			}),
 		}),
 		spork_magmap_monitor_codebuild: z.record(
+			z.string(),
 			z.object({
 				extractimage: z.object({
 					buildspec: z.object({
@@ -54,7 +55,9 @@ export const SporkMagmapMonitorStackExportsZod = z
 						actions: z.array(
 							z.object({
 								category: z.string(),
-								configuration: z.record(z.string().optional()).optional(),
+								configuration: z
+									.record(z.string(), z.string().optional())
+									.optional(),
 								name: z.string(),
 								provider: z.string(),
 								runOrder: z.number(),
@@ -66,9 +69,11 @@ export const SporkMagmapMonitorStackExportsZod = z
 			}),
 		}),
 		spork_magmap_monitor_eventbridge: z.record(
+			z.string(),
 			z.object({
 				targets: z.array(
 					z.record(
+						z.string(),
 						z.object({
 							rule: z.object({
 								arn: z.string(),
@@ -84,6 +89,7 @@ export const SporkMagmapMonitorStackExportsZod = z
 			}),
 		),
 		spork_magmap_monitor_lambda: z.record(
+			z.string(),
 			z.object({
 				codedeploy: z.object({
 					deploymentGroup: z.object({
