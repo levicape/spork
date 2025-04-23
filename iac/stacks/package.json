@@ -9,7 +9,6 @@
   "dependencies": {
     "@aws-sdk/client-codebuild": "catalog:aws",
     "@levicape/fourtwo": "catalog:",
-    "@levicape/fourtwo-builders": "catalog:",
     "@levicape/fourtwo-pulumi": "catalog:",
     "@pulumi/aws": "catalog:pulumi",
     "@pulumi/aws-native": "catalog:pulumi",
