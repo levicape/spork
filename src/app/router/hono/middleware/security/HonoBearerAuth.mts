@@ -208,6 +208,7 @@ export const __internal_HonoBearerAuth = <Token extends JWTPayload>(
 
 			if (!equal) {
 				// Invalid Token
+
 				await throwHTTPException(
 					c,
 					401,

@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import type { JWTPayload } from "jose";
 import type { ILogLayer } from "loglayer";
-import { serializeError } from "serialize-error";
+import { type ErrorLike, serializeError } from "serialize-error";
 import {
 	JwtVerificationAsyncLocalStorage,
 	type JwtVerificationInterface,
@@ -10,6 +10,19 @@ import {
 import type { HonoHttp } from "../HonoHttpMiddleware.mjs";
 import { HonoLoggingStorage } from "../log/HonoLoggingContext.mjs";
 import { __internal_HonoBearerAuth } from "./HonoBearerAuth.mjs";
+
+export type HonoHttpAuthenticationError = {
+	code: "invalid_token";
+} & Omit<ErrorLike, "code">;
+
+export const isHonoHttpAuthenticationError = (
+	error: unknown,
+): error is HonoHttpAuthenticationError => {
+	if ((error as HonoHttpAuthenticationError).code === "invalid_token") {
+		return true;
+	}
+	return false;
+};
 
 export type HonoHttpAuthenticationBearerContext<Token> = {
 	principal:
@@ -35,8 +48,9 @@ export function HonoHttpAuthenticationDerive<
 	Token extends JWTPayload,
 	HonoContext extends Context<HonoHttp & HonoHttpAuthentication<Token>>,
 >({
-	hook,
 	jwtVerification,
+	hook,
+	onError,
 	logging,
 }: {
 	/**
@@ -46,6 +60,10 @@ export function HonoHttpAuthenticationDerive<
 	 */
 	jwtVerification?: JwtVerificationInterface;
 	hook?: Array<HonoHttpAuthenticationHandler>;
+	onError?: (
+		context: HonoContext,
+		error: HonoHttpAuthenticationError,
+	) => Promise<void>;
 	logging?: ILogLayer;
 }) {
 	return async function HonoVerifyTokenDerivation(
@@ -56,6 +74,7 @@ export function HonoHttpAuthenticationDerive<
 		let unparseable: boolean | string = false;
 		let error: unknown | undefined;
 		let requestLogger = context.var.Logging ?? logging;
+
 		if (token) {
 			try {
 				jwt = (await jwtVerification?.jwtVerify?.(token, {}))?.payload;
@@ -68,7 +87,9 @@ export function HonoHttpAuthenticationDerive<
 						}
 					}
 					if (!valid) {
-						throw "Invalid token";
+						throw {
+							code: "invalid_token",
+						} as HonoHttpAuthenticationError;
 					}
 
 					context.set(HonoHttpAuthenticationBearerPrincipal, {
@@ -82,10 +103,14 @@ export function HonoHttpAuthenticationDerive<
 						},
 					});
 				}
-			} catch (e) {
+			} catch (exception) {
 				jwt = undefined;
-				error = serializeError(e);
-				unparseable = typeof e === "string" ? e : true;
+				error = serializeError(exception);
+				unparseable = typeof error === "string" ? error : true;
+
+				if (onError) {
+					await onError(context, exception as HonoHttpAuthenticationError);
+				}
 			}
 		}
 

@@ -187,7 +187,6 @@ export const { server } = await HonoHttpServer(
 				},
 			),
 );
-export const stream = streamHandle(server.app) as ReturnType<
-	typeof streamHandle
->;
+
+export const stream = env.AWS_REGION && (streamHandle(server.app) as unknown);
 export type MagmapHonoApp = typeof server.app;
