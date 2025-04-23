@@ -7,7 +7,6 @@ import { $$_traceId_$$ } from "../../../../server/logging/LoggingPlugins.mjs";
 export type HonoLoglayer = {
 	Variables: {
 		Logging: ILogLayer;
-		RequestLogging: ILogLayer;
 	} & RequestIdVariables;
 };
 

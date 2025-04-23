@@ -57,13 +57,13 @@ export class JwtVerificationJoseEnvs {
 		 * The keys must be in JWK format: `{ keys: [...] }`
 		 * @see {@link JwtSignatureJose}
 		 */
-		readonly JWT_VERIFICATION_JWKS_URL?: string,
-		readonly JWT_VERIFICATION_JWKS_CACHE_KEY?: string,
+		readonly JWT_VERIFICATION_JWKS_URL: string | undefined,
+		readonly JWT_VERIFICATION_JWKS_CACHE_KEY: string,
 	) {}
 }
 
 export class JwtVerificationNoop implements JwtVerificationInterface {
-	config = new JwtVerificationJoseEnvs();
+	config = new JwtVerificationJoseEnvs(undefined, "verify.json");
 	jwtVerify = null;
 	jwks = null;
 }
@@ -202,19 +202,15 @@ export class JwtVerificationJose {
 }
 
 export const SUPPORTED_PROTOCOLS = ["http", "file"] as const;
-export const JwtVerificationJwksUrlConfig = Config.string(
-	$$$JWT_VERIFICATION_JWKS_URL,
-).pipe(
-	Config.map((c) => envsubst(c)),
-	Config.withDescription(
-		`Oauth jwks_uri. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}`,
-	),
-	Config.withDefault(undefined),
-);
-
 export const JwtVerificationLayerConfig = Config.map(
 	Config.all([
-		JwtVerificationJwksUrlConfig,
+		Config.string($$$JWT_VERIFICATION_JWKS_URL).pipe(
+			Config.map((c) => envsubst(c)),
+			Config.withDescription(
+				`Oauth jwks_uri. Supported protocols: ${SUPPORTED_PROTOCOLS.join(", ")}`,
+			),
+			Config.withDefault(undefined),
+		),
 		Config.string($$$JWT_VERIFICATION_JWKS_CACHE_KEY).pipe(
 			Config.map((c) => envsubst(c)),
 			Config.withDescription(`JWKs cache key. Defaults to "verify.json".`),
@@ -235,7 +231,9 @@ export const JwtVerificationLayer = Layer.effect(
 		const console = yield* LoggingContext;
 		const logger = yield* console.logger;
 		const config = yield* JwtVerificationLayerConfig;
-		const jwkCache = (yield* JwkCache).cache("verify.json");
+		const jwkCache = (yield* JwkCache).cache(
+			config.JWT_VERIFICATION_JWKS_CACHE_KEY,
+		);
 		const mutex = yield* JwkLocalSynchronized;
 		const { ref, cache } = yield* mutex;
 

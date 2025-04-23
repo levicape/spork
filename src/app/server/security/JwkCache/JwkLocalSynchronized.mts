@@ -1,14 +1,22 @@
 import { Config, Effect, Ref } from "effect";
 import { Service } from "effect/Effect";
-import { type ExportedJWKSCache, exportJWK, generateKeyPair } from "jose";
+import {
+	type ExportedJWKSCache,
+	exportJWK,
+	generateKeyPair,
+	generateSecret,
+} from "jose";
+import VError from "verror";
 import { LoggingContext } from "../../logging/LoggingContext.mjs";
 import { JwtSignatureLayerConfig } from "../JwtSignature.mjs";
 
 const $$$JWK_LOCAL_SYNCHRONIZED_ALG = "JWK_LOCAL_SYNCHRONIZED_ALG";
 const $$$JWK_LOCAL_SYNCHRONIZED_CRV = "JWK_LOCAL_SYNCHRONIZED_CRV";
+const $$$JWK_LOCAL_SYNCHRONIZED_SECRET = "JWK_LOCAL_SYNCHRONIZED_SECRET";
 
 const JWK_LOCAL_ALG = "ES256";
 const JWK_LOCAL_CRV = "P-256";
+const JWK_LOCAL_SECRET = "HS512";
 
 /**
  * Configuration for the local synchronized JWK
@@ -25,6 +33,11 @@ export class JwkLocalSynchronizedEnvs {
 		 * @see {@link JWK_LOCAL_SYNCHRONIZED_CRV}
 		 */
 		readonly JWK_LOCAL_SYNCHRONIZED_CRV: string,
+		/**
+		 * Algorithm to use for the local synchronized JWK secret. Defaults to "HS512".
+		 * @see {@link JWK_LOCAL_SYNCHRONIZED_SECRET}
+		 */
+		readonly JWK_LOCAL_SYNCHRONIZED_SECRET: string,
 	) {}
 }
 
@@ -42,11 +55,22 @@ export const JwkLocalSynchronizedConfig = Config.map(
 			),
 			Config.withDefault("P-256"),
 		),
+		Config.string($$$JWK_LOCAL_SYNCHRONIZED_SECRET).pipe(
+			Config.withDescription(
+				`Algorithm to use for the local synchronized JWK secret. Defaults to "${JWK_LOCAL_SECRET}".`,
+			),
+			Config.withDefault("HS512"),
+		),
 	]),
-	([JWK_LOCAL_SYNCHRONIZED_ALG, JWK_LOCAL_SYNCHRONIZED_CRV]) =>
+	([
+		JWK_LOCAL_SYNCHRONIZED_ALG,
+		JWK_LOCAL_SYNCHRONIZED_CRV,
+		JWK_LOCAL_SYNCHRONIZED_SECRET,
+	]) =>
 		new JwkLocalSynchronizedEnvs(
 			JWK_LOCAL_SYNCHRONIZED_ALG,
 			JWK_LOCAL_SYNCHRONIZED_CRV,
+			JWK_LOCAL_SYNCHRONIZED_SECRET,
 		),
 );
 
@@ -57,12 +81,17 @@ export class JwkLocalSynchronized extends Service<JwkLocalSynchronized>()(
 			Effect.gen(function* () {
 				const console = yield* LoggingContext;
 				const logger = yield* console.logger;
-				const { JWK_LOCAL_SYNCHRONIZED_ALG, JWK_LOCAL_SYNCHRONIZED_CRV } =
-					yield* JwkLocalSynchronizedConfig;
+				const {
+					JWK_LOCAL_SYNCHRONIZED_ALG,
+					JWK_LOCAL_SYNCHRONIZED_CRV,
+					JWK_LOCAL_SYNCHRONIZED_SECRET,
+				} = yield* JwkLocalSynchronizedConfig;
 				const config = yield* JwtSignatureLayerConfig;
 
 				let keypair: CryptoKeyPair | undefined;
+				let secret: CryptoKey | undefined;
 				let publicJwk: JsonWebKey | undefined;
+
 				if (config?.JWT_SIGNATURE_JWK_URL?.toLowerCase() === "unload") {
 					logger
 						.withMetadata({ JwtVerificationLayer: { config } })
@@ -79,10 +108,27 @@ export class JwkLocalSynchronized extends Service<JwkLocalSynchronized>()(
 					publicJwk = yield* Effect.promise(() =>
 						exportJWK(isKeypair.publicKey),
 					);
+
+					const generatedSecret = yield* Effect.promise(() =>
+						generateSecret(JWK_LOCAL_SYNCHRONIZED_SECRET, {
+							extractable: true,
+						}),
+					);
+					if (generatedSecret instanceof CryptoKey) {
+						secret = generatedSecret;
+					} else {
+						logger
+							.withMetadata({ JwkLocalSynchronized: { generatedSecret } })
+							.error(
+								"Failed to generate secret. It must be representable as a crypto.CryptoKey",
+							);
+						throw new VError("Failed to generate secret");
+					}
 				}
 
 				return {
 					keypair: keypair as typeof keypair | undefined,
+					secret,
 					ref: yield* Ref.make<ExportedJWKSCache | null>(
 						publicJwk
 							? {

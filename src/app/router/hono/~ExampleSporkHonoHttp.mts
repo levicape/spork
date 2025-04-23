@@ -7,7 +7,7 @@ export const { server } = await HonoHttpServer(
 	createFactory<HonoHttp>(),
 	(app) => {
 		let news = app.get("/test123", async (c) => {
-			c.var.RequestLogging?.info("Hello, world!");
+			c.var.Logging?.info("Hello, world!");
 			c.json({ message: `Hello, ${c?.env ?? ""}!` });
 		});
 		return news;
