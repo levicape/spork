@@ -125,7 +125,7 @@ const ROUTE_MAP = ({
 const ATLASFILE_PATHS = {
 	routes: {
 		content: ROUTE_MAP,
-		path: "atlas.routes.json",
+		path: "polly.routes.json",
 	},
 } as const;
 
@@ -656,11 +656,11 @@ export = async () => {
 								// 		return all([appconfigEnvironment]).apply(([appconfigenvironment]) => {
 								// 			const applicationName = appconfigenvironment.AWS_APPCONFIG_APPLICATION;
 								// 			const environmentName = appconfigenvironment.AWS_APPCONFIG_ENVIRONMENT;
-								// 			return interpolate`/applications/${applicationName}/environments/${environmentName}/configurations/${atlas[file].configuration.name}`;
+								// 			return interpolate`/applications/${applicationName}/environments/${environmentName}/configurations/${polly[file].configuration.name}`;
 								// 		});
 								// 	};
 
-								// 	for (const af of Object.keys(atlas)) {
+								// 	for (const af of Object.keys(polly)) {
 								// 		if (af) {
 								// 			prefetch.push(af);
 								// 		}

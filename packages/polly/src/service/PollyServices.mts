@@ -5,7 +5,7 @@
 // import { deserializeError, serializeError } from "serialize-error";
 // import { env, process } from "std-env";
 // import VError from "verror";
-// import { AtlasEnvironmentZod } from "../AtlasEnvironment.mjs";
+// import { PollyEnvironmentZod } from "../PollyEnvironment.mjs";
 // import {
 // 	type Route,
 // 	type Service,
@@ -17,7 +17,7 @@
 // /**
 //  * Internal data structure for each Topology entry
 //  */
-// export type AtlasPrototype = {
+// export type PollyPrototype = {
 // 	["~protocol"]?: string;
 // 	["~hostname"]: string;
 // 	["~port"]?: number;
@@ -26,7 +26,7 @@
 // /**
 //  * Maps a Topology entry to a Route
 //  */
-// export type AtlasRoutePaths<Paths extends Prefix = Prefix> = Record<
+// export type PollyRoutePaths<Paths extends Prefix = Prefix> = Record<
 // 	Paths,
 // 	Route
 // >;
@@ -34,15 +34,15 @@
 // /**
 //  * Defines a mapping of services to their respective route paths.
 //  */
-// export type AtlasRouteMap<Paths extends Prefix = Prefix> = Record<
+// export type PollyRouteMap<Paths extends Prefix = Prefix> = Record<
 // 	Service,
-// 	AtlasRoutePaths<Paths>
+// 	PollyRoutePaths<Paths>
 // >;
 
 // /**
 //  * Client API that each Topology entry implements
 //  */
-// export interface AtlasMap {
+// export interface PollyMap {
 // 	/**
 // 	 * @returns Computed hostname of Topology instance
 // 	 */
@@ -53,9 +53,9 @@
 // 	instance: () => string;
 // }
 
-// export type AtlasTopology<Paths extends Prefix> = Record<Paths, AtlasMap>;
-// export type AtlasConfiguration<Paths extends Prefix> = {
-// 	Routes: AtlasRouteMap<Paths>[keyof AtlasRouteMap<Paths>];
+// export type PollyTopology<Paths extends Prefix> = Record<Paths, PollyMap>;
+// export type PollyConfiguration<Paths extends Prefix> = {
+// 	Routes: PollyRouteMap<Paths>[keyof PollyRouteMap<Paths>];
 // };
 
 // function deferExit() {
@@ -71,51 +71,51 @@
 // }
 
 // /**
-//  * AtlasRoutes is a function that takes an map of routes and returns a topology of routes.
-//  * It will also replace the routes with the ones in the ATLAS_ROUTES env var if it is set, allowing for Service Discovery.
+//  * PollyRoutes is a function that takes an map of routes and returns a topology of routes.
+//  * It will also replace the routes with the ones in the POLLY_ROUTES env var if it is set, allowing for Service Discovery.
 //  * @param routes - The map of routes to use.
 //  * @returns A topology of routes.
 //  *
-//  * @see {@link AtlasEnvironment}
+//  * @see {@link PollyEnvironment}
 //  */
-// export function AtlasRoutes<Paths extends Prefix>(
-// 	routes: AtlasRoutePaths<Paths>,
-// ): AtlasTopology<Paths> {
+// export function PollyRoutes<Paths extends Prefix>(
+// 	routes: PollyRoutePaths<Paths>,
+// ): PollyTopology<Paths> {
 // 	///
 // 	// Parse environment
 // 	//
-// 	const parsedEnv = AtlasEnvironmentZod.safeParse(env);
-// 	const { ATLAS_ROUTES, ATLAS_CADDYFILE } = parsedEnv.data ?? {};
+// 	const parsedEnv = PollyEnvironmentZod.safeParse(env);
+// 	const { POLLY_ROUTES, POLLY_CADDYFILE } = parsedEnv.data ?? {};
 // 	if (!parsedEnv.success) {
 // 		console.error(
-// 			`AtlasEnvZod failed to parse env: ${inspect(parsedEnv.error.flatten(), { depth: null })}\n`,
+// 			`PollyEnvZod failed to parse env: ${inspect(parsedEnv.error.flatten(), { depth: null })}\n`,
 // 		);
 
 // 		deferExit();
 // 		throw new VError(
 // 			deserializeError(parsedEnv.error),
-// 			"AtlasEnvZod failed to parse env",
+// 			"PollyEnvZod failed to parse env",
 // 		);
 // 	}
 // 	///
-// 	// Resolve ATLAS_ROUTES
+// 	// Resolve POLLY_ROUTES
 // 	//
 // 	let resolved = routes as Record<
 // 		Paths,
-// 		AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>]
+// 		PollyRoutePaths<Paths>[keyof PollyRoutePaths<Paths>]
 // 	>;
-// 	if (ATLAS_ROUTES) {
+// 	if (POLLY_ROUTES) {
 // 		///
 // 		// Read file
 // 		//
-// 		const filepath = fileURLToPath(ATLAS_ROUTES);
+// 		const filepath = fileURLToPath(POLLY_ROUTES);
 // 		let file: string | undefined;
 // 		try {
 // 			file = readFileSync(filepath, "utf-8");
 // 			resolved = destr(file);
 // 		} catch (error) {
 // 			console.error(
-// 				`Atlas failed to parse ATLAS_ROUTES: ${inspect(
+// 				`Polly failed to parse POLLY_ROUTES: ${inspect(
 // 					{
 // 						filepath,
 // 						file,
@@ -137,7 +137,7 @@
 
 // 			throw new VError(
 // 				deserializeError(error),
-// 				"Atlas failed to parse ATLAS_ROUTES",
+// 				"Polly failed to parse POLLY_ROUTES",
 // 			);
 // 		}
 
@@ -146,7 +146,7 @@
 // 		//
 // 		const result = RoutePathsZod.safeParse(resolved);
 // 		if (!result.success) {
-// 			console.error(`Filename: ${ATLAS_ROUTES} \n`);
+// 			console.error(`Filename: ${POLLY_ROUTES} \n`);
 // 			console.error("Raw: \n");
 // 			console.error(inspect(file, { depth: null }));
 // 			console.error("\n Parsed:\n");
@@ -164,23 +164,23 @@
 // 	///
 // 	// Caddyfile transform
 // 	//
-// 	if (ATLAS_CADDYFILE) {
-// 		console.info(`Atlas: Appending Caddyfile to ${ATLAS_CADDYFILE}\n`);
+// 	if (POLLY_CADDYFILE) {
+// 		console.info(`Polly: Appending Caddyfile to ${POLLY_CADDYFILE}\n`);
 // 		const caddy = Object.entries(resolved)
 // 			.map(([path, route]) => {
 // 				let routeObject =
-// 					route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
+// 					route as PollyRoutePaths<Paths>[keyof PollyRoutePaths<Paths>];
 // 				return CaddyfileReverseProxy(path, routeObject);
 // 			})
 // 			.join("\n");
 // 		console.info(`Caddyfile:\n${caddy}\n`);
-// 		appendFileSync(ATLAS_CADDYFILE, caddy);
+// 		appendFileSync(POLLY_CADDYFILE, caddy);
 // 	}
 
 // 	return Object.entries(resolved).reduce(
 // 		(acc, [path, route]) => {
 // 			let routeObject =
-// 				route as AtlasRoutePaths<Paths>[keyof AtlasRoutePaths<Paths>];
+// 				route as PollyRoutePaths<Paths>[keyof PollyRoutePaths<Paths>];
 // 			acc[path as Paths] = {
 // 				url: () =>
 // 					[
@@ -191,19 +191,19 @@
 // 				["~protocol"]: routeObject.protocol,
 // 				["~hostname"]: routeObject.hostname,
 // 				["~port"]: routeObject.port,
-// 			} satisfies AtlasMap;
+// 			} satisfies PollyMap;
 // 			return acc;
 // 		},
-// 		{} as AtlasTopology<Paths>,
+// 		{} as PollyTopology<Paths>,
 // 	);
 // }
 
-// export const Atlas = {
-// 	routes: AtlasRoutes,
+// export const Polly = {
+// 	routes: PollyRoutes,
 // } as const;
-// export const a = Atlas;
+// export const a = Polly;
 
-// export * from "../AtlasEnvironment.mjs";
+// export * from "../PollyEnvironment.mjs";
 // export * from "./routes/RouteResource.mjs";
 // export * from "./transform/caddy/Caddyfile.mjs";
 // export * from "../transform/Envsubst.mjs";

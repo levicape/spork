@@ -25,8 +25,8 @@ const compileAndPublish: CompileAndPublishProps[] = [
 		packageName: "@levicape/spork",
 	},
 	{
-		packageName: "@levicape/spork-atlas",
-		cwd: "packages/atlas",
+		packageName: "@levicape/spork-polly",
+		cwd: "packages/polly",
 	},
 	{
 		packageName: "@levicape/protobuf-spork-stands",

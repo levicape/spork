@@ -1,10 +1,10 @@
 {
   "name": "@levicape/spork",
   "description": "Server(less) framework for Node.js",
-  "version": "0.0.0-local.0",
+  "version": "0.16.3",
   "author": "Pedro Cardona",
   "bin": {
-    "@levicape/spork": "module/cli/bin.mjs"
+    "spork": "module/cli/bin.mjs"
   },
   "config": {
     "packagemanager": "pnpm",
@@ -58,7 +58,7 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:lint",
     "@levicape/fourtwo": "catalog:",
-    "@levicape/spork-atlas": "workspace:",
+    "@levicape/spork-polly": "workspace:",
     "@types/node": "catalog:types",
     "@types/verror": "catalog:types",
     "depcheck": "catalog:package",
@@ -96,7 +96,7 @@
       "build:tsc": {
         "dependsOn": [
           "generate:protocols",
-          "@levicape/spork-atlas:build:module"
+          "@levicape/spork-polly:build:module"
         ]
       },
       "dx:lint": {
@@ -120,7 +120,7 @@
           "@levicape/spork-canary:dx:precommit",
           "@levicape/spork-magmap-io:dx:precommit",
           "@levicape/spork-magmap-ui:dx:precommit",
-          "@levicape/spork-atlas:dx:precommit",
+          "@levicape/spork-polly:dx:precommit",
           "@levicape/rate-limit-dynamodb:dx:precommit"
         ]
       },
@@ -143,7 +143,7 @@
           "@levicape/spork-canary:nx:compile",
           "@levicape/spork-magmap-io:nx:compile",
           "@levicape/spork-magmap-ui:nx:compile",
-          "@levicape/spork-atlas:nx:compile",
+          "@levicape/spork-polly:nx:compile",
           "@levicape/rate-limit-dynamodb:nx:compile"
         ]
       },
@@ -158,7 +158,7 @@
           "@levicape/spork-canary:nx:test",
           "@levicape/spork-magmap-io:nx:test",
           "@levicape/spork-magmap-ui:nx:test",
-          "@levicape/spork-atlas:nx:test",
+          "@levicape/spork-polly:nx:test",
           "@levicape/rate-limit-dynamodb:nx:test"
         ]
       },
@@ -183,10 +183,7 @@
       ]
     }
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  },
-  "repository": "github:levicape/spork",
+  "repository": "levicape/spork.git",
   "scripts": {
     "build": "$npm_package_config_packageexecutor nx nx:compile",
     "build:esbuild": "[ \"$ESBUILD_DISABLED\" = \"1\" ] && echo 'ESBUILD_DISABLED is set to 1. Skipping esbuild' || $npm_package_config_packageexecutor esbuild $npm_package_config_esbuildpaths --outdir=output/esbuild/$npm_package_config_esbuildplatform --outbase=module --platform=$npm_package_config_esbuildplatform --target=es2023 --format=esm --bundle --minify --packages=$npm_package_config_esbuildpackages --external:@aws-sdk --external:@smithy $npm_package_config_esbuildargs",

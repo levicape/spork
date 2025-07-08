@@ -8,7 +8,7 @@
     "packageexecutor": "pnpm exec",
     "packagescript": "pnpm run",
     "binspork": "node node_modules/@levicape/spork/module/cli/bin.mjs",
-    "binatlas": "node module/http/Atlas.mjs",
+    "binpolly": "node module/http/Polly.mjs",
     "outpath": "./module",
     "srcpaths": "./src",
     "lintpaths": "./src",
@@ -24,7 +24,7 @@
     "@hono/zod-validator": "catalog:hono",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "workspace:",
-    "@levicape/spork-atlas": "workspace:",
+    "@levicape/spork-polly": "workspace:",
     "effect": "catalog:effect",
     "hono": "catalog:hono",
     "hono-rate-limiter": "catalog:hono",
@@ -53,10 +53,10 @@
   "license": "AGPL-3.0-only",
   "nx": {
     "targets": {
-      "atlas": {
+      "polly": {
         "dependsOn": [
           "build:module",
-          "@levicape/spork-atlas:build:module"
+          "@levicape/spork-polly:build:module"
         ]
       },
       "build:module": {
@@ -67,7 +67,7 @@
       "build:tsc": {
         "dependsOn": [
           "@levicape/spork:build:module",
-          "@levicape/spork-atlas:build:module"
+          "@levicape/spork-polly:build:module"
         ]
       },
       "dx:lint": {
@@ -123,7 +123,6 @@
   },
   "repository": "github:levicape/spork",
   "scripts": {
-    "atlas": "$npm_package_config_binatlas",
     "build": "$npm_package_config_packageexecutor nx nx:compile",
     "build:tsc": "$npm_package_config_packageexecutor tsc",
     "clean": "$npm_package_config_packageexecutor nx nx:clean --verbose --no-cloud",
@@ -146,6 +145,7 @@
     "package:fix": "$npm_package_config_packageexecutor nx exec -- syncpack fix-mismatches",
     "package:format": "$npm_package_config_packageexecutor syncpack format",
     "package:update": "$npm_package_config_packageexecutor syncpack update",
+    "polly": "$npm_package_config_binpolly",
     "precommit": "$npm_package_config_packageexecutor nx dx:prepublish  --verbose --no-cloud",
     "predx:lint": "$npm_package_config_packageexecutor nx clean",
     "prelint": "$npm_package_config_packageexecutor biome format $npm_package_config_lintpaths",

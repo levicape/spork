@@ -16,8 +16,8 @@
     "@hono/node-server": "catalog:hono",
     "@levicape/paloma": "catalog:",
     "@levicape/spork": "workspace:",
-    "@levicape/spork-atlas": "workspace:",
     "@levicape/spork-magmap-io": "workspace:",
+    "@levicape/spork-polly": "workspace:",
     "clsx": "catalog:web-style",
     "destr": "catalog:parse-json",
     "effect": "catalog:effect",
@@ -65,7 +65,7 @@
         "dependsOn": [
           "@levicape/spork:build:module",
           "@levicape/spork-magmap-io:build:module",
-          "@levicape/spork-atlas:build:module"
+          "@levicape/spork-polly:build:module"
         ]
       },
       "staticwww:build": {

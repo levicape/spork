@@ -84,15 +84,15 @@ jobs:
         name: Publish to npm
         continue-on-error: true
         run: pnpm publish --no-git-checks;
-  publish_spork-atlas:
-    name: "@levicape/spork-atlas: Compile and publish to Github"
+  publish_spork-polly:
+    name: "@levicape/spork-polly: Compile and publish to Github"
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
     defaults:
       run:
-        working-directory: packages/atlas
+        working-directory: packages/polly
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -241,7 +241,7 @@ jobs:
 ########################################
 #**:_$~- {"$$":"head","filename":"[release(released)] - Publish - [@levicape_spork].yml","source":"iac/workflows/github/release/Publish.js"}
 #**:_$~- {"$$":"script","generator":"codegen/github/GenerateGithubWorkflow.mjs"}
-#**:_$~- {"$$":"body","hashed":"08ed750d0b0496ab115c5455b9bc6d25fe96ef1b246c8e026750c581f62c989f"}
-#**:_$~- {"$$":"footer","started":"2025-04-01T07:03:10.183Z","now":"2025-04-01T07:03:10.272Z","elapsed":"89ms"}
+#**:_$~- {"$$":"body","hashed":"991e080263e6d88cd367f215c56313111a2b1f91d0c890b0bb2cde0bc32eaebc"}
+#**:_$~- {"$$":"footer","started":"2025-07-08T04:08:27.870Z","now":"2025-07-08T04:08:27.879Z","elapsed":"9ms"}
 # END OF GENERATED FILE
 

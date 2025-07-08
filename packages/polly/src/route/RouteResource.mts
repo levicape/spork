@@ -143,4 +143,4 @@ export const RouteMapZod = z.record(
 	),
 );
 
-export const RoutePathsZod = RouteMapZod.valueType;
+export const RoutePathsZod = RouteMapZod.valueSchema;

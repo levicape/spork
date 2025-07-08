@@ -50,8 +50,8 @@ export const get__ = async (props: GetProps) => {
 
 	let url: URL | undefined;
 	try {
-		url = ServiceClient["~"].Spork.Magmap.atlas.$url();
-		const data = await ServiceClient["~"].Spork.Magmap.atlas.$get(
+		url = ServiceClient["~"].Spork.Magmap.polly.$url();
+		const data = await ServiceClient["~"].Spork.Magmap.polly.$get(
 			{},
 			{
 				fetch: oidcFetch,
@@ -63,7 +63,7 @@ export const get__ = async (props: GetProps) => {
 		debugEnabled &&
 			console.log({
 				ServiceClient: {
-					atlasfiles: data.status,
+					pollyfiles: data.status,
 					response,
 				},
 			});
@@ -160,7 +160,7 @@ const Loader = () => {
 	);
 };
 
-const AtlasData: FC<{
+const PollyData: FC<{
 	data: ReturnType<typeof get__>;
 }> = ({ data }) => {
 	const response = use(data);
@@ -177,8 +177,8 @@ const AtlasData: FC<{
 	);
 };
 
-// type MagmapAtlasfile = Awaited<ReturnType<typeof GetMagmapAtlasfile>>;
-export const MagmapAtlas = () => {
+// type MagmapPollyfile = Awaited<ReturnType<typeof GetMagmapPollyfile>>;
+export const MagmapPolly = () => {
 	const [revalidate, setRevalidate] = useState(Date.now());
 	const { userReady, oidcFetch } = useOidcClient();
 	const formatMessage = useFormatMessage();
@@ -212,21 +212,21 @@ export const MagmapAtlas = () => {
 						>
 							<h3 className={clsx("font-bold", "text-md", "md:text-lg")}>
 								{formatMessage({
-									id: "atlas.$MagmapAtlas.error.title",
+									id: "polly.$MagmapPolly.error.title",
 									defaultMessage: "Error loading",
 									description: "Error boundary heading",
 								})}
 							</h3>
 							<p className={clsx("hidden", "md:block")}>
 								{formatMessage({
-									id: "atlas.$MagmapAtlas.error.content",
+									id: "polly.$MagmapPolly.error.content",
 									defaultMessage: "Could not fetch",
 								})}
 							</p>
 							<div className={clsx("size-1", "invisible")} />
 							<Button color={"error"} variant={"link"} onClick={onRetry}>
 								{formatMessage({
-									id: "atlas.$MagmapAtlas.error.refresh",
+									id: "polly.$MagmapPolly.error.refresh",
 									defaultMessage: "Refresh",
 								})}
 							</Button>
@@ -235,7 +235,7 @@ export const MagmapAtlas = () => {
 						<details className={clsx("w-full")}>
 							<summary className={clsx("text-sm")}>
 								{formatMessage({
-									id: "atlas.$MagmapAtlas.error.summary",
+									id: "polly.$MagmapPolly.error.summary",
 									defaultMessage: "Click to view details",
 								})}
 							</summary>
@@ -302,7 +302,7 @@ export const MagmapAtlas = () => {
 			}}
 		>
 			<Suspense fallback={<Loader />}>
-				<AtlasData data={data} />
+				<PollyData data={data} />
 			</Suspense>
 		</ErrorBoundary>
 	);

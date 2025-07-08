@@ -1,12 +1,12 @@
 #!/usr/bin/env -S node --no-warnings --watch
 
-import { a } from "@levicape/spork-atlas";
+import { p } from "@levicape/spork-polly";
 import { env } from "std-env";
 
 const { MAGMAP_HTTP_HOST, MAGMAP_UI_HOST } = env;
 
 export const HTTP_BASE_PATH = "/~/Spork/Magmap";
-export const MagmapRoutemap = a.routes({
+export const MagmapRoutemap = p.routes({
 	"/": {
 		$kind: "StaticRouteResource",
 		hostname: `${MAGMAP_UI_HOST}`,

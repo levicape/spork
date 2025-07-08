@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import type { Context } from "hono";
 import { Fragment } from "hono/jsx/jsx-runtime";
-import { MagmapAtlas } from "./$MagmapAtlas";
+import { MagmapPolly } from "./$MagmapPolly";
 
-export default function AtlasPage(_c: Context) {
+export default function PollyPage(_c: Context) {
 	return (
 		<main>
 			<Fragment>
@@ -36,8 +36,8 @@ export default function AtlasPage(_c: Context) {
 					)}
 				>
 					<header className={clsx("card-title")}>
-						<h3>Magmap Atlas</h3>
-						<MagmapAtlas />
+						<h3>Magmap Polly</h3>
+						<MagmapPolly />
 					</header>
 				</article>
 			</Fragment>

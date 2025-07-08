@@ -20,7 +20,7 @@ import { HTTPException } from "hono/http-exception";
 import { deserializeError, serializeError } from "serialize-error";
 import { env } from "std-env";
 import { z } from "zod";
-import { HTTP_BASE_PATH, MagmapRoutemap } from "./Atlas.mjs";
+import { HTTP_BASE_PATH, MagmapRoutemap } from "./Polly.mjs";
 // import { getConnInfo } from "@hono/node-server/conninfo";
 
 const getConnInfo = (c: Parameters<typeof SporkRateLimiterKeyGenerator>[0]) => {
@@ -110,7 +110,7 @@ export const { server } = await HonoHttpServer(
 				return c.json({
 					data: {
 						magmap: {
-							atlas: {
+							polly: {
 								routes: "elo",
 							},
 						},
@@ -122,11 +122,11 @@ export const { server } = await HonoHttpServer(
 					return principal.$case !== "anonymous";
 				}),
 			)
-			.get("/atlas", async (c) => {
+			.get("/polly", async (c) => {
 				return c.json({
 					data: {
 						magmap: {
-							atlas: {
+							polly: {
 								routes: MagmapRoutemap,
 							},
 						},
@@ -134,7 +134,7 @@ export const { server } = await HonoHttpServer(
 				});
 			})
 			.post(
-				"/atlas/routes/!/status",
+				"/polly/routes/!/status",
 				zValidator(
 					"query",
 					z.object({
@@ -162,7 +162,7 @@ export const { server } = await HonoHttpServer(
 						MagmapRoutemap[route as "/~/Spork/Magmap"].instance(),
 					).catch((e) => {
 						c.var.Logging?.withMetadata({
-							AtlasRoutes: {
+							PollyRoutes: {
 								status: {
 									error: serializeError(e),
 								},
@@ -174,7 +174,7 @@ export const { server } = await HonoHttpServer(
 					return c.json({
 						data: {
 							magmap: {
-								atlas: {
+								polly: {
 									[route]: {
 										liveness:
 											liveness instanceof Response

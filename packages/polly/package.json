@@ -1,7 +1,7 @@
 {
-  "name": "@levicape/spork-atlas",
+  "name": "@levicape/spork-polly",
   "description": "Routing configuration module",
-  "version": "0.0.0-local.0",
+  "version": "0.16.2",
   "author": "Pedro Cardona",
   "config": {
     "packagemanager": "pnpm",
@@ -30,7 +30,7 @@
     "node": "22"
   },
   "exports": {
-    ".": "./module/Atlas.mjs",
+    ".": "./module/Polly.mjs",
     "./*": "./module/*.mjs",
     "./Atlas": null
   },
@@ -95,9 +95,6 @@
         ]
       }
     }
-  },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
   },
   "repository": "github:levicape/spork",
   "scripts": {

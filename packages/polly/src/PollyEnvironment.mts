@@ -20,39 +20,39 @@ if (isNode) {
 const { R_OK, W_OK } = constants;
 
 /**
- * AtlasEnvironment configuration interface for environment variables.
- * @see {@link AtlasEnvironmentZod}
- * @see {@link Atlas}
+ * PollyEnvironment configuration interface for environment variables.
+ * @see {@link PollyEnvironmentZod}
+ * @see {@link Polly}
  */
-export interface AtlasTopologyEnvironment {
+export interface PollyTopologyEnvironment {
 	/**
-	 * ATLAS_ROUTES is a URL to a JSON file that contains an Atlas configuration.
+	 * POLLY_ROUTES is a URL to a JSON file that contains an Polly configuration.
 	 * Supported protocols:
 	 * - file://
 	 */
-	ATLAS_ROUTES?: string;
+	POLLY_ROUTES?: string;
 	/**
-	 * ATLAS_CADDYFILE is an optional path to a Caddyfile.
-	 * Atlas will edit the file at this path to include the routes
+	 * POLLY_CADDYFILE is an optional path to a Caddyfile.
+	 * Polly will edit the file at this path to include the routes
 	 * in Caddyfile format when instantiated.
 	 */
-	ATLAS_CADDYFILE?: string;
+	POLLY_CADDYFILE?: string;
 	/**
-	 * ATLAS_CADDYFILE_LOCAL replaces the file and adds a local block for certificates.
+	 * POLLY_CADDYFILE_LOCAL replaces the file and adds a local block for certificates.
 	 */
-	ATLAS_CADDYFILE_REPLACE?: string;
+	POLLY_CADDYFILE_REPLACE?: string;
 	/**
-	 * ATLAS_CADDYFILE_DOMAIN adds a domain block around the rendered locations.
+	 * POLLY_CADDYFILE_DOMAIN adds a domain block around the rendered locations.
 	 */
-	ATLAS_CADDYFILE_DOMAIN?: string;
+	POLLY_CADDYFILE_DOMAIN?: string;
 }
 
 /**
- * AtlasEnvironmentZod parses and validates environment variables.
- * @see {@link AtlasTopologyEnvironment}
+ * PollyEnvironmentZod parses and validates environment variables.
+ * @see {@link PollyTopologyEnvironment}
  */
-export const AtlasEnvironmentZod = z.object({
-	ATLAS_ROUTES: z
+export const PollyEnvironmentZod = z.object({
+	POLLY_ROUTES: z
 		.string()
 		.regex(/^file:\/\/|^https?:\/\//)
 		.optional()
@@ -66,7 +66,7 @@ export const AtlasEnvironmentZod = z.object({
 							accessSync(filepath, R_OK);
 						} catch (e) {
 							process.stderr?.write(
-								`ATLAS_ROUTES (${path}) -> ${filepath} is not readable: ${e}\n`,
+								`POLLY_ROUTES (${path}) -> ${filepath} is not readable: ${e}\n`,
 							);
 							return false;
 						}
@@ -74,9 +74,9 @@ export const AtlasEnvironmentZod = z.object({
 				}
 				return true;
 			},
-			{ message: "ATLAS_ROUTES is not readable" },
+			{ message: "POLLY_ROUTES is not readable" },
 		),
-	ATLAS_CADDYFILE: z
+	POLLY_CADDYFILE: z
 		.string()
 		.optional()
 		.refine(
@@ -87,16 +87,16 @@ export const AtlasEnvironmentZod = z.object({
 						accessSync(path, W_OK);
 					} catch (e) {
 						process.stderr?.write(
-							`ATLAS_CADDYFILE (${path}) is not writable: ${e}\n`,
+							`POLLY_CADDYFILE (${path}) is not writable: ${e}\n`,
 						);
 						return false;
 					}
 				}
 				return true;
 			},
-			{ message: "ATLAS_CADDYFILE is not writable" },
+			{ message: "POLLY_CADDYFILE is not writable" },
 		),
-	ATLAS_CADDYFILE_DOMAIN: z
+	POLLY_CADDYFILE_DOMAIN: z
 		.string()
 		.optional()
 		.transform((path) => (path ? envsubst(path) : undefined))
@@ -104,13 +104,13 @@ export const AtlasEnvironmentZod = z.object({
 			(path) => {
 				if (path?.includes(" ")) {
 					process.stderr?.write(
-						`ATLAS_CADDYFILE_DOMAIN (${path}) contains spaces\n`,
+						`POLLY_CADDYFILE_DOMAIN (${path}) contains spaces\n`,
 					);
 					return false;
 				}
 				return true;
 			},
-			{ message: "ATLAS_CADDYFILE_DOMAIN contains spaces" },
+			{ message: "POLLY_CADDYFILE_DOMAIN contains spaces" },
 		),
-	ATLAS_CADDYFILE_REPLACE: z.coerce.boolean().optional(),
+	POLLY_CADDYFILE_REPLACE: z.coerce.boolean().optional(),
 });

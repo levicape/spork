@@ -383,9 +383,9 @@ importers:
       '@levicape/fourtwo':
         specifier: 'catalog:'
         version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)
-      '@levicape/spork-atlas':
+      '@levicape/spork-polly':
         specifier: 'workspace:'
-        version: link:packages/atlas
+        version: link:packages/polly
       '@types/node':
         specifier: catalog:types
         version: 22.13.17
@@ -486,7 +486,7 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.1(effect@3.14.1))(@effect/rpc@0.55.2(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(effect@3.14.1))(@effect/rpc@0.55.2(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(pg@8.14.0)(projen@0.71.163)
+        version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)
       yaml:
         specifier: catalog:parse-yaml
         version: 2.7.1
@@ -556,9 +556,9 @@ importers:
     dependencies:
       '@levicape/fourtwo':
         specifier: 'catalog:'
-        version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.4(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(effect@3.14.4))(@effect/rpc@0.55.2(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(@effect/platform@0.80.4(effect@3.14.4))(effect@3.14.4))(pg@8.14.0)(projen@0.71.163)
+        version: 0.10.2-main.2(@effect/cluster@0.29.4(@effect/platform@0.80.1(effect@3.14.1))(@effect/rpc@0.55.2(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(effect@3.14.1))(@effect/rpc@0.55.2(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/sql@0.33.1(@effect/experimental@0.44.1(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(@effect/platform@0.80.1(effect@3.14.1))(effect@3.14.1))(pg@8.14.0)(projen@0.71.163)
 
-  packages/atlas:
+  packages/polly:
     dependencies:
       destr:
         specifier: catalog:parse-json
@@ -577,7 +577,7 @@ importers:
         version: 1.10.1
       zod:
         specifier: catalog:schema-zod
-        version: 4.0.0-beta.20250418T202744
+        version: 3.25.0-beta.20250519T094321
     devDependencies:
       '@biomejs/biome':
         specifier: catalog:lint
@@ -653,9 +653,9 @@ importers:
       '@levicape/spork':
         specifier: 'workspace:'
         version: link:../../..
-      '@levicape/spork-atlas':
+      '@levicape/spork-polly':
         specifier: 'workspace:'
-        version: link:../../../packages/atlas
+        version: link:../../../packages/polly
       effect:
         specifier: catalog:effect
         version: 3.14.4
@@ -708,12 +708,12 @@ importers:
       '@levicape/spork':
         specifier: 'workspace:'
         version: link:../../..
-      '@levicape/spork-atlas':
-        specifier: 'workspace:'
-        version: link:../../../packages/atlas
       '@levicape/spork-magmap-io':
         specifier: 'workspace:'
         version: link:../magmap-io
+      '@levicape/spork-polly':
+        specifier: 'workspace:'
+        version: link:../../../packages/polly
       clsx:
         specifier: catalog:web-style
         version: 2.1.1
@@ -5761,6 +5761,9 @@ packages:
 
   zod@3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
+
+  zod@3.25.0-beta.20250519T094321:
+    resolution: {integrity: sha512-FvDMTcBUhM/CZjeT0HJQ8M6KbSGRPHqEx2yLWx9kDU3ufoTiq7tQAI8UyBJ/82CBp1mv6tKVWp00ll6zV/WxmA==}
 
   zod@4.0.0-beta.20250418T202744:
     resolution: {integrity: sha512-LFBAGnymB/lmgrvO/6RrcYbkvxulIxaVHyrNWyZ0MTDIxr6IrXAXfZ0pzmBB3E7FlmOEX08n6LPIIZuHcxfwUA==}
@@ -11638,6 +11641,8 @@ snapshots:
   yocto-queue@1.2.0: {}
 
   zod@3.24.2: {}
+
+  zod@3.25.0-beta.20250519T094321: {}
 
   zod@4.0.0-beta.20250418T202744:
     dependencies:

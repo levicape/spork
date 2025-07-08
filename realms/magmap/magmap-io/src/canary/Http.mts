@@ -3,8 +3,8 @@ import { LoggingContext } from "@levicape/paloma/runtime/server/RuntimeContext";
 import { withStructuredLogging } from "@levicape/paloma/runtime/server/loglayer/LoggingContext";
 import { Context, Effect } from "effect";
 import { hc } from "hono/client";
-import { HTTP_BASE_PATH, MagmapRoutemap } from "../http/Atlas.mjs";
 import type { MagmapHonoApp } from "../http/HonoApp.mjs";
+import { HTTP_BASE_PATH, MagmapRoutemap } from "../http/Polly.mjs";
 
 const client = hc<MagmapHonoApp>(MagmapRoutemap[HTTP_BASE_PATH].url());
 // @ts-ignore
@@ -60,11 +60,11 @@ export const healthcheck = new Canary(
 			trace.metadataOnly([
 				events,
 				{ a: 1, b: "Y" },
-				client["~"].Spork.Magmap.atlas.$url({}),
+				client["~"].Spork.Magmap.polly.$url({}),
 				{ a: "Z", b: 2 },
 			]);
 			{
-				const response = await client["~"].Spork.Magmap.atlas.$get({
+				const response = await client["~"].Spork.Magmap.polly.$get({
 					query: "sesame",
 				});
 				const json = await response.json();
@@ -72,7 +72,7 @@ export const healthcheck = new Canary(
 			}
 
 			{
-				const response = await client["~"].Spork.Magmap.atlas.$get({
+				const response = await client["~"].Spork.Magmap.polly.$get({
 					query: "spaghetti" as "sesame",
 				});
 				const json = await response.json();
